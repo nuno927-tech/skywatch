@@ -2,8 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title>SatMap — Live Satellite &amp; ISS Tracker</title>
+
+<!-- PWA / installability -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#05070f" />
+<meta name="description" content="Track the ISS and hundreds of satellites in real time on a 3D globe." />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SatMap" />
 <style>
   :root{
     --bg:#05070f; --panel:rgba(12,18,34,.72); --panel-solid:#0b1122;
@@ -14,8 +25,12 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);overflow:hidden}
-  #globe{position:fixed;inset:0}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);overflow:hidden;
+    overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  #globe{position:fixed;inset:0;touch-action:none}
+  #backdrop{display:none}
+  .sheet-handle{display:none}
   .mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 
   /* Top bar */
@@ -104,13 +119,69 @@
   #gotome:hover{background:rgba(90,209,255,.18);box-shadow:var(--glow)}
   #gotome:active{transform:scale(.92)}
 
-  #err{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:40;
+  #err{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:70;
     background:rgba(120,30,30,.9);border:1px solid #ff6b6b;color:#ffdede;padding:9px 16px;
     border-radius:10px;font-size:13px;display:none;max-width:90vw}
-  @media (max-width:720px){
-    #overhead{width:min(300px,46vw)} #controls{width:min(260px,46vw)}
-    #detail{display:none!important} #clocks{gap:12px} .clock span{font-size:14px}
-    #brand .tag{display:none}
+
+  /* Install button (shown when installable) */
+  #installbtn{display:none;margin-top:10px;width:100%;padding:10px;border-radius:10px;
+    border:1px solid var(--accent);background:rgba(90,209,255,.14);color:var(--accent);
+    font-size:12px;font-weight:600;cursor:pointer}
+  #installbtn:hover{background:rgba(90,209,255,.24)}
+
+  /* Mobile bottom toolbar (hidden on desktop) */
+  #mbar{display:none}
+
+  /* ============ MOBILE LAYOUT ============ */
+  @media (max-width:820px){
+    #topbar{padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;gap:10px;
+      background:linear-gradient(180deg,rgba(3,6,15,.92),rgba(3,6,15,0))}
+    #brand h1{font-size:16px} #brand .tag{display:none}
+    #stat{gap:12px} .stat span{font-size:14px} .stat b{font-size:9px}
+    #clocks{gap:12px} .clock span{font-size:13px} .clock b{font-size:9px}
+
+    /* Backdrop behind open sheets */
+    #backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:55;
+      opacity:0;pointer-events:none;transition:opacity .3s}
+    #backdrop.show{opacity:1;pointer-events:auto}
+
+    /* Panels become bottom sheets */
+    #controls,#overhead,#detail{
+      left:0;right:0;bottom:0;top:auto;width:auto!important;max-width:none;
+      display:block;border-radius:22px 22px 0 0;border-bottom:none;
+      transform:translateY(115%);transition:transform .34s cubic-bezier(.32,.72,0,1);
+      max-height:min(72vh,600px);z-index:60;
+      padding:0 16px calc(env(safe-area-inset-bottom) + 16px);overflow-y:auto}
+    #controls.open,#overhead.open,#detail.open{transform:translateY(0)}
+    #overhead{padding:0;display:flex;flex-direction:column}
+    #overhead .head{padding-top:0}
+    .sheet-handle{display:block;width:42px;height:5px;border-radius:3px;
+      background:var(--muted);opacity:.45;margin:10px auto 8px;flex:0 0 auto}
+    #overhead .sheet-handle{margin-bottom:2px}
+
+    /* Bigger touch targets */
+    #controls h2{margin-top:2px}
+    .lg{padding:12px 8px} .lg .nm{font-size:15px}
+    .oh{padding:13px 10px} .oh .nm{font-size:15px}
+    #locbtn{padding:14px;font-size:13px} #installbtn{padding:14px;font-size:13px}
+    #search{padding:12px 14px;font-size:16px}
+    #detail .row{padding:8px 0;font-size:13px}
+
+    /* Recenter FAB sits above the toolbar */
+    #gotome{bottom:calc(env(safe-area-inset-bottom) + 72px);right:12px;width:50px;height:50px}
+    #err{bottom:calc(env(safe-area-inset-bottom) + 78px)}
+
+    /* Bottom toolbar */
+    #mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;gap:8px;
+      padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);
+      background:linear-gradient(0deg,rgba(3,6,15,.95),rgba(3,6,15,.4) 70%,rgba(3,6,15,0))}
+    #mbar button{flex:1;height:50px;border-radius:15px;border:1px solid var(--border);
+      background:var(--panel);color:var(--text);font-size:11px;font-weight:600;letter-spacing:.3px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer}
+    #mbar button .ic{font-size:18px;line-height:1}
+    #mbar button.active{color:var(--accent);border-color:rgba(90,209,255,.6);
+      background:rgba(90,209,255,.12)}
   }
 </style>
 </head>
@@ -133,6 +204,7 @@
 </div>
 
 <div id="overhead" class="panel">
+  <div class="sheet-handle"></div>
   <div class="head">
     <h2>Overhead Now</h2>
     <div class="sub" id="oh-sub">Enable location to see passes above you</div>
@@ -141,6 +213,7 @@
 </div>
 
 <div id="detail" class="panel mono">
+  <div class="sheet-handle"></div>
   <div class="x" onclick="clearSelection()">✕</div>
   <h3 id="d-name">—</h3>
   <div class="row"><b>Group</b><span id="d-group">—</span></div>
@@ -154,13 +227,24 @@
 </div>
 
 <div id="controls" class="panel">
+  <div class="sheet-handle"></div>
   <h2>Filter &amp; Search</h2>
   <input id="search" placeholder="Search a satellite…" autocomplete="off" />
   <div class="legend" id="legend"></div>
   <button id="locbtn">📍 Use my location</button>
+  <button id="installbtn">⬇ Install app</button>
 </div>
 
 <button id="gotome" title="Center on my location">⌖</button>
+
+<!-- Mobile bottom toolbar -->
+<nav id="mbar">
+  <button id="mb-layers"><span class="ic">🛰️</span>Layers</button>
+  <button id="mb-over"><span class="ic">📡</span>Overhead</button>
+  <button id="mb-loc"><span class="ic">📍</span>Locate</button>
+</nav>
+
+<div id="backdrop"></div>
 
 <div id="loader">
   <div class="ring"></div>
@@ -176,10 +260,12 @@
 
 <script>
 const EARTH_R = 6371;          // km
-const UPDATE_MS = 200;         // propagation cadence
+const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
+const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
 const IMG = 'https://cdn.jsdelivr.net/npm/three-globe/example/img/';
 
-// Satellite groups: Celestrak group id, label, color, optional cap
+// Satellite groups: Celestrak group id, label, color, optional cap.
+// On mobile we track fewer objects (lighter on DOM/battery).
 const GROUPS = [
   { id:'stations', label:'Stations (ISS)', color:'#ff5a4d', cap:40 },
   { id:'visual',   label:'Brightest',      color:'#b9c7e6', cap:170 },
@@ -188,6 +274,7 @@ const GROUPS = [
   { id:'galileo',  label:'Galileo',        color:'#c58cff', cap:40 },
   { id:'weather',  label:'Weather',        color:'#57e08a', cap:60 },
 ];
+if(IS_MOBILE) GROUPS.forEach(g=>{ g.cap = Math.max(12, Math.round(g.cap*0.45)); });
 const enabled = {}; GROUPS.forEach(g=>enabled[g.id]=true);
 
 // Fallback ISS TLE so the app always shows *something* if the network fails.
@@ -341,6 +428,7 @@ function setObserver(lat,lng){
   $('oh-sub').innerHTML = `Your location · <b>${lat.toFixed(2)}°, ${lng.toFixed(2)}°</b>`;
   world.pointOfView({lat,lng,altitude:2.2},1200);
   world.controls().autoRotate=false;
+  if(isMobile()) openSheet('overhead');
 }
 function flyToMe(){
   if(observer){ world.controls().autoRotate=false; world.pointOfView({lat:observer.lat,lng:observer.lng,altitude:2.2},1200); }
@@ -392,10 +480,15 @@ function updateLegendCounts(){
 function selectSat(s){
   selected=s;
   world.pointOfView({lat:s.lat,lng:s.lng,altitude:1.8},1000);
-  $('detail').style.display='block';
   renderDetail(s);
+  if(isMobile()) openSheet('detail');
+  else $('detail').style.display='block';
 }
-function clearSelection(){ selected=null; $('detail').style.display='none'; }
+function clearSelection(){
+  selected=null;
+  if(isMobile()) closeSheets();
+  else $('detail').style.display='none';
+}
 function renderDetail(s){
   const g=GROUPS.find(x=>x.id===s.group);
   $('d-name').textContent=s.name;
@@ -445,6 +538,57 @@ async function boot(){
   $('gotome').onclick=flyToMe;
   $('search').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(e.target.value); });
 }
+
+/* ---------- Mobile sheets + bottom toolbar ---------- */
+const mq = window.matchMedia('(max-width:820px)');
+function isMobile(){ return mq.matches; }
+const SHEETS = ['controls','overhead','detail'];
+function syncBar(){
+  const c=$('controls').classList.contains('open'), o=$('overhead').classList.contains('open');
+  if($('mb-layers')) $('mb-layers').classList.toggle('active',c);
+  if($('mb-over'))   $('mb-over').classList.toggle('active',o);
+}
+function closeSheets(){ SHEETS.forEach(s=>$(s).classList.remove('open')); $('backdrop').classList.remove('show'); syncBar(); }
+function openSheet(id){
+  SHEETS.forEach(s=>{ if(s!==id) $(s).classList.remove('open'); });
+  $(id).classList.add('open'); $('backdrop').classList.add('show'); syncBar();
+}
+function toggleSheet(id){ $(id).classList.contains('open') ? closeSheets() : openSheet(id); }
+function initMobileUI(){
+  $('backdrop').addEventListener('click', closeSheets);
+  $('mb-layers').addEventListener('click', ()=>toggleSheet('controls'));
+  $('mb-over').addEventListener('click', ()=>toggleSheet('overhead'));
+  $('mb-loc').addEventListener('click', requestLocation);
+  document.querySelectorAll('.sheet-handle').forEach(h=>h.addEventListener('click', closeSheets));
+}
+
+/* ---------- PWA: install prompt ---------- */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e;
+  const b=$('installbtn'); if(b){ b.textContent='⬇ Install app'; b.style.display='block'; } });
+window.addEventListener('appinstalled',()=>{ const b=$('installbtn'); if(b) b.style.display='none'; deferredPrompt=null; });
+function initInstall(){
+  const b=$('installbtn'); if(!b) return;
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(standalone) return;                       // already installed
+  if(iOS){                                      // iOS has no install prompt API
+    b.textContent='⬇ Add to Home Screen'; b.style.display='block';
+    b.onclick=()=>showErr('On iPhone/iPad: tap the Share button, then “Add to Home Screen”.');
+    return;
+  }
+  b.onclick=async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt();
+    await deferredPrompt.userChoice; deferredPrompt=null; b.style.display='none'; };
+}
+
+/* ---------- PWA: service worker ---------- */
+function registerSW(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW register failed',e)); });
+  }
+}
+
+initMobileUI(); initInstall(); registerSW();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->

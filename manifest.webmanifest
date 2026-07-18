@@ -1,0 +1,19 @@
+{
+  "name": "SatMap — Live Satellite & ISS Tracker",
+  "short_name": "SatMap",
+  "description": "Track the ISS and hundreds of satellites in real time on a 3D globe.",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "id": "/satmap/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "any",
+  "background_color": "#05070f",
+  "theme_color": "#05070f",
+  "categories": ["utilities", "education", "navigation"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
