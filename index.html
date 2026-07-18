@@ -324,7 +324,7 @@ const GROUPS = [
 if(IS_MOBILE) GROUPS.forEach(g=>{ g.cap = Math.max(12, Math.round(g.cap*0.45)); });
 const enabled = {}; GROUPS.forEach(g=>enabled[g.id]=true);
 
-// Fallback ISS TLE so the app always shows *something* if the network fails.
+// Fallback ISS TLE so the app always shows *something* if everything else fails.
 const FALLBACK = [{
   name:'ISS (ZARYA)', group:'stations', id:'25544',
   l1:'1 25544U 98067A   26199.50000000  .00016717  00000-0  30777-3 0  9991',
@@ -342,7 +342,20 @@ function showToast(msg, ok){
   clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'), 3600);
 }
 
-/* ---------- TLE fetching ---------- */
+/* ---------- TLE fetching ----------
+   Primary: CelesTrak. Backup: tle.ivanstanojevic.me (community TLE API).
+   Every successful CelesTrak fetch is cached in localStorage, so a feed
+   outage falls back to the backup API, then to your last good elements,
+   and only then to the hardcoded ISS. */
+const TLE_CACHE_KEY = 'satmap-tle-cache-v1';
+const BACKUP_MAX_AGE_DAYS = 14;   // skip backup elements older than this (likely decayed/stale)
+// Map our CelesTrak groups to name searches on the backup API.
+// 'visual' has no equivalent there — it relies on the localStorage cache.
+const BACKUP_SEARCH = { starlink:'starlink', 'gps-ops':'navstar', galileo:'galileo', weather:'noaa' };
+
+function readTleCache(){ try{ return JSON.parse(localStorage.getItem(TLE_CACHE_KEY)) || {}; }catch(e){ return {}; } }
+function writeTleCache(c){ try{ localStorage.setItem(TLE_CACHE_KEY, JSON.stringify(c)); }catch(e){} }
+
 async function fetchGroup(g){
   const url = `https://celestrak.org/NORAD/elements/gp.php?GROUP=${g.id}&FORMAT=tle`;
   const ctrl = new AbortController();
@@ -360,8 +373,78 @@ async function fetchGroup(g){
       out.push({ name, l1, l2, id:l1.slice(2,7).trim(), group:g.id });
       if(g.cap && out.length>=g.cap) break;
     }
+    if(!out.length) throw new Error('no elements in payload');
     return out;
   } finally { clearTimeout(timer); }
+}
+
+async function fetchGroupBackup(g){
+  const base = 'https://tle.ivanstanojevic.me/api/tle';
+  let url;
+  if(g.id==='stations') url = base + '/25544';                       // ISS by NORAD id
+  else if(BACKUP_SEARCH[g.id]) url = base + '?search=' + BACKUP_SEARCH[g.id] +
+    '&page-size=' + Math.min(g.cap||100, 100);
+  else return [];                                                    // no mapping (e.g. 'visual')
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), 12000);
+  try{
+    const res = await fetch(url, { cache:'no-store', signal:ctrl.signal });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const j = await res.json();
+    const members = j.member ? j.member : [j];
+    const cutoff = Date.now() - BACKUP_MAX_AGE_DAYS*86400000;
+    const out = [];
+    for(const m of members){
+      if(!m || !m.line1 || !m.line2) continue;
+      if(m.date && Date.parse(m.date) < cutoff) continue;            // stale — probably decayed
+      out.push({ name:m.name, l1:m.line1, l2:m.line2, id:String(m.satelliteId), group:g.id });
+      if(g.cap && out.length>=g.cap) break;
+    }
+    return out;
+  } finally { clearTimeout(timer); }
+}
+
+async function loadData(){
+  const cache = readTleCache();
+  const live = await Promise.allSettled(GROUPS.map(fetchGroup));
+  let raw = [];
+  const failed = [];
+  GROUPS.forEach((g,i)=>{
+    const r = live[i];
+    if(r.status==='fulfilled' && r.value.length){
+      raw = raw.concat(r.value);
+      cache[g.id] = { ts: Date.now(), sats: r.value };
+    } else {
+      console.warn('live TLE fetch failed for', g.id, r.status==='rejected'?r.reason:'(empty)');
+      failed.push(g);
+    }
+  });
+  let backupN = 0, cachedN = 0, oldestTs = null;
+  if(failed.length){
+    const backups = await Promise.allSettled(failed.map(fetchGroupBackup));
+    failed.forEach((g,i)=>{
+      const b = backups[i];
+      if(b.status==='fulfilled' && b.value.length){
+        raw = raw.concat(b.value); backupN++;
+      } else if(cache[g.id] && cache[g.id].sats && cache[g.id].sats.length){
+        raw = raw.concat(cache[g.id].sats); cachedN++;
+        if(oldestTs===null || cache[g.id].ts<oldestTs) oldestTs = cache[g.id].ts;
+      }
+    });
+  }
+  writeTleCache(cache);
+  if(failed.length && raw.length){
+    const age = oldestTs ? Math.max(1, Math.round((Date.now()-oldestTs)/3600000)) : null;
+    const src = [];
+    if(backupN) src.push('a backup feed');
+    if(cachedN) src.push('saved elements' + (age ? ' (~'+age+'h old)' : ''));
+    showToast('Live TLE feed is down — using ' + (src.join(' and ') || 'partial data') + '.');
+  }
+  if(!raw.length){
+    showErr('Could not reach any TLE source — showing the ISS from built-in elements.');
+    raw = FALLBACK.map(f=>({name:f.name,l1:f.l1,l2:f.l2,id:f.id,group:f.group}));
+  }
+  SATS = buildSatrecs(raw);
 }
 
 function buildSatrecs(raw){
@@ -376,18 +459,6 @@ function buildSatrecs(raw){
       lat:0,lng:0,alt:0,altKm:0,speed:0,elevation:null,azimuth:null,rangeKm:null,el:null });
   }
   return list;
-}
-
-async function loadData(){
-  const results = await Promise.allSettled(GROUPS.map(fetchGroup));
-  let raw = [];
-  results.forEach((r,i)=>{ if(r.status==='fulfilled') raw = raw.concat(r.value);
-    else console.warn('group failed', GROUPS[i].id, r.reason); });
-  if(!raw.length){
-    showErr('Could not reach the live TLE feed — showing the ISS from cached elements.');
-    raw = FALLBACK.map(f=>({name:f.name,l1:f.l1,l2:f.l2,id:f.id,group:f.group}));
-  }
-  SATS = buildSatrecs(raw);
 }
 
 /* ---------- Globe ---------- */
