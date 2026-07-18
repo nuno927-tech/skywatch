@@ -874,13 +874,16 @@ function updateAccountUI(user){
 }
 function signInGoogle(){
   if(!window.fb){ showErr('Sign-in is still loading — try again in a moment.'); return; }
-  const {auth, GoogleAuthProvider, signInWithPopup, signInWithRedirect}=window.fb;
+  const {auth, GoogleAuthProvider, signInWithPopup}=window.fb;
   const provider=new GoogleAuthProvider();
-  if(IS_MOBILE){ signInWithRedirect(auth, provider); return; }
+  provider.setCustomParameters({ prompt:'select_account' });
+  // Popup only: the redirect flow can't complete on GitHub Pages (app domain != auth domain,
+  // and browsers block the cross-site storage it needs). The popup returns the credential via postMessage.
   signInWithPopup(auth, provider).catch(e=>{
     const c=(e&&e.code)||'';
-    if(c.includes('popup')||c.includes('cancelled-popup')) signInWithRedirect(auth, provider);
-    else showErr('Sign-in failed: '+((e&&e.message)||c));
+    if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request') return;   // user dismissed it
+    console.error('sign-in error', e);
+    showErr('Sign-in failed: ' + (c || (e&&e.message) || 'unknown error'));
   });
 }
 function signOutUser(){ if(window.fb) window.fb.signOut(window.fb.auth).catch(e=>console.warn(e)); }
@@ -953,8 +956,10 @@ initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI();
         import(V + 'firebase-firestore.js')
       ]);
       const app = appMod.initializeApp(FB_CONFIG);
+      const auth = authMod.getAuth(app);
+      try { await authMod.setPersistence(auth, authMod.browserLocalPersistence); } catch(pe){ console.warn('persistence', pe); }
       window.fb = {
-        auth: authMod.getAuth(app),
+        auth,
         db: fsMod.getFirestore(app),
         GoogleAuthProvider: authMod.GoogleAuthProvider,
         signInWithPopup: authMod.signInWithPopup,
