@@ -121,6 +121,32 @@
   #gotome.busy{color:#fff;animation:locpulse 1s ease-in-out infinite}
   @keyframes locpulse{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.5)}50%{box-shadow:0 0 20px var(--accent),0 0 8px var(--accent)}}
 
+  /* Account (top-right) */
+  #account{pointer-events:auto;flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+    border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
+  #account:hover{border-color:var(--accent);color:var(--accent)}
+  #account img{width:100%;height:100%;object-fit:cover;display:block}
+  #accountmenu{position:fixed;top:60px;right:16px;width:260px;padding:16px;z-index:80;display:none}
+  #accountmenu.open{display:block}
+  #accountmenu .who{display:flex;gap:11px;align-items:center;margin-bottom:14px}
+  #accountmenu .who img{width:42px;height:42px;border-radius:50%;flex:0 0 auto}
+  #accountmenu .who .nm{font-size:14px;font-weight:600;line-height:1.2}
+  #accountmenu .who .em{font-size:12px;color:var(--muted);word-break:break-all}
+  #accountmenu .act{width:100%;padding:11px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(90,209,255,.12);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:9px}
+  #accountmenu .act:hover{background:rgba(90,209,255,.22)}
+  #accountmenu .act.g{background:#fff;color:#3c4043;border-color:#dadce0}
+  #accountmenu .act.g:hover{background:#f5f5f5}
+  #accountmenu .note{font-size:11.5px;color:var(--muted);line-height:1.45}
+  #accountmenu .note.top{margin:0 0 12px}
+  #accountmenu .note.bot{margin:12px 0 0}
+  @media (max-width:820px){
+    #accountmenu{top:calc(env(safe-area-inset-top) + 52px);right:10px;width:min(280px,86vw)}
+    #account{width:34px;height:34px}
+  }
+
   #err{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:70;
     background:rgba(120,30,30,.9);border:1px solid #ff6b6b;color:#ffdede;padding:9px 16px;
     border-radius:10px;font-size:13px;display:none;max-width:90vw}
@@ -206,7 +232,11 @@
     <div class="clock"><b>UTC</b><span id="c-utc">—</span></div>
     <div class="clock"><b>Local</b><span id="c-loc">—</span></div>
   </div>
+  <button id="account" title="Account" aria-label="Account">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+  </button>
 </div>
+<div id="accountmenu" class="panel"></div>
 
 <div id="overhead" class="panel">
   <div class="sheet-handle"></div>
@@ -461,8 +491,8 @@ function setObserver(lat,lng,recenter){
   world.ringsData([{lat,lng}]).ringAltitude(0.006);
   $('oh-sub').innerHTML = `Your location · <b>${lat.toFixed(3)}°, ${lng.toFixed(3)}°</b>`;
   world.controls().autoRotate=false;
-  if(recenter!==false) flyTo(lat, lng, ME_ZOOM, 900);
-  if(isMobile()) openSheet('overhead');
+  if(recenter!==false){ flyTo(lat, lng, ME_ZOOM, 900); if(isMobile()) openSheet('overhead'); }
+  saveSettings();
 }
 // Bottom-right location button: get your location if needed, then centre on it.
 function flyToMe(){
@@ -512,6 +542,7 @@ function renderLegend(){
     const id=n.dataset.id; enabled[id]=!enabled[id];
     n.classList.toggle('off',!enabled[id]);
     if(id==='stations') updateIssOrbit();
+    saveSettings();
   });
 }
 function updateLegendCounts(){
@@ -656,7 +687,98 @@ function registerSW(){
   }
 }
 
-initMobileUI(); initInstall(); registerSW();
+/* ---------- Account (Google sign-in) + settings sync (Firebase) ---------- */
+let currentUser=null, unsubSettings=null, applyingRemote=false, saveTimer=null, firstSyncPending=false;
+const GOOGLE_G = '<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.1 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.8 6.1C12.2 13.3 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/><path fill="#FBBC05" d="M10.3 19.4l-7.8-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.5 10.7l7.8-6.1c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6z"/><path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.6 2.1-7.9 2.1-6.4 0-11.8-3.8-13.7-9.4l-7.8 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
+const USER_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
+
+function collectSettings(){
+  const groups={}; GROUPS.forEach(g=>groups[g.id]=!!enabled[g.id]);
+  return { groups, lat: observer?observer.lat:null, lng: observer?observer.lng:null, updatedAt: Date.now() };
+}
+function saveSettings(){
+  if(!currentUser || applyingRemote || !window.fb) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    const {db, doc, setDoc}=window.fb;
+    setDoc(doc(db,'users',currentUser.uid), collectSettings(), {merge:true}).catch(e=>console.warn('save failed',e));
+  }, 700);
+}
+function applySettings(s){
+  if(!s) return;
+  applyingRemote=true;
+  try{
+    if(s.groups){
+      GROUPS.forEach(g=>{ if(g.id in s.groups){ enabled[g.id]=!!s.groups[g.id];
+        const n=document.querySelector('.lg[data-id="'+g.id+'"]'); if(n) n.classList.toggle('off',!enabled[g.id]); } });
+      updateIssOrbit();
+    }
+    if(typeof s.lat==='number' && typeof s.lng==='number'){
+      setObserver(s.lat, s.lng, false);
+      if(firstSyncPending){ firstSyncPending=false; flyTo(s.lat, s.lng, ME_ZOOM, 1000); }
+    }
+  } finally { applyingRemote=false; }
+}
+
+function updateAccountUI(user){
+  const btn=$('account'), menu=$('accountmenu');
+  if(user){
+    const photo=user.photoURL;
+    btn.innerHTML = photo ? `<img src="${photo}" referrerpolicy="no-referrer" alt="">` : USER_ICON;
+    menu.innerHTML = `
+      <div class="who">
+        ${photo?`<img src="${photo}" referrerpolicy="no-referrer" alt="">`:''}
+        <div><div class="nm">${user.displayName||'Signed in'}</div><div class="em">${user.email||''}</div></div>
+      </div>
+      <button class="act" id="signout">Sign out</button>
+      <div class="note bot">✓ Your location & filters are saved to your account and sync across devices.</div>`;
+    const so=$('signout'); if(so) so.onclick=()=>{ signOutUser(); menu.classList.remove('open'); };
+  } else {
+    btn.innerHTML = USER_ICON;
+    menu.innerHTML = `
+      <div class="note top">Sign in to save your location and filters, and sync them across all your devices.</div>
+      <button class="act g" id="signin">${GOOGLE_G} Sign in with Google</button>`;
+    const si=$('signin'); if(si) si.onclick=()=>{ menu.classList.remove('open'); signInGoogle(); };
+  }
+}
+function signInGoogle(){
+  if(!window.fb){ showErr('Sign-in is still loading — try again in a moment.'); return; }
+  const {auth, GoogleAuthProvider, signInWithPopup, signInWithRedirect}=window.fb;
+  const provider=new GoogleAuthProvider();
+  if(IS_MOBILE){ signInWithRedirect(auth, provider); return; }
+  signInWithPopup(auth, provider).catch(e=>{
+    const c=(e&&e.code)||'';
+    if(c.includes('popup')||c.includes('cancelled-popup')) signInWithRedirect(auth, provider);
+    else showErr('Sign-in failed: '+((e&&e.message)||c));
+  });
+}
+function signOutUser(){ if(window.fb) window.fb.signOut(window.fb.auth).catch(e=>console.warn(e)); }
+
+function initAccountUI(){
+  updateAccountUI(null);
+  $('account').onclick=(e)=>{ e.stopPropagation(); $('accountmenu').classList.toggle('open'); };
+  document.addEventListener('click', e=>{ const m=$('accountmenu');
+    if(m.classList.contains('open') && !m.contains(e.target) && !$('account').contains(e.target)) m.classList.remove('open'); });
+}
+// Called by the module once the Firebase SDK is initialised (window.fb is ready).
+function initAuth(){
+  const {auth, onAuthStateChanged, getRedirectResult}=window.fb;
+  getRedirectResult(auth).catch(e=>console.warn('redirect result',e));
+  onAuthStateChanged(auth, user=>{
+    currentUser=user;
+    updateAccountUI(user);
+    if(unsubSettings){ unsubSettings(); unsubSettings=null; }
+    if(user){
+      firstSyncPending=true;
+      const {db, doc, onSnapshot}=window.fb;
+      unsubSettings = onSnapshot(doc(db,'users',user.uid),
+        snap=>{ if(snap.exists()) applySettings(snap.data()); },
+        err=>console.warn('settings snapshot error',err));
+    }
+  });
+}
+
+initMobileUI(); initInstall(); registerSW(); initAccountUI();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
@@ -670,6 +792,39 @@ initMobileUI(); initInstall(); registerSW();
     window.Globe = GlobeMod.default ?? GlobeMod;
     if (typeof window.Globe !== 'function') throw new Error('globe.gl did not export a factory');
     await boot();
+
+    // Firebase: Google sign-in + cross-device settings sync (non-fatal if it fails)
+    try {
+      const FB_CONFIG = {
+        apiKey: "AIzaSyDzz5LgNODCLLx-zHTbeKVl0cgDS4s6UyU",
+        authDomain: "satmap-28774.firebaseapp.com",
+        projectId: "satmap-28774",
+        storageBucket: "satmap-28774.firebasestorage.app",
+        messagingSenderId: "987230192468",
+        appId: "1:987230192468:web:968cc60fc8206737e13ec1"
+      };
+      const V = 'https://www.gstatic.com/firebasejs/12.16.0/';
+      const [appMod, authMod, fsMod] = await Promise.all([
+        import(V + 'firebase-app.js'),
+        import(V + 'firebase-auth.js'),
+        import(V + 'firebase-firestore.js')
+      ]);
+      const app = appMod.initializeApp(FB_CONFIG);
+      window.fb = {
+        auth: authMod.getAuth(app),
+        db: fsMod.getFirestore(app),
+        GoogleAuthProvider: authMod.GoogleAuthProvider,
+        signInWithPopup: authMod.signInWithPopup,
+        signInWithRedirect: authMod.signInWithRedirect,
+        getRedirectResult: authMod.getRedirectResult,
+        signOut: authMod.signOut,
+        onAuthStateChanged: authMod.onAuthStateChanged,
+        doc: fsMod.doc, setDoc: fsMod.setDoc, onSnapshot: fsMod.onSnapshot
+      };
+      initAuth();
+    } catch (fe) {
+      console.warn('Firebase init failed — accounts disabled this session:', fe);
+    }
   } catch (e) {
     console.error(e);
     msg.textContent = 'Could not load 3D libraries: ' + (e && e.message ? e.message : e) +
