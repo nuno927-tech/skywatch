@@ -151,6 +151,16 @@
     background:rgba(120,30,30,.9);border:1px solid #ff6b6b;color:#ffdede;padding:9px 16px;
     border-radius:10px;font-size:13px;display:none;max-width:90vw}
 
+  /* Success/info toast */
+  #toast{position:fixed;bottom:16px;left:50%;transform:translate(-50%,20px);z-index:75;
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;max-width:90vw;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  #toast.ok{border-color:rgba(87,224,138,.55)}
+
   /* Install button (shown when installable) */
   #installbtn{display:none;margin-top:10px;width:100%;padding:10px;border-radius:10px;
     border:1px solid var(--accent);background:rgba(90,209,255,.14);color:var(--accent);
@@ -201,6 +211,7 @@
     /* Recenter FAB sits above the toolbar */
     #gotome{bottom:calc(env(safe-area-inset-bottom) + 72px);right:12px;width:50px;height:50px}
     #err{bottom:calc(env(safe-area-inset-bottom) + 78px)}
+    #toast{bottom:calc(env(safe-area-inset-bottom) + 78px)}
 
     /* Bottom toolbar */
     #mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;gap:8px;
@@ -286,6 +297,7 @@
   <p id="loadmsg">Fetching live orbital elements…</p>
 </div>
 <div id="err"></div>
+<div id="toast"></div>
 
 <script type="importmap">
 { "imports": {
@@ -324,6 +336,11 @@ let observer = null;      // {lat,lng, gd:{longitude,latitude,height}}
 let selected = null;
 const $ = id => document.getElementById(id);
 const showErr = m => { const e=$('err'); e.textContent=m; e.style.display='block'; setTimeout(()=>e.style.display='none',7000); };
+function showToast(msg, ok){
+  const t=$('toast'); if(!t) return;
+  t.textContent=msg; t.className='show'+(ok?' ok':'');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'), 3600);
+}
 
 /* ---------- TLE fetching ---------- */
 async function fetchGroup(g){
@@ -402,6 +419,8 @@ function initGlobe(){
   // Touch gestures: one finger rotates; two fingers rotate (and pinch to zoom).
   // three.js TOUCH enum: ROTATE=0, PAN=1, DOLLY_PAN=2, DOLLY_ROTATE=3
   if(controls.touches){ controls.touches.ONE = 0; controls.touches.TWO = 3; }
+  // Persist zoom level: saveSettings() debounces, so this commits only after the camera settles.
+  controls.addEventListener('change', ()=>{ if(!controls.autoRotate) saveSettings(); });
   // stop auto-rotate once the user interacts
   ['pointerdown','wheel','touchstart'].forEach(ev=>
     world.renderer().domElement.addEventListener(ev,()=>{controls.autoRotate=false},{once:true}));
@@ -688,13 +707,14 @@ function registerSW(){
 }
 
 /* ---------- Account (Google sign-in) + settings sync (Firebase) ---------- */
-let currentUser=null, unsubSettings=null, applyingRemote=false, saveTimer=null, firstSyncPending=false;
+let currentUser=null, unsubSettings=null, applyingRemote=false, saveTimer=null, firstSyncPending=false, wasSignedIn=false;
 const GOOGLE_G = '<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.1 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.8 6.1C12.2 13.3 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/><path fill="#FBBC05" d="M10.3 19.4l-7.8-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.5 10.7l7.8-6.1c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6z"/><path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.6 2.1-7.9 2.1-6.4 0-11.8-3.8-13.7-9.4l-7.8 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
 const USER_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
 
 function collectSettings(){
   const groups={}; GROUPS.forEach(g=>groups[g.id]=!!enabled[g.id]);
-  return { groups, lat: observer?observer.lat:null, lng: observer?observer.lng:null, updatedAt: Date.now() };
+  let zoom=null; try{ zoom=world.pointOfView().altitude; }catch(e){}
+  return { groups, lat: observer?observer.lat:null, lng: observer?observer.lng:null, zoom, updatedAt: Date.now() };
 }
 function saveSettings(){
   if(!currentUser || applyingRemote || !window.fb) return;
@@ -713,9 +733,13 @@ function applySettings(s){
         const n=document.querySelector('.lg[data-id="'+g.id+'"]'); if(n) n.classList.toggle('off',!enabled[g.id]); } });
       updateIssOrbit();
     }
+    const z = (typeof s.zoom==='number' && s.zoom>0) ? s.zoom : ME_ZOOM;
     if(typeof s.lat==='number' && typeof s.lng==='number'){
       setObserver(s.lat, s.lng, false);
-      if(firstSyncPending){ firstSyncPending=false; flyTo(s.lat, s.lng, ME_ZOOM, 1000); }
+      if(firstSyncPending){ firstSyncPending=false; flyTo(s.lat, s.lng, z, 1000); }
+    } else if(firstSyncPending && typeof s.zoom==='number' && s.zoom>0){
+      firstSyncPending=false;
+      const p=world.pointOfView(); flyTo(p.lat, p.lng, z, 800);   // restore zoom even without a saved location
     }
   } finally { applyingRemote=false; }
 }
@@ -770,10 +794,15 @@ function initAuth(){
     if(unsubSettings){ unsubSettings(); unsubSettings=null; }
     if(user){
       firstSyncPending=true;
+      showToast('✓ Signed in as ' + (user.displayName || user.email), true);
+      wasSignedIn=true;
       const {db, doc, onSnapshot}=window.fb;
       unsubSettings = onSnapshot(doc(db,'users',user.uid),
         snap=>{ if(snap.exists()) applySettings(snap.data()); },
         err=>console.warn('settings snapshot error',err));
+    } else {
+      if(wasSignedIn) showToast('Signed out');
+      wasSignedIn=false;
     }
   });
 }
