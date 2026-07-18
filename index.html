@@ -214,6 +214,23 @@
   #toast.show{opacity:1;transform:translate(-50%,0)}
   #toast.ok{border-color:rgba(87,224,138,.55)}
 
+  /* First-run install popup (mobile) */
+  #installpop{position:fixed;left:12px;right:12px;bottom:12px;z-index:90;display:flex;align-items:center;gap:12px;
+    padding:14px 14px calc(env(safe-area-inset-bottom) + 14px);
+    background:var(--panel-solid);border:1px solid var(--border);border-radius:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.6);opacity:0;transform:translateY(150%);pointer-events:none;
+    transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .3s}
+  #installpop.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  #installpop .ip-icon{width:48px;height:48px;border-radius:12px;flex:0 0 auto}
+  #installpop .ip-body{flex:1;min-width:0}
+  #installpop .ip-t{font-size:15px;font-weight:700}
+  #installpop .ip-d{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+  #installpop .ip-d b{color:var(--text)}
+  #installpop .ip-actions{display:flex;flex-direction:column;gap:5px;flex:0 0 auto}
+  #installpop #ip-install{background:var(--accent);color:#04121f;border:none;font-weight:700;
+    padding:10px 18px;border-radius:11px;font-size:13px;cursor:pointer}
+  #installpop #ip-dismiss{background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:2px}
+
   /* Install button (shown when installable) */
   #installbtn{display:none;margin-top:10px;width:100%;padding:10px;border-radius:10px;
     border:1px solid var(--accent);background:rgba(90,209,255,.14);color:var(--accent);
@@ -394,6 +411,18 @@
 </div>
 <div id="err"></div>
 <div id="toast"></div>
+
+<div id="installpop">
+  <img src="icon-192.png" alt="" class="ip-icon" />
+  <div class="ip-body">
+    <div class="ip-t">Install SatMap</div>
+    <div class="ip-d" id="ip-desc">Add it to your home screen for a full-screen, app-like experience.</div>
+  </div>
+  <div class="ip-actions">
+    <button id="ip-install">Install</button>
+    <button id="ip-dismiss">Not now</button>
+  </div>
+</div>
 
 <script type="importmap">
 { "imports": {
@@ -962,23 +991,48 @@ function initSettingsUI(){
   applyPrefs();
 }
 
-/* ---------- PWA: install prompt ---------- */
-let deferredPrompt=null;
+/* ---------- PWA: install prompt + first-run popup ---------- */
+let deferredPrompt=null, installPopShown=false;
+const isStandalone=()=> window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+const isIOS=()=> /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isMobileUA=()=> window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
+
 window.addEventListener('beforeinstallprompt',(e)=>{ e.preventDefault(); deferredPrompt=e;
-  const b=$('installbtn'); if(b){ b.textContent='⬇ Install app'; b.style.display='block'; } });
-window.addEventListener('appinstalled',()=>{ const b=$('installbtn'); if(b) b.style.display='none'; deferredPrompt=null; });
-function initInstall(){
-  const b=$('installbtn'); if(!b) return;
-  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if(standalone) return;                       // already installed
-  if(iOS){                                      // iOS has no install prompt API
-    b.textContent='⬇ Add to Home Screen'; b.style.display='block';
-    b.onclick=()=>showErr('On iPhone/iPad: tap the Share button, then “Add to Home Screen”.');
-    return;
+  const b=$('installbtn'); if(b){ b.textContent='⬇ Install app'; b.style.display='block'; }
+  maybeShowInstallPop();                        // Android: now installable, offer the popup
+});
+window.addEventListener('appinstalled',()=>{ const b=$('installbtn'); if(b) b.style.display='none';
+  deferredPrompt=null; dismissInstallPop(true); });
+
+function dismissInstallPop(remember){
+  const p=$('installpop'); if(p) p.classList.remove('show');
+  if(remember){ try{ localStorage.setItem('satmap_install_dismissed','1'); }catch(e){} }
+}
+function maybeShowInstallPop(){
+  if(installPopShown) return;
+  if(!isMobileUA() || isStandalone()) return;
+  try{ if(localStorage.getItem('satmap_install_dismissed')) return; }catch(e){}
+  if(!isIOS() && !deferredPrompt) return;       // Android: only when actually installable
+  installPopShown=true;
+  const pop=$('installpop'); if(!pop) return;
+  if(isIOS()){
+    $('ip-desc').innerHTML='Tap the Share button <b>⎋</b> in your browser bar, then <b>Add to Home Screen</b>.';
+    $('ip-install').style.display='none';        // iOS can't be triggered programmatically
   }
-  b.onclick=async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt();
-    await deferredPrompt.userChoice; deferredPrompt=null; b.style.display='none'; };
+  setTimeout(()=>pop.classList.add('show'), 1500);
+}
+function initInstall(){
+  const b=$('installbtn');
+  if(b && !isStandalone()){
+    if(isIOS()){ b.textContent='⬇ Add to Home Screen'; b.style.display='block';
+      b.onclick=()=>showErr('On iPhone/iPad: tap the Share button, then “Add to Home Screen”.'); }
+    else { b.onclick=async ()=>{ if(!deferredPrompt) return; deferredPrompt.prompt();
+      await deferredPrompt.userChoice; deferredPrompt=null; b.style.display='none'; }; }
+  }
+  const ip=$('ip-install'), id=$('ip-dismiss');
+  if(ip) ip.onclick=async ()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; } dismissInstallPop(true); };
+  if(id) id.onclick=()=>dismissInstallPop(true);
+  maybeShowInstallPop();                          // iOS path (no beforeinstallprompt event)
 }
 
 /* ---------- PWA: service worker ---------- */

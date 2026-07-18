@@ -1,5 +1,5 @@
 /* SatMap service worker — app-shell caching + offline fallback */
-const VERSION = 'satmap-v6';
+const VERSION = 'satmap-v7';
 const SHELL = [
   './',
   './index.html',
