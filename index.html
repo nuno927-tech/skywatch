@@ -197,7 +197,7 @@ const FALLBACK = [{
   l2:'2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.49309239 20000'
 }];
 
-let SATS = [];            // {name,id,group,color,satrec, lat,lng,alt,altKm,speed,elevation,azimuth,rangeKm, mesh}
+let SATS = [];            // {name,id,group,color,satrec, lat,lng,alt,altKm,speed,elevation,azimuth,rangeKm, el}
 let observer = null;      // {lat,lng, gd:{longitude,latitude,height}}
 let selected = null;
 const $ = id => document.getElementById(id);
@@ -206,19 +206,23 @@ const showErr = m => { const e=$('err'); e.textContent=m; e.style.display='block
 /* ---------- TLE fetching ---------- */
 async function fetchGroup(g){
   const url = `https://celestrak.org/NORAD/elements/gp.php?GROUP=${g.id}&FORMAT=tle`;
-  const res = await fetch(url, { cache:'no-store' });
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const text = await res.text();
-  if(text.includes('<') || text.trim().length < 20) throw new Error('bad payload');
-  const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
-  const out = [];
-  for(let i=0;i+2<lines.length;i+=3){
-    const name=lines[i].trim(), l1=lines[i+1], l2=lines[i+2];
-    if(!l1.startsWith('1 ')||!l2.startsWith('2 ')) continue;
-    out.push({ name, l1, l2, id:l1.slice(2,7).trim(), group:g.id });
-    if(g.cap && out.length>=g.cap) break;
-  }
-  return out;
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), 12000);   // don't hang forever on a slow feed
+  try{
+    const res = await fetch(url, { cache:'no-store', signal:ctrl.signal });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text = await res.text();
+    if(text.includes('<') || text.trim().length < 20) throw new Error('bad payload');
+    const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
+    const out = [];
+    for(let i=0;i+2<lines.length;i+=3){
+      const name=lines[i].trim(), l1=lines[i+1], l2=lines[i+2];
+      if(!l1.startsWith('1 ')||!l2.startsWith('2 ')) continue;
+      out.push({ name, l1, l2, id:l1.slice(2,7).trim(), group:g.id });
+      if(g.cap && out.length>=g.cap) break;
+    }
+    return out;
+  } finally { clearTimeout(timer); }
 }
 
 function buildSatrecs(raw){
@@ -230,7 +234,7 @@ function buildSatrecs(raw){
     const g = GROUPS.find(x=>x.id===r.group);
     seen.add(r.id);
     list.push({ name:r.name, id:r.id, group:r.group, color:(g?g.color:'#b9c7e6'), satrec:rec,
-      lat:0,lng:0,alt:0,altKm:0,speed:0,elevation:null,azimuth:null,rangeKm:null,mesh:null });
+      lat:0,lng:0,alt:0,altKm:0,speed:0,elevation:null,azimuth:null,rangeKm:null,el:null });
   }
   return list;
 }
@@ -433,4 +437,32 @@ async function boot(){
   $('loader').classList.add('fade');
   setTimeout(()=>$('loader').remove(),700);
 
-  setIn
+  setInterval(propagate, UPDATE_MS);
+  setInterval(tickClock, 1000); tickClock();
+  setInterval(updateIssOrbit, 30000);  // refresh ISS track periodically
+
+  $('locbtn').onclick=requestLocation;
+  $('gotome').onclick=flyToMe;
+  $('search').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(e.target.value); });
+}
+</script>
+
+<!-- Module loader: import the 3D libs, expose them as globals, then boot -->
+<script type="module">
+  const msg = document.getElementById('loadmsg');
+  try {
+    msg.textContent = 'Loading 3D engine…';
+    const satMod = await import('satellite.js');
+    const GlobeMod = await import('https://esm.sh/globe.gl@2.32.0');
+    window.satellite = satMod.default ?? satMod;
+    window.Globe = GlobeMod.default ?? GlobeMod;
+    if (typeof window.Globe !== 'function') throw new Error('globe.gl did not export a factory');
+    await boot();
+  } catch (e) {
+    console.error(e);
+    msg.textContent = 'Could not load 3D libraries: ' + (e && e.message ? e.message : e) +
+      ' — check your internet connection, then reopen.';
+  }
+</script>
+</body>
+</html>
