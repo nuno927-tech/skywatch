@@ -427,20 +427,44 @@ function updateIssOrbit(){
 
 /* ---------- Location ---------- */
 const ME_ZOOM = 1.15;   // how tightly the camera centres on your location
+
+// globe.gl's built-in animated pointOfView transition does not progress in this
+// build, so we animate the camera ourselves frame-by-frame (instant moves work).
+let flyRAF = null;
+function flyTo(lat, lng, altitude, ms){
+  ms = ms || 900;
+  world.controls().autoRotate = false;
+  const start = world.pointOfView();
+  let dLng = lng - start.lng;                    // take the shortest way round
+  if(dLng > 180) dLng -= 360; else if(dLng < -180) dLng += 360;
+  const t0 = performance.now();
+  if(flyRAF) cancelAnimationFrame(flyRAF);
+  function step(now){
+    const k = Math.min(1, (now - t0) / ms);
+    const e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2)/2;   // easeInOutQuad
+    world.pointOfView({
+      lat: start.lat + (lat - start.lat) * e,
+      lng: start.lng + dLng * e,
+      altitude: start.altitude + (altitude - start.altitude) * e
+    }, 0);
+    if(k < 1) flyRAF = requestAnimationFrame(step); else flyRAF = null;
+  }
+  flyRAF = requestAnimationFrame(step);
+}
+
 function setObserver(lat,lng,recenter){
   observer = { lat, lng, gd:{ longitude:satellite.degreesToRadians(lng),
     latitude:satellite.degreesToRadians(lat), height:0.05 } };
   world.ringsData([{lat,lng}]).ringAltitude(0.006);
   $('oh-sub').innerHTML = `Your location · <b>${lat.toFixed(3)}°, ${lng.toFixed(3)}°</b>`;
   world.controls().autoRotate=false;
-  if(recenter!==false) world.pointOfView({lat,lng,altitude:ME_ZOOM},1200);
+  if(recenter!==false) flyTo(lat, lng, ME_ZOOM, 900);
   if(isMobile()) openSheet('overhead');
 }
 // Bottom-right location button: get your location if needed, then centre on it.
 function flyToMe(){
   if(observer){
-    world.controls().autoRotate=false;
-    world.pointOfView({lat:observer.lat,lng:observer.lng,altitude:ME_ZOOM},1200);
+    flyTo(observer.lat, observer.lng, ME_ZOOM, 900);
   } else {
     requestLocation();      // fetches an exact fix, then centres via setObserver
   }
@@ -493,7 +517,7 @@ function updateLegendCounts(){
 
 function selectSat(s){
   selected=s;
-  world.pointOfView({lat:s.lat,lng:s.lng,altitude:1.8},1000);
+  flyTo(s.lat, s.lng, 1.8, 900);
   renderDetail(s);
   if(isMobile()) openSheet('detail');
   else $('detail').style.display='block';
