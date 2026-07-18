@@ -155,8 +155,11 @@
       max-height:min(72vh,600px);z-index:60;
       padding:0 16px calc(env(safe-area-inset-bottom) + 16px);overflow-y:auto}
     #controls.open,#overhead.open,#detail.open{transform:translateY(0)}
-    #overhead{padding:0;display:flex;flex-direction:column}
+    #overhead{padding:0 16px calc(env(safe-area-inset-bottom) + 16px);display:block}
     #overhead .head{padding-top:0}
+    #overhead #ohlist{overflow:visible;padding:6px 0}
+    #detail .x{display:none}          /* swipe down to close instead */
+    .sheet-handle{cursor:grab}
     .sheet-handle{display:block;width:42px;height:5px;border-radius:3px;
       background:var(--muted);opacity:.45;margin:10px auto 8px;flex:0 0 auto}
     #overhead .sheet-handle{margin-bottom:2px}
@@ -592,12 +595,39 @@ function openSheet(id){
   $(id).classList.add('open'); $('backdrop').classList.add('show'); syncBar();
 }
 function toggleSheet(id){ $(id).classList.contains('open') ? closeSheets() : openSheet(id); }
+// Swipe a bottom sheet downward to dismiss it (only when scrolled to the top).
+function enableSwipeClose(el){
+  let sy=0, cy=0, drag=false;
+  el.addEventListener('touchstart', e=>{
+    if(e.touches.length!==1){ drag=false; return; }
+    sy=cy=e.touches[0].clientY;
+    drag = el.scrollTop<=0;          // don't hijack a mid-list scroll
+    el.style.transition='none';
+  }, {passive:true});
+  el.addEventListener('touchmove', e=>{
+    if(!drag) return;
+    cy=e.touches[0].clientY;
+    const dy=cy-sy;
+    if(dy>0){ el.style.transform='translateY('+dy+'px)'; }
+    else { drag=false; el.style.transform=''; }
+  }, {passive:true});
+  const end=()=>{
+    if(!drag) return; drag=false;
+    const dy=cy-sy;
+    el.style.transition='';          // hand back to the CSS transition
+    el.style.transform='';
+    if(dy>90) closeSheets();          // past threshold → dismiss
+  };
+  el.addEventListener('touchend', end, {passive:true});
+  el.addEventListener('touchcancel', end, {passive:true});
+}
+
 function initMobileUI(){
   $('backdrop').addEventListener('click', closeSheets);
   $('mb-layers').addEventListener('click', ()=>toggleSheet('controls'));
   $('mb-over').addEventListener('click', ()=>toggleSheet('overhead'));
   $('mb-loc').addEventListener('click', requestLocation);
-  document.querySelectorAll('.sheet-handle').forEach(h=>h.addEventListener('click', closeSheets));
+  SHEETS.forEach(id=>enableSwipeClose($(id)));   // swipe-down to close
 }
 
 /* ---------- PWA: install prompt ---------- */
