@@ -230,6 +230,11 @@
   .acct-uname{font-size:12.5px;color:var(--muted);margin:2px 0 12px}
   .acct-uname b{color:var(--accent)} .acct-uname .lnk{color:var(--accent);cursor:pointer}
   .fr-sub{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:14px 0 4px}
+  .fr-sub-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  #fr-refresh{background:transparent;border:none;color:var(--accent);cursor:pointer;font-size:16px;
+    line-height:1;padding:2px 4px;border-radius:6px}
+  #fr-refresh:hover{background:rgba(90,209,255,.14)}
+  #fr-refresh.spin{animation:spin 0.8s linear infinite;pointer-events:none}
   .fr-filter{width:100%;padding:9px 11px;border-radius:10px;border:1px solid var(--border);
     background:rgba(0,0,0,.35);color:var(--text);font-size:14px;outline:none;margin-bottom:6px}
   .fr-filter:focus{border-color:var(--accent)}
@@ -486,7 +491,7 @@
   <div id="fr-requests"></div>
   <div class="fr-sub" id="fr-friends-h">Your friends</div>
   <div id="fr-list"></div>
-  <div class="fr-sub">All users · long-press to request</div>
+  <div class="fr-sub fr-sub-row"><span>All users · long-press to request</span><button id="fr-refresh" title="Refresh list">⟳</button></div>
   <input id="fr-q" class="fr-filter" placeholder="Filter users…" autocomplete="off" />
   <div id="fr-dir"></div>
 </div>
@@ -573,25 +578,44 @@ function showToast(msg, ok){
 
 /* ---------- Ambient "celestial" music (Web Audio, synthesized live) ---------- */
 const Music = (function(){
-  let ctx=null, master, filter, voices=[], chordTimer=null, bellTimer=null, started=false, idx=0;
+  let ctx=null, master, filter, dry, wet, reverb, lfo, voices=[], chordTimer=null, bellTimer=null, started=false, idx=0;
   const CHORDS=[
     [130.81,164.81,196.00,246.94],  // Cmaj7
     [110.00,164.81,196.00,246.94],  // Am7
     [146.83,174.61,220.00,261.63],  // Dm7
-    [196.00,246.94,146.83,174.61]   // G-ish
+    [123.47,155.56,196.00,246.94],  // Em/B
+    [98.00,146.83,196.00,246.94],   // G add9
+    [116.54,146.83,174.61,220.00]   // Bb6
   ];
-  const BELLS=[523.25,587.33,659.25,783.99,880.00];
+  function makeReverb(sec, decay){
+    const len=Math.floor(ctx.sampleRate*sec), buf=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){ const d=buf.getChannelData(ch);
+      for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len, decay); }
+    const c=ctx.createConvolver(); c.buffer=buf; return c;
+  }
+  const panner=()=> ctx.createStereoPanner ? ctx.createStereoPanner() : null;
   function build(){
     ctx=new (window.AudioContext||window.webkitAudioContext)();
-    master=ctx.createGain(); master.gain.value=0.0001;
-    filter=ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=900; filter.Q.value=0.3;
-    filter.connect(master); master.connect(ctx.destination);
+    master=ctx.createGain(); master.gain.value=0.0001; master.connect(ctx.destination);
+    // lush reverb wash (dry + wet) for space
+    reverb=makeReverb(4.5, 3.0);
+    wet=ctx.createGain(); wet.gain.value=0.5; reverb.connect(wet); wet.connect(master);
+    dry=ctx.createGain(); dry.gain.value=0.75; dry.connect(master);
+    // shared lowpass with a slow sweeping cutoff (breathing shimmer)
+    filter=ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=850; filter.Q.value=0.7;
+    filter.connect(dry); filter.connect(reverb);
+    lfo=ctx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.03;   // ~33s sweep
+    const lg=ctx.createGain(); lg.gain.value=480; lfo.connect(lg); lg.connect(filter.frequency); lfo.start();
+    // 4 pad voices: detuned pair + slow tremolo + stereo pan
     for(let i=0;i<4;i++){
-      const g=ctx.createGain(); g.gain.value=0.16; g.connect(filter);
-      const o1=ctx.createOscillator(); o1.type='sine'; o1.detune.value=-6;
-      const o2=ctx.createOscillator(); o2.type='triangle'; o2.detune.value=6;
+      const vg=ctx.createGain(); vg.gain.value=0.13; const p=panner();
+      if(p){ p.pan.value=(i-1.5)/2; vg.connect(p); p.connect(filter); } else vg.connect(filter);
+      const o1=ctx.createOscillator(); o1.type='sine'; o1.detune.value=-7;
+      const o2=ctx.createOscillator(); o2.type='triangle'; o2.detune.value=8;
       const f=CHORDS[0][i]; o1.frequency.value=f; o2.frequency.value=f;
-      o1.connect(g); o2.connect(g); o1.start(); o2.start();
+      o1.connect(vg); o2.connect(vg); o1.start(); o2.start();
+      const tl=ctx.createOscillator(); tl.type='sine'; tl.frequency.value=0.05+i*0.017;
+      const tg=ctx.createGain(); tg.gain.value=0.045; tl.connect(tg); tg.connect(vg.gain); tl.start();
       voices.push({o1,o2});
     }
   }
@@ -601,15 +625,20 @@ const Music = (function(){
       o.frequency.cancelScheduledValues(t); o.frequency.setValueAtTime(Math.max(o.frequency.value,1),t);
       o.frequency.exponentialRampToValueAtTime(f, t+glide); }); });
   }
-  function bell(){
+  function nextChord(){ idx=(idx + 1 + Math.floor(Math.random()*(CHORDS.length-1))) % CHORDS.length; setChord(CHORDS[idx], 7); }
+  function chime(){
     if(!ctx) return;
-    const f=BELLS[Math.floor(Math.random()*BELLS.length)];
-    const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=f;
-    const g=ctx.createGain(); g.gain.value=0; o.connect(g); g.connect(filter);
+    const c=CHORDS[idx];
+    const opts=[ c[Math.floor(Math.random()*c.length)]*2, c[Math.floor(Math.random()*c.length)]*3, c[0]*4 ];
+    const f=opts[Math.floor(Math.random()*opts.length)];
+    const o=ctx.createOscillator(); o.type=Math.random()<0.5?'sine':'triangle'; o.frequency.value=f;
+    const g=ctx.createGain(); g.gain.value=0; const p=panner();
+    if(p){ p.pan.value=Math.random()*1.6-0.8; o.connect(g); g.connect(p); p.connect(filter); p.connect(reverb); }
+    else { o.connect(g); g.connect(filter); g.connect(reverb); }
     const t=ctx.currentTime;
-    g.gain.linearRampToValueAtTime(0.045,t+0.03); g.gain.exponentialRampToValueAtTime(0.0008,t+3.6);
-    o.start(t); o.stop(t+3.7);
-    bellTimer=setTimeout(bell, 7000+Math.random()*13000);
+    g.gain.linearRampToValueAtTime(0.038, t+0.05); g.gain.exponentialRampToValueAtTime(0.0006, t+4.2);
+    o.start(t); o.stop(t+4.3);
+    bellTimer=setTimeout(chime, 3500+Math.random()*7000);
   }
   return {
     start(){
@@ -617,11 +646,11 @@ const Music = (function(){
       if(ctx.state==='suspended') ctx.resume();
       master.gain.cancelScheduledValues(ctx.currentTime);
       master.gain.setValueAtTime(Math.max(master.gain.value,0.0001), ctx.currentTime);
-      master.gain.linearRampToValueAtTime(0.08, ctx.currentTime+ (started?1.5:4));
+      master.gain.linearRampToValueAtTime(0.07, ctx.currentTime+ (started?1.5:5));
       if(started) return;
       started=true; setChord(CHORDS[0],0.01);
-      chordTimer=setInterval(()=>{ idx=(idx+1)%CHORDS.length; setChord(CHORDS[idx],6); }, 16000);
-      bellTimer=setTimeout(bell, 6000);
+      chordTimer=setInterval(nextChord, 12000);
+      bellTimer=setTimeout(chime, 3000);
     },
     stop(){
       if(!ctx||!started) return;
@@ -630,14 +659,13 @@ const Music = (function(){
       master.gain.linearRampToValueAtTime(0.0001, ctx.currentTime+1.4);
       clearInterval(chordTimer); clearTimeout(bellTimer); started=false;
     },
-    // Foreground-only: halt audio processing when hidden, keep 'started' so we can resume.
     pause(){ clearInterval(chordTimer); clearTimeout(bellTimer);
       if(ctx && ctx.state==='running') ctx.suspend(); },
     resume(){ if(!started) return;
       if(ctx && ctx.state==='suspended') ctx.resume();
       clearInterval(chordTimer); clearTimeout(bellTimer);
-      chordTimer=setInterval(()=>{ idx=(idx+1)%CHORDS.length; setChord(CHORDS[idx],6); }, 16000);
-      bellTimer=setTimeout(bell, 4000);
+      chordTimer=setInterval(nextChord, 12000);
+      bellTimer=setTimeout(chime, 2500);
     },
     isRunning(){ return !!(started && ctx && ctx.state==='running'); }
   };
@@ -1786,6 +1814,9 @@ function initFriendsUI(){
   const acc=$('rp-accept'), den=$('rp-deny');
   if(acc) acc.onclick=()=>{ const pop=$('reqpop'), r=pop&&pop._req; hideReqPop(); if(r) acceptRequest(r); };
   if(den) den.onclick=()=>{ const pop=$('reqpop'), r=pop&&pop._req; hideReqPop(); if(r) denyRequest(r.uid, r.username); };
+  const rf=$('fr-refresh');
+  if(rf) rf.onclick=async ()=>{ if(!currentUser){ showErr('Sign in to load users.'); return; }
+    rf.classList.add('spin'); await loadAllUsers(); rf.classList.remove('spin'); showToast('User list refreshed'); };
   renderMe(); renderFriends(); renderRequests(); renderDirectory();
 }
 
