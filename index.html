@@ -215,10 +215,52 @@
   .lb-nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lb-ct{color:var(--accent);font-size:12px;flex:0 0 auto}
   /* Mark-as-seen button in the detail panel */
-  #d-seen{width:100%;margin-top:12px;padding:9px;border-radius:10px;border:1px solid var(--border);
+  #d-seen{flex:1;margin-top:0;padding:9px;border-radius:10px;border:1px solid var(--border);
     background:rgba(90,209,255,.12);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer}
   #d-seen:hover{background:rgba(90,209,255,.2)}
   #d-seen.on{background:rgba(87,224,138,.16);border-color:rgba(87,224,138,.5);color:#57e08a}
+  .d-actions{display:flex;gap:8px;margin-top:12px}
+  #d-fav{flex:0 0 auto;padding:9px 12px;border-radius:10px;border:1px solid var(--border);
+    background:rgba(255,211,77,.10);color:#ffd34d;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+  #d-fav:hover{background:rgba(255,211,77,.2)}
+  #d-fav.on{background:rgba(255,211,77,.2);border-color:rgba(255,211,77,.55)}
+  /* orbit / launch badges */
+  .d-badges{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+  .d-badge{font-size:10.5px;letter-spacing:.4px;padding:3px 8px;border-radius:999px;
+    background:rgba(120,160,255,.12);color:var(--muted);border:1px solid var(--border)}
+  .d-badge.b-LEO{background:rgba(90,209,255,.16);color:#5ad1ff;border-color:rgba(90,209,255,.4)}
+  .d-badge.b-MEO{background:rgba(255,211,77,.16);color:#ffd34d;border-color:rgba(255,211,77,.4)}
+  .d-badge.b-GEO{background:rgba(197,140,255,.16);color:#c58cff;border-color:rgba(197,140,255,.4)}
+  /* enrichment block */
+  #d-meta{margin-top:12px}
+  #d-meta .row{font-size:12px}
+  .d-photo{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin-bottom:8px;border:1px solid var(--border)}
+  .d-desc{font-size:12px;line-height:1.5;color:var(--text);margin-bottom:8px}
+  .d-src{margin-top:8px;font-size:11px;color:var(--muted)}
+  .d-src a{color:var(--accent);text-decoration:none}
+  .d-src a:hover{text-decoration:underline}
+  .d-loading{font-size:12px;color:var(--muted);padding:4px 0}
+  /* filter bar */
+  .filterbar{display:flex;align-items:center;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
+  .fseg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .fseg button{background:transparent;border:none;color:var(--muted);padding:6px 11px;font-size:12px;cursor:pointer;font-weight:600}
+  .fseg button+button{border-left:1px solid var(--border)}
+  .fseg button.sel{background:rgba(90,209,255,.16);color:var(--accent)}
+  .fav-toggle{background:transparent;border:1px solid var(--border);border-radius:10px;color:#ffd34d;
+    padding:6px 11px;font-size:12px;cursor:pointer;font-weight:600}
+  .fav-toggle.on{background:rgba(255,211,77,.18);border-color:rgba(255,211,77,.5)}
+  /* autocomplete */
+  .search-wrap{position:relative}
+  .ac{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:40;display:none;
+    background:var(--panel-solid);border:1px solid var(--border);border-radius:12px;overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,.5)}
+  .ac.show{display:block}
+  .ac-item{display:flex;align-items:center;gap:9px;padding:8px 11px;cursor:pointer;font-size:13px}
+  .ac-item:hover{background:rgba(90,209,255,.1)}
+  .ac-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:0 0 auto}
+  .ac-nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ac-cat{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;flex:0 0 auto}
+  .ac-empty{padding:9px 11px;font-size:12px;color:var(--muted)}
   .fr-search{display:flex;gap:6px;margin-bottom:8px}
   .fr-search input{flex:1;min-width:0;padding:9px 11px;border-radius:10px;border:1px solid var(--border);
     background:rgba(0,0,0,.35);color:var(--text);font-size:14px;outline:none}
@@ -468,6 +510,7 @@
   <div class="sheet-handle"></div>
   <div class="x" onclick="clearSelection()">✕</div>
   <h3 id="d-name">—</h3>
+  <div id="d-badges" class="d-badges"></div>
   <div class="row"><b>Group</b><span id="d-group">—</span></div>
   <div class="row"><b>Latitude</b><span id="d-lat">—</span></div>
   <div class="row"><b>Longitude</b><span id="d-lng">—</span></div>
@@ -476,14 +519,30 @@
   <div class="row"><b>Elevation</b><span id="d-el">—</span></div>
   <div class="row"><b>Range</b><span id="d-rng">—</span></div>
   <div class="row"><b>NORAD ID</b><span id="d-id">—</span></div>
-  <button id="d-seen">👁 Mark as seen</button>
+  <div class="d-actions">
+    <button id="d-seen">👁 Mark as seen</button>
+    <button id="d-fav" title="Add to favorites">☆ Favorite</button>
+  </div>
+  <div id="d-meta"></div>
   <div id="d-passes"></div>
 </div>
 
 <div id="controls" class="panel">
   <div class="sheet-handle"></div>
   <h2>Filter &amp; Search</h2>
-  <input id="search" placeholder="Search a satellite…" autocomplete="off" />
+  <div class="search-wrap">
+    <input id="search" placeholder="Search a satellite…" autocomplete="off" />
+    <div id="ac" class="ac"></div>
+  </div>
+  <div class="filterbar">
+    <div class="fseg" id="fseg-alt">
+      <button data-v="all" class="sel">All</button>
+      <button data-v="LEO">LEO</button>
+      <button data-v="MEO">MEO</button>
+      <button data-v="GEO">GEO</button>
+    </div>
+    <button id="fav-toggle" class="fav-toggle" title="Show only your favorites">★ Favorites</button>
+  </div>
   <div class="legend" id="legend"></div>
   <button id="installbtn">⬇ Install app</button>
 </div>
@@ -580,7 +639,11 @@ let observer = null;      // {lat,lng, gd:{longitude,latitude,height}}
 let selected = null;
 // User preferences (synced to the signed-in account)
 const prefs = { units:'metric', time:'24', autorotate:true, issPath:true, cutoff:0, music:true,
-  notify:false, notifyGroups:{ iss:true, stations:false, visual:false } };
+  notify:false, notifyGroups:{ iss:true, stations:false, visual:false }, favs:[] };
+// Favorites (starred sats) + client-side filters (no network).
+let favs = new Set();
+let altFilter = 'all';   // all | LEO | MEO | GEO
+let favOnly = false;
 const fmtDist = km => km==null ? '—' : (prefs.units==='imperial'
   ? Math.round(km*0.621371).toLocaleString()+' mi' : Math.round(km).toLocaleString()+' km');
 const fmtSpeed = kms => !kms ? '—' : (prefs.units==='imperial'
@@ -1001,14 +1064,14 @@ function renderPoints(){
   let k=0, overhead=0;
   for(let i=0;i<SATS.length && k<POINT_CAP;i++){
     const s=SATS[i];
-    if(!enabled[s.group] || s.lat==null) continue;
+    if(!enabled[s.group] || s.lat==null || !passesFilter(s)) continue;
     const up = observer && s.elevation!=null && s.elevation>prefs.cutoff;
     if(up) overhead++;
     const c=world.getCoords(s.lat, s.lng, s.alt);
     pos[k*3]=c.x; pos[k*3+1]=c.y; pos[k*3+2]=c.z;
     const rgb = up ? WHITE : (s._rgb || (s._rgb=hexRgb(s.color)));
     col[k*3]=rgb[0]; col[k*3+1]=rgb[1]; col[k*3+2]=rgb[2];
-    sz[k] = (s.id==='25544') ? 9 : up ? 6 : (s===selected ? 7.5 : 3.2);
+    sz[k] = (s.id==='25544') ? 9 : up ? 6 : (s===selected ? 7.5 : (favs.size && favs.has(s.id) ? 5.5 : 3.2));
     pointSatIndex[k]=i; k++;
   }
   satGeo.setDrawRange(0,k);
@@ -1021,7 +1084,7 @@ function renderPoints(){
 // Fallback renderer: globe.gl HTML markers. Returns overhead count.
 function renderHtml(){
   let overhead=0;
-  const active=SATS.filter(s=>enabled[s.group] && s.lat!=null && s.lng!=null);
+  const active=SATS.filter(s=>enabled[s.group] && s.lat!=null && s.lng!=null && passesFilter(s));
   for(const s of active){
     const up = observer && s.elevation!=null && s.elevation>prefs.cutoff;
     if(up) overhead++;
@@ -1033,11 +1096,11 @@ function renderHtml(){
 
 function renderFrame(){
   const overhead = usePoints ? renderPoints() : renderHtml();
-  let active=0; for(const s of SATS){ if(enabled[s.group]) active++; }
+  let active=0; for(const s of SATS){ if(enabled[s.group] && passesFilter(s)) active++; }
   $('s-total').textContent = active;
   $('s-over').textContent = observer ? overhead : '—';
   if(selected) renderDetail(selected);
-  renderOverhead(SATS.filter(s=>enabled[s.group]), overhead);
+  renderOverhead(SATS.filter(s=>enabled[s.group] && passesFilter(s)), overhead);
 }
 
 function propDelay(){
@@ -1386,6 +1449,7 @@ function selectSat(s){
   selected=s;
   flyTo(s.lat, s.lng, 1.8, 900);
   renderDetail(s);
+  enrichDetail(s);   // fetch launch/owner/type/decay + photo (cached, on-demand)
   if(s.id==='25544') renderPasses(); else { const p=$('d-passes'); if(p) p.innerHTML=''; }
   if(isMobile()) openSheet('detail');
   else $('detail').style.display='block';
@@ -1395,6 +1459,130 @@ function clearSelection(){
   if(isMobile()) closeSheets();
   else $('detail').style.display='none';
 }
+/* ---------- Satellite enrichment + filters ---------- */
+// Orbit class from the TLE's own elements — no network needed. Memoised per sat.
+function orbitClass(s){
+  if(s._oc) return s._oc;
+  let type='LEO';
+  try{
+    const a=s.satrec.a*6378.137, e=s.satrec.ecco||0, per=a*(1-e)-6378.137;
+    type = per<2000 ? 'LEO' : per<25000 ? 'MEO' : 'GEO';
+  }catch(e){}
+  return s._oc=type;
+}
+function orbitDetails(s){
+  try{
+    const a=s.satrec.a*6378.137, e=s.satrec.ecco||0;
+    return { apo:a*(1+e)-6378.137, per:a*(1-e)-6378.137,
+      inc:s.satrec.inclo*180/Math.PI, period:(2*Math.PI)/s.satrec.no };  // minutes
+  }catch(e){ return null; }
+}
+// International designator (TLE line 1, cols 10-17) → launch year, instantly.
+function launchYearOf(s){
+  try{ const d=(s.l1||'').slice(9,17).trim(); const yy=parseInt(d.slice(0,2),10);
+    if(isNaN(yy)) return null; return yy>56 ? 1900+yy : 2000+yy; }catch(e){ return null; }
+}
+const OWNER_MAP={ US:'United States', PRC:'China', CIS:'Russia', ESA:'ESA', EUME:'EUMETSAT',
+  EUTE:'Eutelsat', FR:'France', UK:'United Kingdom', GER:'Germany', ITSO:'Intelsat', SES:'SES',
+  JPN:'Japan', IND:'India', CA:'Canada', IT:'Italy', SKOR:'South Korea', SPN:'Spain', NETH:'Netherlands',
+  LUXE:'Luxembourg', GLOB:'Globalstar', ORB:'ORBCOMM', NOR:'Norway', TURK:'Turkey', UAE:'UAE',
+  AB:'Arabsat', ASRA:'Austria', AUS:'Australia', BRAZ:'Brazil', ARGN:'Argentina', ISRA:'Israel',
+  SAFR:'South Africa', THAI:'Thailand', INDO:'Indonesia', MEX:'Mexico', SING:'Singapore', TWN:'Taiwan',
+  O3B:'O3b Networks', RASC:'RascomStar', NICO:'New ICO', SEAL:'Sea Launch', ISS:'ISS (multinational)' };
+const OBJTYPE_MAP={ PAY:'Payload', 'R/B':'Rocket body', DEB:'Debris', UNK:'Unknown' };
+const OPS_MAP={ '+':'Operational', '-':'Non-operational', 'P':'Partially operational', 'B':'Backup / standby',
+  'S':'Spare', 'X':'Extended mission', 'D':'Decayed', '?':'Unknown' };
+
+async function fetchSatcat(id){
+  const ck='satmap_satcat_'+id;
+  try{ const c=JSON.parse(localStorage.getItem(ck)||'null'); if(c && Date.now()-c.t<6048e5) return c.d; }catch(e){}
+  try{
+    const r=await fetch('https://celestrak.org/satcat/records.php?CATNR='+id+'&FORMAT=JSON',{cache:'no-store'});
+    if(!r.ok) return null;
+    const j=await r.json(); const d=(Array.isArray(j)&&j.length)?j[0]:null;
+    if(d){ try{ localStorage.setItem(ck, JSON.stringify({t:Date.now(), d})); }catch(e){} }
+    return d;
+  }catch(e){ return null; }
+}
+function wikiTitle(name){
+  const n=(name||'').toUpperCase().trim();
+  if(n.startsWith('ISS')) return 'International Space Station';
+  if(n.startsWith('CSS')||n.includes('TIANHE')) return 'Tiangong space station';
+  if(n.startsWith('STARLINK')) return 'Starlink';
+  if(n.startsWith('ONEWEB')) return 'OneWeb satellite constellation';
+  if(n.includes('HUBBLE')||n==='HST') return 'Hubble Space Telescope';
+  if(n.startsWith('NAVSTAR')||n.startsWith('GPS')) return 'Global Positioning System';
+  if(n.startsWith('GALILEO')) return 'Galileo (satellite navigation)';
+  if(n.startsWith('GLONASS')) return 'GLONASS';
+  if(n.startsWith('IRIDIUM')) return 'Iridium satellite constellation';
+  if(n.startsWith('NOAA')) return name.replace(/\s*\[.*/,'').trim();
+  if(n.startsWith('GOES')) return name.replace(/\s*\[.*/,'').trim();
+  return name.replace(/\s*\(.*?\)\s*/g,' ').replace(/\s*\[.*/,'').trim();
+}
+async function fetchWiki(name){
+  const title=wikiTitle(name); if(!title) return null;
+  const ck='satmap_wiki_'+title.toLowerCase();
+  try{ const c=JSON.parse(localStorage.getItem(ck)||'null'); if(c && Date.now()-c.t<6048e5) return c.d; }catch(e){}
+  try{
+    const r=await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title)+'?redirect=true');
+    if(!r.ok) return null;
+    const j=await r.json();
+    if(j.type==='disambiguation'||!j.extract) return null;
+    const d={ img:(j.thumbnail&&j.thumbnail.source)||null, extract:j.extract,
+      url:(j.content_urls&&j.content_urls.desktop&&j.content_urls.desktop.page)||null };
+    try{ localStorage.setItem(ck, JSON.stringify({t:Date.now(), d})); }catch(e){}
+    return d;
+  }catch(e){ return null; }
+}
+// Fetch + render the rich metadata for the selected sat (once per selection).
+let enrichSeq=0;
+async function enrichDetail(s){
+  const box=$('d-meta'); if(!box) return;
+  const seq=++enrichSeq;
+  box.innerHTML='<div class="d-loading">Loading details…</div>';
+  const [cat, wiki] = await Promise.all([ fetchSatcat(s.id), fetchWiki(s.name) ]);
+  if(seq!==enrichSeq) return;               // selection changed while we were fetching
+  const rows=[];
+  const ly=launchYearOf(s);
+  const launch = (cat && cat.LAUNCH_DATE) ? cat.LAUNCH_DATE : (ly?String(ly):null);
+  if(launch) rows.push(['Launched', launch]);
+  if(cat && cat.OWNER) rows.push(['Owner', OWNER_MAP[cat.OWNER]||cat.OWNER]);
+  if(cat && cat.OBJECT_TYPE) rows.push(['Type', OBJTYPE_MAP[cat.OBJECT_TYPE]||cat.OBJECT_TYPE]);
+  if(cat && cat.OPS_STATUS_CODE && OPS_MAP[cat.OPS_STATUS_CODE]) rows.push(['Status', OPS_MAP[cat.OPS_STATUS_CODE]]);
+  rows.push(['In orbit', (cat && cat.DECAY_DATE) ? ('Decayed '+cat.DECAY_DATE) : 'Yes']);
+  if(cat && cat.LAUNCH_SITE) rows.push(['Launch site', cat.LAUNCH_SITE]);
+  let html='';
+  if(wiki && wiki.img) html+='<img class="d-photo" src="'+wiki.img+'" alt="" loading="lazy" onerror="this.remove()"/>';
+  if(wiki && wiki.extract) html+='<div class="d-desc">'+wiki.extract.slice(0,220)+(wiki.extract.length>220?'…':'')+'</div>';
+  html+=rows.map(r=>'<div class="row"><b>'+r[0]+'</b><span>'+r[1]+'</span></div>').join('');
+  const links=[];
+  links.push('<a href="https://celestrak.org/satcat/table-satcat.php?CATNR='+s.id+'" target="_blank" rel="noopener">Celestrak</a>');
+  if(wiki && wiki.url) links.push('<a href="'+wiki.url+'" target="_blank" rel="noopener">Wikipedia</a>');
+  html+='<div class="d-src">Sources: '+links.join(' · ')+'</div>';
+  if(!cat && !(wiki&&wiki.extract)) html='<div class="d-loading">No extra details available.</div>'+html;
+  box.innerHTML=html;
+}
+
+// Favorites
+function isFav(s){ return favs.has(s.id); }
+function toggleFav(s){
+  if(favs.has(s.id)) favs.delete(s.id); else favs.add(s.id);
+  prefs.favs=[...favs];
+  try{ localStorage.setItem('satmap_favs', JSON.stringify(prefs.favs)); }catch(e){}
+  saveSettings();
+  if(selected) renderDetail(selected);
+}
+function loadFavsLocal(){
+  try{ const a=JSON.parse(localStorage.getItem('satmap_favs')||'null'); if(Array.isArray(a)){ favs=new Set(a); prefs.favs=a; } }catch(e){}
+}
+
+// Client-side filter test (altitude band + favorites-only). Enabled-group check is separate.
+function passesFilter(s){
+  if(favOnly && !favs.has(s.id)) return false;
+  if(altFilter!=='all' && orbitClass(s)!==altFilter) return false;
+  return true;
+}
+
 function renderDetail(s){
   const g=GROUPS.find(x=>x.id===s.group);
   $('d-name').textContent=s.name;
@@ -1413,12 +1601,64 @@ function renderDetail(s){
     btn.classList.toggle('on', !!seen);
     btn.onclick = ()=>markSeen(s);
   }
+  const ob=orbitDetails(s), oc=orbitClass(s), ly=launchYearOf(s);
+  const badges=$('d-badges');
+  if(badges){
+    const b=['<span class="d-badge b-'+oc+'">'+oc+'</span>'];
+    if(ob){ b.push('<span class="d-badge">'+Math.round(ob.period)+' min</span>');
+            b.push('<span class="d-badge">incl '+ob.inc.toFixed(1)+'°</span>'); }
+    if(ly) b.push('<span class="d-badge">'+ly+'</span>');
+    badges.innerHTML=b.join('');
+  }
+  const fav=$('d-fav');
+  if(fav){ const on=isFav(s); fav.textContent=on?'★ Favorited':'☆ Favorite'; fav.classList.toggle('on',on); fav.onclick=()=>toggleFav(s); }
 }
 
 function doSearch(q){
   q=q.trim().toLowerCase(); if(!q) return;
+  hideAutocomplete();
   const s=SATS.find(x=>enabled[x.group] && x.name.toLowerCase().includes(q));
-  if(s) selectSat(s); else showErr('No tracked satellite matches “'+q+'”.');
+  if(s){ if(isMobile()) closeSheets(); selectSat(s); } else showErr('No tracked satellite matches “'+q+'”.');
+}
+
+/* ---------- Filters + autocomplete ---------- */
+function initFilters(){
+  document.querySelectorAll('#fseg-alt button').forEach(b=>b.onclick=()=>{
+    altFilter=b.dataset.v;
+    document.querySelectorAll('#fseg-alt button').forEach(x=>x.classList.toggle('sel', x===b));
+    renderFrame();
+  });
+  const ft=$('fav-toggle');
+  if(ft) ft.onclick=()=>{ favOnly=!favOnly; ft.classList.toggle('on', favOnly);
+    if(favOnly && favs.size===0) showToast('No favorites yet — open a satellite and tap ☆ Favorite.');
+    renderFrame(); };
+  const inp=$('search');
+  if(inp){
+    inp.addEventListener('input', ()=>renderAutocomplete(inp.value));
+    inp.addEventListener('focus', ()=>{ if(inp.value.trim()) renderAutocomplete(inp.value); });
+    inp.addEventListener('keydown', e=>{ if(e.key==='Escape') hideAutocomplete(); });
+    document.addEventListener('click', e=>{ if(!e.target.closest('.search-wrap')) hideAutocomplete(); });
+  }
+}
+function hideAutocomplete(){ const ac=$('ac'); if(ac){ ac.classList.remove('show'); ac.innerHTML=''; } }
+function renderAutocomplete(q){
+  const ac=$('ac'); if(!ac) return;
+  q=(q||'').trim().toLowerCase();
+  if(q.length<2){ hideAutocomplete(); return; }
+  const seen=new Set(), out=[];
+  for(const s of SATS){
+    if(!enabled[s.group] || !passesFilter(s) || seen.has(s.id)) continue;
+    if(s.name.toLowerCase().includes(q)){ seen.add(s.id); out.push(s); if(out.length>=8) break; }
+  }
+  if(!out.length){ ac.innerHTML='<div class="ac-empty">No match</div>'; ac.classList.add('show'); return; }
+  ac.innerHTML=out.map((s,i)=>{ const g=GROUPS.find(x=>x.id===s.group);
+    return '<div class="ac-item" data-i="'+i+'"><span class="ac-dot" style="color:'+(g?g.color:'#b9c7e6')+'"></span>'+
+      '<span class="ac-nm">'+s.name+'</span><span class="ac-cat">'+(g?g.label:s.group)+'</span></div>'; }).join('');
+  ac.classList.add('show');
+  ac.querySelectorAll('.ac-item').forEach(el=>el.onclick=()=>{
+    const s=out[+el.dataset.i]; hideAutocomplete(); const inp=$('search'); if(inp) inp.value='';
+    if(isMobile()) closeSheets(); selectSat(s);
+  });
 }
 
 /* ---------- Clocks ---------- */
@@ -1433,6 +1673,8 @@ async function boot(){
   }
   initGlobe();
   renderLegend();
+  loadFavsLocal();          // restore starred sats (also merged from account on sign-in)
+  initFilters();
   $('loadmsg').textContent='Fetching live orbital elements…';
   await loadData();
   updateLegendCounts();
@@ -1610,7 +1852,7 @@ function collectSettings(){
   let zoom=null; try{ zoom=world.pointOfView().altitude; }catch(e){}
   return { groups, lat: observer?observer.lat:null, lng: observer?observer.lng:null, zoom,
     units: prefs.units, time: prefs.time, autorotate: prefs.autorotate, issPath: prefs.issPath, cutoff: prefs.cutoff, music: prefs.music,
-    notify: prefs.notify, notifyGroups: prefs.notifyGroups,
+    notify: prefs.notify, notifyGroups: prefs.notifyGroups, favs: prefs.favs,
     updatedAt: Date.now() };
 }
 function saveSettings(){
@@ -1633,6 +1875,8 @@ function applySettings(s){
     if(typeof s.cutoff==='number') prefs.cutoff=s.cutoff;
     if(typeof s.notify==='boolean') prefs.notify=s.notify;
     if(s.notifyGroups && typeof s.notifyGroups==='object') prefs.notifyGroups=Object.assign({iss:true,stations:false,visual:false}, s.notifyGroups);
+    if(Array.isArray(s.favs)){ const merged=new Set([...favs, ...s.favs]); favs=merged; prefs.favs=[...merged];
+      try{ localStorage.setItem('satmap_favs', JSON.stringify(prefs.favs)); }catch(e){} }
     applyPrefs();
     if(prefs.notify) scanAlerts();
     if(s.groups){
