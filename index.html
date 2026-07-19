@@ -610,7 +610,8 @@ function initGlobe(){
     .ringColor(()=> t=>`rgba(90,209,255,${1-t})`)
     .ringMaxRadius(4).ringPropagationSpeed(2).ringRepeatPeriod(900)
     .pathPoints('points').pathColor(d=>d.color)
-    .pathStroke(2).pathPointAlt('alt').pathTransitionDuration(0)
+    .pathPointLat('lat').pathPointLng('lng').pathPointAlt('alt')
+    .pathStroke(2).pathTransitionDuration(0)
     .labelLat('lat').labelLng('lng').labelText(d=>'@'+d.username)
     .labelColor(d=>d.online?'#2ecc71':'#ff5a4d').labelDotRadius(0.5).labelSize(1.0)
     .labelAltitude(0.013).labelResolution(2);
