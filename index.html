@@ -1286,7 +1286,7 @@ function startSocial(user){
           if(ps.exists()){ const p=ps.data();
             f.username=p.username||f.username; f.displayName=p.displayName||f.displayName; f.photoURL=p.photoURL||f.photoURL;
             f.lat=(typeof p.lat==='number')?p.lat:null; f.lng=(typeof p.lng==='number')?p.lng:null; f.lastSeen=p.lastSeen||0; }
-          renderFriends(); updateFriendPins();
+          renderFriends(); evalFriendStatus();
         }, err=>{});
       } else { f.username=base.username||f.username; }
     });
@@ -1296,7 +1296,7 @@ function startSocial(user){
   }, err=>console.warn('friends sub',err));
   startPresence(); shareLocation();
   if(friendsTick) clearInterval(friendsTick);
-  friendsTick=setInterval(()=>{ renderFriends(); updateFriendPins(); }, 60000);
+  friendsTick=setInterval(evalFriendStatus, 6000);   // catch offline (time-based) transitions
   renderMe();
 }
 function stopSocial(){
@@ -1400,11 +1400,32 @@ function renderFriends(){
     if(f&&f.lat!=null){ if(isMobile()) closeSheets(); flyTo(f.lat,f.lng,1.5,900); } });
   el.querySelectorAll('.fr-del').forEach(b=>b.onclick=()=>removeFriend(b.dataset.uid,b.dataset.un));
 }
+const PIN_SHOW_MS = 9000;   // how long a friend's pin flashes on the map after a status change
 function updateFriendPins(){
   if(typeof world==='undefined'||!world) return;
   const now=Date.now();
-  world.labelsData(friends.filter(f=>typeof f.lat==='number'&&typeof f.lng==='number').map(f=>({
-    lat:f.lat, lng:f.lng, username:f.username, online:(now-(f.lastSeen||0)<150000) })));
+  // Only friends flagged by a recent status change are drawn — not everyone, all the time.
+  world.labelsData(friends
+    .filter(f=> typeof f.lat==='number' && typeof f.lng==='number' && f._showUntil && now < f._showUntil)
+    .map(f=>({ lat:f.lat, lng:f.lng, username:f.username, online:f._event==='active' })));
+}
+// Flash a friend's pin briefly when they come online or go offline (transitions only).
+function evalFriendStatus(){
+  const now=Date.now(); let changed=false;
+  for(const f of friends){
+    const on = (now-(f.lastSeen||0) < 150000);
+    if(f._online===undefined){ f._online=on; continue; }   // first read = baseline, no flash
+    if(on!==f._online){
+      f._online=on; changed=true;
+      if(typeof f.lat==='number' && typeof f.lng==='number'){
+        f._showUntil = now + PIN_SHOW_MS; f._event = on ? 'active' : 'offline';
+        setTimeout(updateFriendPins, PIN_SHOW_MS+100);       // auto-hide when the window ends
+      }
+      showToast((on?'🟢 @':'🔴 @')+f.username+(on?' came online':' went offline'));
+    }
+  }
+  if(changed) renderFriends();
+  updateFriendPins();
 }
 function initFriendsUI(){
   const go=$('fr-go'), q=$('fr-q');
