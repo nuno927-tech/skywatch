@@ -352,7 +352,6 @@
     <div class="stat"><b>Overhead</b><span id="s-over">—</span></div>
   </div>
   <div id="clocks" class="mono">
-    <div class="clock"><b>UTC</b><span id="c-utc">—</span></div>
     <div class="clock"><b>Local</b><span id="c-loc">—</span></div>
   </div>
   <button id="settingsbtn" title="Settings" aria-label="Settings">
@@ -375,12 +374,23 @@
     </div>
   </div>
   <div class="stg">
+    <div class="lbl">Clock<small>Regular or military time</small></div>
+    <div class="seg" id="seg-time">
+      <button data-v="12">12h</button>
+      <button data-v="24">24h</button>
+    </div>
+  </div>
+  <div class="stg">
     <div class="lbl">Auto-rotate globe<small>Spin gently when idle</small></div>
     <div class="switch" id="sw-rotate" role="switch"></div>
   </div>
   <div class="stg">
-    <div class="lbl">Show ISS orbit path<small>Red trajectory arc</small></div>
+    <div class="lbl">Show ISS orbit path<small>Red arc at orbit altitude</small></div>
     <div class="switch" id="sw-isspath" role="switch"></div>
+  </div>
+  <div class="stg">
+    <div class="lbl">ISS ground track<small>Leading &amp; trailing line on the map</small></div>
+    <div class="switch" id="sw-track" role="switch"></div>
   </div>
   <div class="stg">
     <div class="lbl">Overhead cutoff<small>Min. elevation to list a pass</small></div>
@@ -516,7 +526,7 @@ let SATS = [];            // {name,id,group,color,satrec, lat,lng,alt,altKm,spee
 let observer = null;      // {lat,lng, gd:{longitude,latitude,height}}
 let selected = null;
 // User preferences (synced to the signed-in account)
-const prefs = { units:'metric', autorotate:true, issPath:true, cutoff:0,
+const prefs = { units:'metric', time:'24', autorotate:true, issPath:true, groundTrack:true, cutoff:0,
   notify:false, notifyGroups:{ iss:true, stations:false, visual:false } };
 const fmtDist = km => km==null ? '—' : (prefs.units==='imperial'
   ? Math.round(km*0.621371).toLocaleString()+' mi' : Math.round(km).toLocaleString()+' km');
@@ -599,7 +609,7 @@ function initGlobe(){
     })
     .ringColor(()=> t=>`rgba(90,209,255,${1-t})`)
     .ringMaxRadius(4).ringPropagationSpeed(2).ringRepeatPeriod(900)
-    .pathColor(()=> ['rgba(255,90,77,.85)','rgba(255,90,77,0)'])
+    .pathPoints('points').pathColor(d=>d.color)
     .pathStroke(2).pathPointAlt('alt').pathTransitionDuration(0)
     .labelLat('lat').labelLng('lng').labelText(d=>'@'+d.username)
     .labelColor(d=>d.online?'#2ecc71':'#ff5a4d').labelDotRadius(0.5).labelSize(1.0)
@@ -655,18 +665,34 @@ function propagate(){
 }
 
 /* ---------- ISS orbit path ---------- */
-function updateIssOrbit(){
-  const iss = SATS.find(s=>s.id==='25544');
-  if(!iss || !enabled['iss'] || !prefs.issPath){ world.pathsData([]); return; }
-  const pts=[]; const t0=Date.now();
-  for(let m=0;m<=100;m+=1){                 // projected trajectory ~ next orbit, 1-min steps
+function issTrackPoints(fromMin, toMin, alt){
+  const iss = SATS.find(s=>s.id==='25544'); if(!iss) return [];
+  const t0=Date.now(), out=[];
+  for(let m=fromMin;m<=toMin;m+=1){
     const t=new Date(t0+m*60000);
     let pv; try{ pv=satellite.propagate(iss.satrec,t);}catch(e){continue;}
     if(!pv||!pv.position) continue;
     const gd=satellite.eciToGeodetic(pv.position,satellite.gstime(t));
-    pts.push({lat:satellite.degreesLat(gd.latitude),lng:satellite.degreesLong(gd.longitude),alt:gd.height/EARTH_R});
+    out.push({lat:satellite.degreesLat(gd.latitude), lng:satellite.degreesLong(gd.longitude),
+      alt: alt==null ? gd.height/EARTH_R : alt});
   }
-  world.pathsData([pts]);
+  return out;
+}
+function updateIssOrbit(){
+  const iss = SATS.find(s=>s.id==='25544');
+  if(!iss || !enabled['iss']){ world.pathsData([]); return; }
+  const paths=[];
+  // Orbital ring at altitude (next orbit)
+  if(prefs.issPath){
+    paths.push({ points: issTrackPoints(0,100,null), color:['rgba(255,90,77,.85)','rgba(255,90,77,0)'] });
+  }
+  // Ground track on the map: trailing (past) + leading (future), brightest at the ISS
+  if(prefs.groundTrack){
+    const S=0.004;
+    paths.push({ points: issTrackPoints(-55,0,S), color:['rgba(255,210,63,0)','rgba(255,210,63,.95)'] });   // trailing → now
+    paths.push({ points: issTrackPoints(0,55,S),  color:['rgba(255,210,63,.95)','rgba(255,210,63,0)'] });   // now → leading
+  }
+  world.pathsData(paths);
 }
 
 /* ---------- ISS visible-pass predictions ---------- */
@@ -784,7 +810,7 @@ function fmtPassTime(t){
   const day = same(d,now)?'Today' : same(d,new Date(now.getTime()+864e5))?'Tomorrow'
     : same(d,new Date(now.getTime()-864e5))?'Yesterday'
     : d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
-  return day+' '+d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  return day+' '+d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12: prefs.time==='12'});
 }
 function renderPasses(){
   const el=$('d-passes'); if(!el) return;
@@ -936,9 +962,7 @@ function doSearch(q){
 
 /* ---------- Clocks ---------- */
 function tickClock(){
-  const n=new Date();
-  $('c-utc').textContent=n.toISOString().slice(11,19);
-  $('c-loc').textContent=n.toLocaleTimeString([], {hour12:false});
+  $('c-loc').textContent=new Date().toLocaleTimeString([], {hour12: prefs.time==='12'});
 }
 
 /* ---------- Boot ---------- */
@@ -1021,9 +1045,12 @@ function initMobileUI(){
 /* ---------- Settings ---------- */
 function applyPrefs(){
   document.querySelectorAll('#seg-units button').forEach(b=>b.classList.toggle('sel', b.dataset.v===prefs.units));
+  document.querySelectorAll('#seg-time button').forEach(b=>b.classList.toggle('sel', b.dataset.v===prefs.time));
   document.querySelectorAll('#seg-cutoff button').forEach(b=>b.classList.toggle('sel', +b.dataset.v===prefs.cutoff));
+  if($('c-loc')) tickClock();
   $('sw-rotate').classList.toggle('on', prefs.autorotate);
   $('sw-isspath').classList.toggle('on', prefs.issPath);
+  $('sw-track').classList.toggle('on', prefs.groundTrack);
   $('sw-notify').classList.toggle('on', prefs.notify);
   $('notify-groups').classList.toggle('show', prefs.notify);
   ['iss','stations','visual'].forEach(k=>{ const el=$('nt-'+k); if(el) el.classList.toggle('on', !!(prefs.notifyGroups&&prefs.notifyGroups[k])); });
@@ -1035,9 +1062,11 @@ function applyPrefs(){
 }
 function initSettingsUI(){
   document.querySelectorAll('#seg-units button').forEach(b=>b.onclick=()=>{ prefs.units=b.dataset.v; applyPrefs(); saveSettings(); });
+  document.querySelectorAll('#seg-time button').forEach(b=>b.onclick=()=>{ prefs.time=b.dataset.v; applyPrefs(); saveSettings(); });
   document.querySelectorAll('#seg-cutoff button').forEach(b=>b.onclick=()=>{ prefs.cutoff=+b.dataset.v; applyPrefs(); saveSettings(); });
   $('sw-rotate').onclick=()=>{ prefs.autorotate=!prefs.autorotate; applyPrefs(); saveSettings(); };
   $('sw-isspath').onclick=()=>{ prefs.issPath=!prefs.issPath; applyPrefs(); saveSettings(); };
+  $('sw-track').onclick=()=>{ prefs.groundTrack=!prefs.groundTrack; applyPrefs(); saveSettings(); };
   $('sw-notify').onclick=async ()=>{
     if(!prefs.notify){ const ok=await enableNotifications(); if(!ok) return; prefs.notify=true; }
     else prefs.notify=false;
@@ -1113,7 +1142,7 @@ function collectSettings(){
   const groups={}; GROUPS.forEach(g=>groups[g.id]=!!enabled[g.id]);
   let zoom=null; try{ zoom=world.pointOfView().altitude; }catch(e){}
   return { groups, lat: observer?observer.lat:null, lng: observer?observer.lng:null, zoom,
-    units: prefs.units, autorotate: prefs.autorotate, issPath: prefs.issPath, cutoff: prefs.cutoff,
+    units: prefs.units, time: prefs.time, autorotate: prefs.autorotate, issPath: prefs.issPath, groundTrack: prefs.groundTrack, cutoff: prefs.cutoff,
     notify: prefs.notify, notifyGroups: prefs.notifyGroups,
     updatedAt: Date.now() };
 }
@@ -1130,8 +1159,10 @@ function applySettings(s){
   applyingRemote=true;
   try{
     if(typeof s.units==='string') prefs.units=s.units;
+    if(s.time==='12'||s.time==='24') prefs.time=s.time;
     if(typeof s.autorotate==='boolean') prefs.autorotate=s.autorotate;
     if(typeof s.issPath==='boolean') prefs.issPath=s.issPath;
+    if(typeof s.groundTrack==='boolean') prefs.groundTrack=s.groundTrack;
     if(typeof s.cutoff==='number') prefs.cutoff=s.cutoff;
     if(typeof s.notify==='boolean') prefs.notify=s.notify;
     if(s.notifyGroups && typeof s.notifyGroups==='object') prefs.notifyGroups=Object.assign({iss:true,stations:false,visual:false}, s.notifyGroups);
