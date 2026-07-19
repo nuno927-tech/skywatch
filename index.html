@@ -206,6 +206,19 @@
   .fr-me{font-size:13px;margin-bottom:10px} .fr-me b{color:var(--accent)}
   .fr-del-un{color:var(--iss);font-size:11px;cursor:pointer;margin-left:8px;text-decoration:underline}
   .fr-del-un:hover{opacity:.8}
+  .fr-badge{font-size:11px;color:var(--muted);flex:0 0 auto}
+  #fr-leader{margin-bottom:2px}
+  .lb-row{display:flex;align-items:center;gap:9px;padding:6px 4px;border-bottom:1px solid rgba(120,160,255,.06);font-size:13px}
+  .lb-row:last-child{border-bottom:none}
+  .lb-row.me{background:rgba(90,209,255,.08);border-radius:8px;padding-left:8px;padding-right:8px}
+  .lb-rank{width:28px;text-align:center;flex:0 0 auto}
+  .lb-nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lb-ct{color:var(--accent);font-size:12px;flex:0 0 auto}
+  /* Mark-as-seen button in the detail panel */
+  #d-seen{width:100%;margin-top:12px;padding:9px;border-radius:10px;border:1px solid var(--border);
+    background:rgba(90,209,255,.12);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer}
+  #d-seen:hover{background:rgba(90,209,255,.2)}
+  #d-seen.on{background:rgba(87,224,138,.16);border-color:rgba(87,224,138,.5);color:#57e08a}
   .fr-search{display:flex;gap:6px;margin-bottom:8px}
   .fr-search input{flex:1;min-width:0;padding:9px 11px;border-radius:10px;border:1px solid var(--border);
     background:rgba(0,0,0,.35);color:var(--text);font-size:14px;outline:none}
@@ -463,6 +476,7 @@
   <div class="row"><b>Elevation</b><span id="d-el">—</span></div>
   <div class="row"><b>Range</b><span id="d-rng">—</span></div>
   <div class="row"><b>NORAD ID</b><span id="d-id">—</span></div>
+  <button id="d-seen">👁 Mark as seen</button>
   <div id="d-passes"></div>
 </div>
 
@@ -489,6 +503,8 @@
   <h2>Friends</h2>
   <div id="fr-me"></div>
   <div id="fr-requests"></div>
+  <div class="fr-sub">🏆 Badge leaderboard</div>
+  <div id="fr-leader"></div>
   <div class="fr-sub" id="fr-friends-h">Your friends</div>
   <div id="fr-list"></div>
   <div class="fr-sub fr-sub-row"><span>All users · long-press to request</span><button id="fr-refresh" title="Refresh list">⟳</button></div>
@@ -1224,6 +1240,13 @@ function renderDetail(s){
   $('d-el').textContent=s.elevation!=null?s.elevation.toFixed(1)+'°':'—';
   $('d-rng').textContent=fmtDist(s.rangeKm);
   $('d-id').textContent=s.id;
+  const btn=$('d-seen');
+  if(btn){
+    const seen = myProfile && Array.isArray(myProfile.seen) && myProfile.seen.some(x=>x.id===s.id);
+    btn.textContent = seen ? '✓ Seen — tap to remove' : '👁 Mark as seen';
+    btn.classList.toggle('on', !!seen);
+    btn.onclick = ()=>markSeen(s);
+  }
 }
 
 function doSearch(q){
@@ -1479,7 +1502,7 @@ function updateAccountUI(user){
         ${photo?`<img src="${photo}" referrerpolicy="no-referrer" alt="">`:''}
         <div><div class="nm">${user.displayName||'Signed in'}</div><div class="em">${user.email||''}</div></div>
       </div>
-      <div class="acct-uname">${(myProfile&&myProfile.username)?('@'+myProfile.username):'<span class="lnk" id="acct-setuname">+ choose a username</span>'}</div>
+      <div class="acct-uname">${(myProfile&&myProfile.username)?('@'+myProfile.username+' · 🏅 '+(myProfile.badges||0)+' badges'):'<span class="lnk" id="acct-setuname">+ choose a username</span>'}</div>
       <button class="act" id="acct-friends">👥 Friends</button>
       <button class="act" id="signout">Sign out</button>
       <div class="note bot">✓ Your location & settings sync to your account across devices.</div>`;
@@ -1553,7 +1576,7 @@ function startSocial(user){
   const {db, doc, collection, onSnapshot}=window.fb;
   if(unsubMyProfile) unsubMyProfile();
   unsubMyProfile = onSnapshot(doc(db,'profiles',user.uid), s=>{
-    myProfile = s.exists()? s.data() : null; renderMe(); updateAccountUI(currentUser);
+    myProfile = s.exists()? s.data() : null; renderMe(); updateAccountUI(currentUser); renderLeaderboard();
   }, err=>console.warn('profile sub',err));
   if(unsubFriends) unsubFriends();
   unsubFriends = onSnapshot(collection(db,'profiles',user.uid,'friends'), snap=>{
@@ -1567,7 +1590,7 @@ function startSocial(user){
         friendProfileUnsubs[fid]=onSnapshot(doc(db,'profiles',fid), ps=>{
           if(ps.exists()){ const p=ps.data();
             f.username=p.username||f.username; f.displayName=p.displayName||f.displayName; f.photoURL=p.photoURL||f.photoURL;
-            f.lat=(typeof p.lat==='number')?p.lat:null; f.lng=(typeof p.lng==='number')?p.lng:null; f.lastSeen=p.lastSeen||0; }
+            f.lat=(typeof p.lat==='number')?p.lat:null; f.lng=(typeof p.lng==='number')?p.lng:null; f.lastSeen=p.lastSeen||0; f.badges=p.badges||0; }
           renderFriends(); evalFriendStatus();
         }, err=>{});
       } else { f.username=base.username||f.username; }
@@ -1598,7 +1621,7 @@ function stopSocial(){
   friends=[]; myProfile=null; incomingReqs=[]; allUsers=[]; sentRequests=new Set(); pinnedFriends.clear();
   if(friendsTick){ clearInterval(friendsTick); friendsTick=null; }
   hideReqPop();
-  stopPresence(); updateFriendPins(); renderFriends(); renderMe(); renderRequests(); renderDirectory();
+  stopPresence(); updateFriendPins(); renderFriends(); renderMe(); renderRequests(); renderDirectory(); renderLeaderboard();
 }
 function startPresence(){
   stopPresence();
@@ -1649,13 +1672,29 @@ async function deleteUsername(){
     showToast('Username deleted — you’ve left the friends network.');
   }catch(e){ console.error(e); showErr('Could not delete username: '+(e.code||e.message||e)); }
 }
+// Mark a satellite as "seen" → earns a badge, saved to your profile + username (for the leaderboard).
+async function markSeen(sat){
+  if(!currentUser||!window.fb){ showErr('Sign in to collect badges (account icon, top-right).'); return; }
+  if(!myProfile||!myProfile.username){ showErr('Choose a username first (Friends tab).'); return; }
+  const {db, doc, setDoc}=window.fb; const me=currentUser.uid;
+  const list=(myProfile && Array.isArray(myProfile.seen)) ? myProfile.seen.slice() : [];
+  const i=list.findIndex(x=>x.id===sat.id);
+  let added;
+  if(i>=0){ list.splice(i,1); added=false; } else { list.push({id:sat.id, name:sat.name, ts:Date.now()}); added=true; }
+  const count=list.length;
+  try{
+    await setDoc(doc(db,'profiles',me), {seen:list, badges:count}, {merge:true});
+    if(myProfile.unameLower){ try{ await setDoc(doc(db,'usernames',myProfile.unameLower), {badges:count}, {merge:true}); }catch(e){} }
+    showToast(added ? ('🏅 Badge earned: '+sat.name) : ('Removed “'+sat.name+'” from seen'), added);
+  }catch(e){ console.error(e); showErr('Could not save badge: '+(e.code||e.message||e)); }
+}
 async function loadAllUsers(){
   if(!window.fb || !currentUser) return;
   const {db, collection, getDocs, query, limit}=window.fb;
   try{
     const snap=await getDocs(query(collection(db,'usernames'), limit(300)));
     allUsers = snap.docs.map(d=>d.data()).filter(u=>u && u.uid && u.uid!==currentUser.uid);
-    renderDirectory();
+    renderDirectory(); renderLeaderboard();
   }catch(e){ console.warn('directory', e); const el=$('fr-dir'); if(el) el.innerHTML='<div class="fr-note">Couldn’t load the user list.</div>'; }
 }
 function renderDirectory(){
@@ -1735,6 +1774,18 @@ function showReqPop(r){
   clearTimeout(pop._tm); pop._tm=setTimeout(()=>pop.classList.remove('show'), 12000);
 }
 function hideReqPop(){ const pop=$('reqpop'); if(pop) pop.classList.remove('show'); }
+function renderLeaderboard(){
+  const el=$('fr-leader'); if(!el) return;
+  if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in to see the leaderboard.</div>'; return; }
+  const rows=allUsers.map(u=>({username:u.username, badges:u.badges||0, uid:u.uid}));
+  if(myProfile && myProfile.username) rows.push({username:myProfile.username, badges:myProfile.badges||0, uid:currentUser.uid, self:true});
+  rows.sort((a,b)=>(b.badges||0)-(a.badges||0));
+  const top=rows.filter(r=>r.badges>0).slice(0,10);
+  if(!top.length){ el.innerHTML='<div class="fr-note">No badges yet — open a satellite and tap “Mark as seen”. Use ⟳ to refresh others’ counts.</div>'; return; }
+  const medal=['🥇','🥈','🥉'];
+  el.innerHTML=top.map((r,i)=>'<div class="lb-row'+(r.self?' me':'')+'"><span class="lb-rank">'+(medal[i]||('#'+(i+1)))+'</span>'+
+    '<span class="lb-nm">@'+r.username+(r.self?' (you)':'')+'</span><span class="lb-ct">🏅 '+r.badges+'</span></div>').join('');
+}
 async function removeFriend(uid, uname){
   const {db, doc, deleteDoc}=window.fb;
   try{ await deleteDoc(doc(db,'profiles',currentUser.uid,'friends',uid));
@@ -1745,7 +1796,7 @@ function renderMe(){
   const el=$('fr-me'); if(!el) return;
   if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in (account icon, top-right) to use friends.</div>'; return; }
   if(myProfile && myProfile.username){
-    el.innerHTML='<div class="fr-me">You are <b>@'+myProfile.username+'</b> <span class="fr-del-un" id="del-uname">delete username</span></div>';
+    el.innerHTML='<div class="fr-me">You are <b>@'+myProfile.username+'</b> · 🏅 '+(myProfile.badges||0)+' <span class="fr-del-un" id="del-uname">delete username</span></div>';
     const d=$('del-uname'); if(d) d.onclick=deleteUsername;
   } else {
     el.innerHTML='<div class="fr-note">Pick a username so friends can find you:</div>'+
@@ -1764,6 +1815,7 @@ function renderFriends(){
     const has=(typeof f.lat==='number'&&typeof f.lng==='number');
     return '<div class="fr-item"><span class="fr-status '+(on?'on':'off')+'"></span>'+
       '<div class="fr-nm">@'+f.username+(has?'':' <small>· no location</small>')+'</div>'+
+      '<span class="fr-badge" title="Badges collected">🏅 '+(f.badges||0)+'</span>'+
       (has?'<button class="fr-locate" data-uid="'+f.uid+'" title="Show on map">📍</button>':'')+
       '<button class="fr-del" data-uid="'+f.uid+'" data-un="'+f.username+'" title="Remove">✕</button></div>';
   }).join('');
@@ -1817,7 +1869,7 @@ function initFriendsUI(){
   const rf=$('fr-refresh');
   if(rf) rf.onclick=async ()=>{ if(!currentUser){ showErr('Sign in to load users.'); return; }
     rf.classList.add('spin'); await loadAllUsers(); rf.classList.remove('spin'); showToast('User list refreshed'); };
-  renderMe(); renderFriends(); renderRequests(); renderDirectory();
+  renderMe(); renderFriends(); renderRequests(); renderDirectory(); renderLeaderboard();
 }
 
 /* ---------- Global community counter (total users + online now) ---------- */
