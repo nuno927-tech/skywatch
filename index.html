@@ -393,6 +393,7 @@
   .acct-uname b{color:var(--accent)} .acct-uname .lnk{color:var(--accent);cursor:pointer}
   .fr-sub{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:14px 0 4px}
   .fr-sub-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .fr-total{font-size:11px;color:var(--muted);margin:-2px 0 6px}
   #fr-refresh{background:transparent;border:none;color:var(--accent);cursor:pointer;font-size:16px;
     line-height:1;padding:2px 4px;border-radius:6px}
   #fr-refresh:hover{background:rgba(90,209,255,.14)}
@@ -618,7 +619,7 @@
   <div id="stat" class="mono">
     <div class="stat"><b>Tracking</b><span id="s-total">—</span></div>
     <div class="stat ov"><b>Overhead</b><span id="s-over">—</span></div>
-    <div class="stat"><b>Users</b><span id="s-users">—</span></div>
+    <div class="stat"><b>Online</b><span id="s-users">—</span></div>
   </div>
   <div id="clocks" class="mono">
     <div class="clock"><b>Local</b><span id="c-loc">—</span></div>
@@ -826,6 +827,7 @@
   <div class="fr-sub" id="fr-friends-h">Your friends</div>
   <div id="fr-list"></div>
   <div class="fr-sub fr-sub-row"><span>All users · long-press to request</span><button id="fr-refresh" title="Refresh list">⟳</button></div>
+  <div id="fr-total" class="fr-total">—</div>
   <input id="fr-q" class="fr-filter" placeholder="Filter users…" autocomplete="off" />
   <div id="fr-dir"></div>
 </div>
@@ -3113,8 +3115,8 @@ async function fetchCommunityStats(){
   try{
     const total  = (await getCountFromServer(collection(db,'presence'))).data().count;
     const online = (await getCountFromServer(query(collection(db,'presence'), where('ts','>', Date.now()-150000)))).data().count;
-    const el=$('s-users');
-    if(el) el.innerHTML = total.toLocaleString()+' <span class="on-ct">'+online.toLocaleString()+' online</span>';
+    const el=$('s-users'); if(el) el.textContent = online.toLocaleString();
+    const ft=$('fr-total'); if(ft) ft.textContent = total.toLocaleString()+' total user'+(total===1?'':'s');
   }catch(e){ console.warn('community stats', e); }
 }
 function startCommunityStats(){
