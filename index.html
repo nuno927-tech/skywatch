@@ -3047,7 +3047,15 @@ async function removeSeen(id, name){
   if(!currentUser||!window.fb||!myProfile) return;
   const list=(Array.isArray(myProfile.seen)?myProfile.seen:[]).filter(e=>e.id!==id);
   try{ await commitSeen(list, myProfile.sightDays||[]); showToast('Removed “'+(name||'item')+'” from your sightings'); }
-  catch(e){ showErr('Could not remove: '+(e.code||e.message||e)); }
+  catch(e){ showErr('Could not remove: '+(e.code||e.message||e)); return; }
+  // also remove any matching post from the public feed
+  try{
+    const {db, collection, query, where, getDocs, deleteDoc}=window.fb;
+    const snap=await getDocs(query(collection(db,'feed'), where('uid','==',currentUser.uid)));
+    await Promise.all(snap.docs.filter(d=>d.data().id===id).map(d=>deleteDoc(d.ref).catch(()=>{})));
+    feedItems=feedItems.filter(x=>!(x.uid===currentUser.uid && x.id===id));
+    renderFeed();
+  }catch(e){ console.warn('feed cleanup', e); }
 }
 /* ---------- Achievements page (viewable for any user) ---------- */
 function openMyAchievements(){
