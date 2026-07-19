@@ -204,6 +204,8 @@
   #friends h2{margin:2px 0 10px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
   .fr-note{font-size:12px;color:var(--muted);line-height:1.45;padding:6px 0}
   .fr-me{font-size:13px;margin-bottom:10px} .fr-me b{color:var(--accent)}
+  .fr-del-un{color:var(--iss);font-size:11px;cursor:pointer;margin-left:8px;text-decoration:underline}
+  .fr-del-un:hover{opacity:.8}
   .fr-search{display:flex;gap:6px;margin-bottom:8px}
   .fr-search input{flex:1;min-width:0;padding:9px 11px;border-radius:10px;border:1px solid var(--border);
     background:rgba(0,0,0,.35);color:var(--text);font-size:14px;outline:none}
@@ -849,6 +851,9 @@ function initGlobe(){
   // stop auto-rotate once the user interacts
   ['pointerdown','wheel','touchstart'].forEach(ev=>
     world.renderer().domElement.addEventListener(ev,()=>{controls.autoRotate=false},{once:true}));
+  // a clicked friend pin is cleared as soon as the user moves the map
+  ['pointerdown','wheel','touchstart'].forEach(ev=>
+    world.renderer().domElement.addEventListener(ev, clearPinnedFriends));
 
   window.addEventListener('resize',()=>{ world.width(innerWidth).height(innerHeight); });
   world.width(innerWidth).height(innerHeight);
@@ -1383,6 +1388,7 @@ let currentUser=null, unsubSettings=null, applyingRemote=false, saveTimer=null, 
 let myProfile=null, friends=[], unsubFriends=null, unsubMyProfile=null, friendProfileUnsubs={}, presenceTimer=null, friendsTick=null;
 // Friend requests + user directory
 let incomingReqs=[], unsubRequests=null, allUsers=[], sentRequests=new Set(), dirFilter='', reqQueue=[], reqPopBusy=false;
+let pinnedFriends=new Set();   // friends whose pin is held on the map until you move it
 const GOOGLE_G = '<svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.1 0 24 0 14.6 0 6.4 5.4 2.5 13.3l7.8 6.1C12.2 13.3 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/><path fill="#FBBC05" d="M10.3 19.4l-7.8-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.5 10.7l7.8-6.1c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6z"/><path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.6 2.1-7.9 2.1-6.4 0-11.8-3.8-13.7-9.4l-7.8 6.1C6.4 42.6 14.6 48 24 48z"/></svg>';
 const USER_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';
 
@@ -1561,7 +1567,7 @@ function stopSocial(){
   if(unsubFriends){ unsubFriends(); unsubFriends=null; }
   if(unsubRequests){ unsubRequests(); unsubRequests=null; }
   Object.values(friendProfileUnsubs).forEach(u=>{ try{u();}catch(e){} }); friendProfileUnsubs={};
-  friends=[]; myProfile=null; incomingReqs=[]; allUsers=[]; sentRequests=new Set();
+  friends=[]; myProfile=null; incomingReqs=[]; allUsers=[]; sentRequests=new Set(); pinnedFriends.clear();
   if(friendsTick){ clearInterval(friendsTick); friendsTick=null; }
   hideReqPop();
   stopPresence(); updateFriendPins(); renderFriends(); renderMe(); renderRequests(); renderDirectory();
@@ -1598,6 +1604,22 @@ async function saveUsername(raw){
     if(myProfile && myProfile.unameLower && myProfile.unameLower!==lower){ try{ await deleteDoc(doc(db,'usernames',myProfile.unameLower)); }catch(e){} }
     showToast('✓ Username set: @'+raw, true);
   }catch(e){ console.error(e); showErr('Could not save username: '+(e.code||e.message||e)); }
+}
+async function deleteUsername(){
+  if(!currentUser||!window.fb||!myProfile||!myProfile.username) return;
+  if(!confirm('Delete your username @'+myProfile.username+'?\n\nThis removes you from everyone’s friends list and clears all your friends. You can choose a new username later.')) return;
+  const {db, doc, deleteDoc, setDoc}=window.fb; const me=currentUser.uid;
+  try{
+    for(const f of friends.slice()){                       // remove the friendship both ways
+      try{ await deleteDoc(doc(db,'profiles',me,'friends',f.uid)); }catch(e){}
+      try{ await deleteDoc(doc(db,'profiles',f.uid,'friends',me)); }catch(e){}
+    }
+    for(const r of incomingReqs.slice()){ try{ await deleteDoc(doc(db,'profiles',me,'requests',r.uid)); }catch(e){} }
+    if(myProfile.unameLower){ try{ await deleteDoc(doc(db,'usernames',myProfile.unameLower)); }catch(e){} }
+    await setDoc(doc(db,'profiles',me), {username:'', unameLower:''}, {merge:true});   // clear identity
+    sentRequests=new Set(); pinnedFriends.clear(); updateFriendPins();
+    showToast('Username deleted — you’ve left the friends network.');
+  }catch(e){ console.error(e); showErr('Could not delete username: '+(e.code||e.message||e)); }
 }
 async function loadAllUsers(){
   if(!window.fb || !currentUser) return;
@@ -1695,7 +1717,8 @@ function renderMe(){
   const el=$('fr-me'); if(!el) return;
   if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in (account icon, top-right) to use friends.</div>'; return; }
   if(myProfile && myProfile.username){
-    el.innerHTML='<div class="fr-me">You are <b>@'+myProfile.username+'</b></div>';
+    el.innerHTML='<div class="fr-me">You are <b>@'+myProfile.username+'</b> <span class="fr-del-un" id="del-uname">delete username</span></div>';
+    const d=$('del-uname'); if(d) d.onclick=deleteUsername;
   } else {
     el.innerHTML='<div class="fr-note">Pick a username so friends can find you:</div>'+
       '<div class="fr-search"><input id="uname-in" placeholder="username" maxlength="20" autocomplete="off"/><button id="uname-save">Save</button></div>';
@@ -1716,19 +1739,29 @@ function renderFriends(){
       (has?'<button class="fr-locate" data-uid="'+f.uid+'" title="Show on map">📍</button>':'')+
       '<button class="fr-del" data-uid="'+f.uid+'" data-un="'+f.username+'" title="Remove">✕</button></div>';
   }).join('');
-  el.querySelectorAll('.fr-locate').forEach(b=>b.onclick=()=>{ const f=friends.find(x=>x.uid===b.dataset.uid);
-    if(f&&f.lat!=null){ if(isMobile()) closeSheets(); flyTo(f.lat,f.lng,1.5,900); } });
+  el.querySelectorAll('.fr-locate').forEach(b=>b.onclick=()=>locateFriend(b.dataset.uid));
   el.querySelectorAll('.fr-del').forEach(b=>b.onclick=()=>removeFriend(b.dataset.uid,b.dataset.un));
 }
 const PIN_SHOW_MS = 9000;   // how long a friend's pin flashes on the map after a status change
 function updateFriendPins(){
   if(typeof world==='undefined'||!world) return;
   const now=Date.now();
-  // Only friends flagged by a recent status change are drawn — not everyone, all the time.
+  // Draw a pin if: a recent status change flashed it, OR you clicked to locate that friend.
   world.labelsData(friends
-    .filter(f=> typeof f.lat==='number' && typeof f.lng==='number' && f._showUntil && now < f._showUntil)
-    .map(f=>({ lat:f.lat, lng:f.lng, username:f.username, online:f._event==='active' })));
+    .filter(f=> typeof f.lat==='number' && typeof f.lng==='number' &&
+      ((f._showUntil && now < f._showUntil) || pinnedFriends.has(f.uid)))
+    .map(f=>({ lat:f.lat, lng:f.lng, username:f.username, online:(now-(f.lastSeen||0)<150000) })));
 }
+// Show a friend's pin on the map and fly to them; the pin stays until the map is moved.
+function locateFriend(uid){
+  const f=friends.find(x=>x.uid===uid);
+  if(!f || typeof f.lat!=='number' || typeof f.lng!=='number') return;
+  if(isMobile()) closeSheets();
+  pinnedFriends.add(uid);
+  updateFriendPins();
+  flyTo(f.lat, f.lng, 1.5, 900);
+}
+function clearPinnedFriends(){ if(pinnedFriends.size){ pinnedFriends.clear(); updateFriendPins(); } }
 // Flash a friend's pin briefly when they come online or go offline (transitions only).
 function evalFriendStatus(){
   const now=Date.now(); let changed=false;
