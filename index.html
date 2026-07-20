@@ -458,7 +458,8 @@
   .stg-sec:first-of-type{margin-top:8px}
   /* Sky hub: Identify tab */
   #sky-pane-id{display:none}
-  #overhead.tab-id #sky-pane-now{display:none}
+  #overhead.tab-id #sky-pane-now,#overhead.tab-id #sky-pane-night,
+  #overhead.tab-id #sky-pane-ce5{display:none}
   #overhead.tab-id #sky-pane-id{display:block}
   .idf-note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:6px}
   /* User panel (opened from the account menu) */
@@ -496,9 +497,33 @@
     background:rgba(120,160,255,.05)}
   .usr-stats b{display:block;font-size:17px;color:var(--accent);font-variant-numeric:tabular-nums}
   .usr-stats span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  /* Sky hub: Tonight tab */
+  #sky-pane-night{display:none}
+  #overhead.tab-night #sky-pane-now,#overhead.tab-night #sky-pane-id,
+  #overhead.tab-night #sky-pane-ce5{display:none}
+  #overhead.tab-night #sky-pane-night{display:block}
+  .nt-hero{margin:14px 0 4px;padding:14px;border-radius:14px;border:1px solid var(--border);
+    background:rgba(120,160,255,.06)}
+  .nt-win{font-size:15px;font-weight:700;color:var(--accent)}
+  .nt-sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}
+  .nt-rank{display:flex;gap:12px;align-items:center;padding:13px 14px;margin-bottom:8px;border-radius:13px;
+    border:1px solid var(--border);background:rgba(120,160,255,.04);cursor:pointer;text-align:left;width:100%}
+  .nt-rank:hover{border-color:rgba(90,209,255,.5);background:rgba(90,209,255,.08)}
+  .nt-rank.top{border-color:rgba(87,224,138,.5);background:rgba(87,224,138,.09)}
+  .nt-num{flex:0 0 28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(90,209,255,.16);color:var(--accent);font-size:13px;font-weight:700}
+  .nt-rank.top .nt-num{background:rgba(87,224,138,.2);color:#57e08a}
+  .nt-body{min-width:0;flex:1}
+  .nt-nm{font-size:14.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nt-when{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .nt-grade{flex:0 0 auto;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    padding:4px 9px;border-radius:8px;background:rgba(120,160,255,.14);color:var(--muted)}
+  .nt-grade.best{background:rgba(87,224,138,.18);color:#57e08a}
+  .nt-grade.good{background:rgba(90,209,255,.18);color:var(--accent)}
   /* Sky hub: CE5 tab */
   #sky-pane-ce5{display:none}
-  #overhead.tab-ce5 #sky-pane-now,#overhead.tab-ce5 #sky-pane-id{display:none}
+  #overhead.tab-ce5 #sky-pane-now,#overhead.tab-ce5 #sky-pane-id,
+  #overhead.tab-ce5 #sky-pane-night{display:none}
   #overhead.tab-ce5 #sky-pane-ce5{display:block}
   #overhead.tab-ce5 #sky-pane-id{display:none!important}
   .ce5-cond{margin:12px 0 4px;padding:11px 12px;border-radius:12px;border:1px solid var(--border);
@@ -778,9 +803,9 @@
       padding:0 16px calc(env(safe-area-inset-bottom) + 18px);overflow-y:auto}
     #friends.open,#feed.open,#board.open{transform:translateY(0)}
     #friends h2,#feed h2,#board h2{margin-top:2px}
-    #mbar{gap:2px;padding:6px}
-    #mbar button{width:52px;height:50px;font-size:9px;gap:2px;border-radius:15px}
-    #mbar button .ic{width:21px;height:21px} #mbar button .ic svg{width:20px;height:20px}
+    #mbar{gap:1px;padding:4px}
+    #mbar button{max-width:52px;height:44px;font-size:8.5px;gap:2px;border-radius:14px}
+    #mbar button .ic{width:19px;height:19px} #mbar button .ic svg{width:18px;height:18px}
     .fr-nm{font-size:15px}
   }
 
@@ -876,16 +901,17 @@
 
     /* Floating bottom bar */
     #mbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);
-      bottom:calc(env(safe-area-inset-bottom) + 12px);z-index:50;gap:4px;padding:7px;
+      max-width:calc(100vw - 16px);bottom:calc(env(safe-area-inset-bottom) + 10px);z-index:50;gap:2px;padding:5px;
       background:rgba(12,18,34,.72);backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);
       border:1px solid rgba(120,160,255,.16);border-radius:26px;
       box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06)}
-    #mbar button{width:66px;height:54px;border:none;border-radius:19px;background:transparent;
-      color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.3px;cursor:pointer;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    #mbar button{flex:1 1 0;min-width:0;width:auto;max-width:60px;height:46px;border:none;border-radius:15px;
+      background:transparent;color:var(--muted);font-size:9px;font-weight:600;letter-spacing:.2px;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0 2px;
+      overflow:hidden;white-space:nowrap;
       transition:color .18s,background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
-    #mbar button .ic{display:flex;align-items:center;justify-content:center;width:24px;height:24px}
-    #mbar button .ic svg{width:23px;height:23px;display:block}
+    #mbar button .ic{display:flex;align-items:center;justify-content:center;width:21px;height:21px}
+    #mbar button .ic svg{width:20px;height:20px;display:block}
     #mbar button:active{transform:scale(.9)}
     #mbar button.active{color:var(--accent);background:rgba(90,209,255,.14);
       box-shadow:inset 0 0 0 1px rgba(90,209,255,.38),0 0 18px rgba(90,209,255,.22)}
@@ -973,6 +999,141 @@
   @media (max-height:620px){
     .ob-icon{font-size:42px;margin-bottom:12px} .ob-slide h3{font-size:21px}
     .ob-slide p{font-size:13.5px} .ob-tips li{padding:9px 11px;font-size:12.5px}
+  }
+  /* ============================================================
+     Unified control system — one size scale, one neon treatment.
+     Declared last so it settles the cascade for every panel.
+     ============================================================ */
+  :root{
+    --ctl-h:50px;                 /* every tappable control clears 48px */
+    --ctl-h-sm:42px;              /* dense inline controls (chips in a row) */
+    --ctl-r:14px;
+    --neon-c:90,209,255;          /* cyan — primary actions */
+    --neon-w:255,196,77;          /* amber — commit / hero actions */
+    --neon-rest:0 0 0 1px rgba(var(--neon-c),.22), 0 0 12px rgba(var(--neon-c),.14), 0 4px 14px rgba(0,0,0,.4);
+    --neon-hot:0 0 0 1px rgba(var(--neon-c),.55), 0 0 20px rgba(var(--neon-c),.4),
+               0 0 42px rgba(var(--neon-c),.16), 0 6px 20px rgba(0,0,0,.5);
+    --neon-warm:0 0 0 1px rgba(var(--neon-w),.5), 0 0 22px rgba(var(--neon-w),.34),
+                0 0 48px rgba(var(--neon-w),.14), 0 6px 20px rgba(0,0,0,.5);
+  }
+  /* --- Base: every action button in the app --- */
+  .idf-go,.idf-uap,.usr-btn,.fr-addbtn,#tourbtn,#sharebtn,#snapbtn,#d-ar,
+  #accountmenu .act,.ob-btns button,.loc-row button,.usr-row button,
+  #uap-save,#loc-find,.nt-rank,.loc-hit{
+    min-height:var(--ctl-h);
+    border-radius:var(--ctl-r);
+    font-size:14px;
+    font-weight:700;
+    letter-spacing:.2px;
+    padding:13px 16px;
+    box-shadow:var(--neon-rest);
+    transition:box-shadow .18s,border-color .18s,background .18s,transform .1s;
+  }
+  .idf-go:hover,.idf-uap:hover,.usr-btn:hover,.fr-addbtn:hover,#tourbtn:hover,#sharebtn:hover,
+  #snapbtn:hover,#d-ar:hover,#accountmenu .act:hover,.ob-btns button:hover,
+  #uap-save:hover,#loc-find:hover,.nt-rank:hover,.loc-hit:hover{
+    box-shadow:var(--neon-hot);
+    border-color:rgba(var(--neon-c),.55);
+  }
+  .idf-go:active,.idf-uap:active,.usr-btn:active,.fr-addbtn:active,#tourbtn:active,
+  #sharebtn:active,#snapbtn:active,#d-ar:active,#accountmenu .act:active,
+  .ob-btns button:active,#uap-save:active,#loc-find:active{ transform:scale(.985) }
+  /* Hero / commit actions glow amber, like the primary CTA */
+  .idf-go,#uap-save,#loc-find,#ob-next,.fr-addbtn{
+    border:1px solid rgba(var(--neon-w),.5);
+    background:linear-gradient(180deg,rgba(var(--neon-w),.2),rgba(var(--neon-w),.09));
+    color:#ffd98a;
+    box-shadow:var(--neon-warm);
+    text-shadow:0 0 14px rgba(var(--neon-w),.5);
+  }
+  .idf-go:hover,#uap-save:hover,#loc-find:hover,#ob-next:hover,.fr-addbtn:hover{
+    background:linear-gradient(180deg,rgba(var(--neon-w),.3),rgba(var(--neon-w),.14));
+    border-color:rgba(var(--neon-w),.8);
+    box-shadow:0 0 0 1px rgba(var(--neon-w),.75), 0 0 30px rgba(var(--neon-w),.5),
+               0 0 64px rgba(var(--neon-w),.2), 0 6px 22px rgba(0,0,0,.55);
+  }
+  /* Danger keeps its own hue but the same geometry + bloom */
+  .usr-btn.danger,#accountmenu .act.danger{
+    box-shadow:0 0 0 1px rgba(255,90,77,.3), 0 0 16px rgba(255,90,77,.2), 0 4px 14px rgba(0,0,0,.4)}
+  .usr-btn.danger:hover,#accountmenu .act.danger:hover{
+    box-shadow:0 0 0 1px rgba(255,90,77,.65), 0 0 24px rgba(255,90,77,.42), 0 6px 20px rgba(0,0,0,.5)}
+  /* --- Chips and segmented controls share the smaller step --- */
+  .idf-chips button,.seg button,.lb-sort,.fr-tabs button{
+    min-height:var(--ctl-h-sm);
+    border-radius:12px;
+    font-size:13.5px;
+    font-weight:600;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+    transition:box-shadow .16s,background .16s,color .16s,border-color .16s;
+  }
+  .idf-chips button.on,.seg button.sel,.lb-sort.on,.fr-tabs button.on{
+    box-shadow:var(--neon-hot);
+    text-shadow:0 0 12px rgba(var(--neon-c),.6);
+  }
+  .idf-chips button:hover,.lb-sort:hover,.fr-tabs button:hover{box-shadow:var(--neon-rest)}
+  /* Sky hub carries four tabs — let them breathe without overflowing a narrow sheet */
+  #overhead .fr-tabs{gap:4px;padding:4px}
+  #overhead .fr-tabs button{font-size:12.5px;padding:8px 4px;white-space:nowrap;min-height:44px}
+  @media (max-width:400px){ #overhead .fr-tabs button{font-size:11.5px;letter-spacing:0} }
+  /* --- Layers list: was a cramped 6px row, now a real control --- */
+  .legend{gap:7px}
+  .lg{
+    min-height:var(--ctl-h);
+    padding:12px 14px;
+    border-radius:var(--ctl-r);
+    border:1px solid var(--border);
+    background:rgba(120,160,255,.05);
+    box-shadow:var(--neon-rest);
+    transition:box-shadow .18s,background .18s,border-color .18s,opacity .18s;
+  }
+  .lg:hover{background:rgba(var(--neon-c),.1);box-shadow:var(--neon-hot);border-color:rgba(var(--neon-c),.5)}
+  .lg .nm{font-size:14.5px;font-weight:600}
+  .lg .ct{font-size:12.5px;font-variant-numeric:tabular-nums}
+  .lg .dot{width:13px;height:13px;box-shadow:0 0 10px currentColor,0 0 18px currentColor}
+  .lg.off{opacity:.42;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .lg.off .dot{box-shadow:none}
+  /* --- Detail-card actions --- */
+  #d-seen,#d-fav,#d-share{min-height:46px;border-radius:13px;font-size:13.5px;box-shadow:var(--neon-rest)}
+  #d-seen:hover,#d-fav:hover,#d-share:hover{box-shadow:var(--neon-hot)}
+  #d-seen.on{box-shadow:0 0 0 1px rgba(87,224,138,.55),0 0 22px rgba(87,224,138,.35),0 4px 14px rgba(0,0,0,.4)}
+  #d-fav.on{box-shadow:0 0 0 1px rgba(255,211,77,.6),0 0 22px rgba(255,211,77,.38),0 4px 14px rgba(0,0,0,.4)}
+  /* --- Round icon buttons: account, close, refresh, location --- */
+  #account,#settingsbtn,#feedbtn,#boardbtn,#gotome,
+  #detail .x,#settings .x,#friends .x,#feed .x,#board .x,
+  #uap-close,#usr-close,#loc-close,#lm-close{
+    box-shadow:var(--neon-rest);
+    transition:box-shadow .18s,color .18s,background .18s,border-color .18s;
+  }
+  #account:hover,#settingsbtn:hover,#feedbtn:hover,#boardbtn:hover,#gotome:hover,
+  #detail .x:hover,#settings .x:hover,#friends .x:hover,#feed .x:hover,#board .x:hover,
+  #uap-close:hover,#usr-close:hover,#loc-close:hover,#lm-close:hover{
+    box-shadow:var(--neon-hot);color:var(--accent);border-color:rgba(var(--neon-c),.55);
+  }
+  #detail .x,#settings .x,#friends .x,#feed .x,#board .x,
+  #uap-close,#usr-close,#loc-close,#lm-close{width:34px;height:34px;font-size:15px}
+  #gotome{box-shadow:var(--neon-hot)}
+  /* --- Bottom nav bar --- */
+  @media (max-width:820px){
+    #mbar{
+      border:1px solid rgba(var(--neon-c),.28);
+      box-shadow:0 0 0 1px rgba(var(--neon-c),.1), 0 0 30px rgba(var(--neon-c),.16),
+                 0 16px 44px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07);
+    }
+    #mbar button .ic svg{filter:drop-shadow(0 0 4px rgba(var(--neon-c),.25))}
+    #mbar button.active{
+      background:rgba(var(--neon-c),.16);
+      box-shadow:inset 0 0 0 1px rgba(var(--neon-c),.5), 0 0 22px rgba(var(--neon-c),.35);
+      text-shadow:0 0 12px rgba(var(--neon-c),.7);
+    }
+    #mbar button.active .ic svg{filter:drop-shadow(0 0 7px rgba(var(--neon-c),.85))}
+  }
+  /* --- Switches --- */
+  .switch{box-shadow:0 2px 8px rgba(0,0,0,.35);transition:background .2s,box-shadow .2s}
+  .switch.on{box-shadow:0 0 0 1px rgba(var(--neon-c),.5),0 0 18px rgba(var(--neon-c),.5)}
+  /* --- Panels lift off the globe a little more --- */
+  .panel{box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(var(--neon-c),.05)}
+  @media (prefers-reduced-motion:reduce){
+    .idf-go,.idf-uap,.usr-btn,.lg,.nt-rank,#mbar button{transition:none}
   }
 </style>
 </head>
@@ -1140,7 +1301,7 @@
     <div class="switch" id="sw-borders" role="switch"></div>
   </div>
   <div class="stg">
-    <div class="lbl">Show ISS orbit path<small>Red trajectory arc</small></div>
+    <div class="lbl">Show orbit paths<small>ISS arc, plus a ground track for whatever you select</small></div>
     <div class="switch" id="sw-isspath" role="switch"></div>
   </div>
   <div class="stg">
@@ -1209,11 +1370,17 @@
     <div class="sub" id="oh-sub">Enable location to see passes above you</div>
   </div>
   <div class="fr-tabs">
-    <button id="skt-now" class="on">Overhead now</button>
+    <button id="skt-now" class="on">Now</button>
+    <button id="skt-night">🌙 Tonight</button>
     <button id="skt-id">🔎 Identify</button>
     <button id="skt-ce5">🧘 CE5</button>
   </div>
   <div id="sky-pane-now"><div id="ohlist"></div></div>
+  <div id="sky-pane-night">
+    <div class="idf-note">Everything worth stepping outside for tonight, ranked — brightest and highest first.</div>
+    <div id="night-out"></div>
+    <button id="night-go" class="idf-go">🌙 Plan tonight</button>
+  </div>
   <div id="sky-pane-id">
     <div class="idf-note">Saw something? Check what was actually above you at that moment.</div>
     <div class="idf-lbl">When</div>
@@ -1426,7 +1593,7 @@
 </script>
 
 <script>
-const BUILD = 'v76';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v79';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -1448,6 +1615,9 @@ const GROUPS = [
   { id:'starlink', label:'Starlink',  color:'#5ad1ff', cap:150 },
   { id:'gps-ops',  label:'GPS',       color:'#ffd34d', cap:40 },
   { id:'galileo',  label:'Galileo',   color:'#c58cff', cap:40 },
+  { id:'oneweb',   label:'OneWeb',    color:'#8ad4ff', cap:150 },         // the other big LEO broadband constellation
+  { id:'amateur',  label:'Ham radio', color:'#ffb35a', cap:80 },          // amateur-radio satellites you can actually work
+  { id:'geo',      label:'GEO belt',  color:'#e8e0a8', cap:200 },         // the geostationary ring
   { id:'weather',  label:'Weather',   color:'#57e08a', cap:60 },
   { id:'rocket',   label:'Launches',  color:'#ff6b35', launches:true },   // upcoming rocket launches (Launch Library 2)
 ];
@@ -1944,7 +2114,9 @@ function createPropWorker(){
   try{
     const url=URL.createObjectURL(new Blob([WORKER_SRC],{type:'text/javascript'}));
     const w=new Worker(url);
-    w.onmessage=(e)=>{ clearTimeout(workerWatch); applyWorker(e.data); renderFrame(); workerBusy=false; scheduleTick(); };
+    w.onmessage=(e)=>{ clearTimeout(workerWatch);
+      if(propPaused){ workerBusy=false; return; }        // tab went away mid-flight
+      applyWorker(e.data); renderFrame(); workerBusy=false; scheduleTick(); };
     w.onerror=(err)=>{ console.warn('prop worker failed → main-thread propagation', err);
       useWorker=false; workerBusy=false; if(propWorker){ try{propWorker.terminate();}catch(_){}} propWorker=null;
       scheduleTick();   // resume the loop on the main thread
@@ -2042,8 +2214,37 @@ function propDelay(){
   if(usePoints) return n>6000?350 : n>2500?250 : UPDATE_MS;      // GPU keeps up; stay lively
   return n>3000?1600 : n>1500?1000 : n>700?600 : UPDATE_MS;      // HTML markers: throttle harder
 }
-function scheduleTick(){ clearTimeout(tickTimer); tickTimer=setTimeout(doTick, propDelay()); }
+// Propagation is the app's whole CPU cost — thousands of SGP4 solves a second. Backgrounded
+// tabs get nothing: no worker messages, no inline math, no render. Real battery on phones.
+let propPaused=false;
+function scheduleTick(){
+  clearTimeout(tickTimer);
+  if(propPaused) return;
+  tickTimer=setTimeout(doTick, propDelay());
+}
+function pauseProp(){
+  if(propPaused) return;
+  propPaused=true;
+  clearTimeout(tickTimer); tickTimer=null;
+  clearTimeout(workerWatch); workerWatch=null;
+  workerBusy=false; workerGen++;         // ignore any in-flight worker reply
+}
+function resumeProp(){
+  if(!propPaused) return;
+  propPaused=false;
+  doTick();                              // catch up to real time immediately
+  updateIssOrbit();
+}
+function initVisibilityPause(){
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden) pauseProp();
+    else resumeProp();
+  });
+  window.addEventListener('pagehide', pauseProp);
+  window.addEventListener('pageshow', ()=>{ if(!document.hidden) resumeProp(); });
+}
 function doTick(){
+  if(propPaused) return;
   if(useWorker && propWorker && !workerBusy){
     workerBusy=true;
     const gen=++workerGen;
@@ -2100,13 +2301,13 @@ function pickSat(e, THREE, dom){
   else if(selected || selectedLaunch){ clearSelection(); }   // tapped empty space → dismiss the highlight
 }
 
-/* ---------- ISS orbit path ---------- */
-function issTrackPoints(fromMin, toMin, alt){
-  const iss = SATS.find(s=>s.id==='25544'); if(!iss) return [];
-  const t0=simNow(), out=[];
-  for(let m=fromMin;m<=toMin;m+=1){
+/* ---------- Orbit paths (ISS + whatever is selected) ---------- */
+function satTrackPoints(sat, fromMin, toMin, alt, stepMin){
+  if(!sat || !sat.satrec) return [];
+  const t0=simNow(), out=[], st=stepMin||1;
+  for(let m=fromMin;m<=toMin;m+=st){
     const t=new Date(t0+m*60000);
-    let pv; try{ pv=satellite.propagate(iss.satrec,t);}catch(e){continue;}
+    let pv; try{ pv=satellite.propagate(sat.satrec,t);}catch(e){continue;}
     if(!pv||!pv.position) continue;
     const gd=satellite.eciToGeodetic(pv.position,satellite.gstime(t));
     out.push({lat:satellite.degreesLat(gd.latitude), lng:satellite.degreesLong(gd.longitude),
@@ -2114,12 +2315,34 @@ function issTrackPoints(fromMin, toMin, alt){
   }
   return out;
 }
+function issTrackPoints(fromMin, toMin, alt){
+  return satTrackPoints(SATS.find(s=>s.id==='25544'), fromMin, toMin, alt);
+}
+function hexA(hex, a){        // "#5ad1ff" -> "rgba(90,209,255,a)"
+  const h=String(hex||'').replace('#','');
+  const n=parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  if(!isFinite(n)) return 'rgba(90,209,255,'+a+')';
+  return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+}
+// One full revolution, so the drawn arc always closes regardless of orbit height.
+function orbitMinutes(sat){
+  try{ const rpd=sat.satrec.no*1440/(2*Math.PI);        // revs/day from mean motion (rad/min)
+    if(isFinite(rpd) && rpd>0.5) return Math.min(1600, Math.max(45, 1440/rpd)); }catch(e){}
+  return 100;
+}
 function updateIssOrbit(){
   if(typeof world==='undefined' || !world) return;
   const paths=[];
   const iss = SATS.find(s=>s.id==='25544');
   if(iss && enabled['iss'] && prefs.issPath){
     paths.push({ points: issTrackPoints(0,100,null), color:['rgba(255,90,77,.85)','rgba(255,90,77,0)'] });
+  }
+  // Ground track for the selected satellite, in its group colour.
+  if(selected && selected.satrec && selected.id!=='25544' && prefs.issPath){
+    const per=orbitMinutes(selected), step=per>240?4:1;
+    const g=GROUPS.find(x=>x.id===selected.group), c=(g&&g.color)||'#5ad1ff';
+    const pts=satTrackPoints(selected, 0, Math.round(per), null, step);
+    if(pts.length>1) paths.push({ points:pts, color:[hexA(c,.9), hexA(c,0)] });
   }
   const term = terminatorPath();   // day/night boundary line
   if(term.length>1) paths.push({ points: term, color:['rgba(130,190,255,.5)','rgba(130,190,255,.5)'] });
@@ -2229,11 +2452,11 @@ function satVisiblePasses(satrec, start, end, step){
   if(cur) passes.push(cur);
   return passes;
 }
-function computeIssPasses(){
-  const iss=SATS.find(s=>s.id==='25544');
-  if(!iss||!observer) return [];
+function computeIssPasses(){ return computeSatPasses(SATS.find(s=>s.id==='25544')); }
+function computeSatPasses(sat){
+  if(!sat||!observer) return [];
   const now=Date.now();
-  return satVisiblePasses(iss.satrec, now-2*86400000, now+6*86400000, 30000);
+  return satVisiblePasses(sat.satrec, now-2*86400000, now+6*86400000, 30000);
 }
 
 /* ---------- Pass alert notifications ---------- */
@@ -2284,13 +2507,18 @@ function scanAlerts(){
     if(i<objs.length) setTimeout(chunk,40);
   })();
 }
-function getIssPasses(){
-  if(!observer) return [];
-  const key=observer.lat.toFixed(2)+','+observer.lng.toFixed(2);
-  if(!(issPassCache && issPassKey===key && (Date.now()-issPassCache.at < 600000))){
-    issPassCache={ at:Date.now(), list:computeIssPasses() }; issPassKey=key;
-  }
-  return issPassCache.list;
+function getIssPasses(){ return getSatPasses(SATS.find(s=>s.id==='25544')); }
+// Cached per satellite + location; a pass table costs ~25k SGP4 calls so we don't redo it lightly.
+const passCache=new Map();
+function getSatPasses(sat){
+  if(!observer||!sat) return [];
+  const key=sat.id+'@'+observer.lat.toFixed(2)+','+observer.lng.toFixed(2);
+  const hit=passCache.get(key);
+  if(hit && (Date.now()-hit.at < 600000)) return hit.list;
+  const list=computeSatPasses(sat);
+  passCache.set(key, {at:Date.now(), list});
+  if(passCache.size>40) passCache.delete(passCache.keys().next().value);   // keep it bounded
+  return list;
 }
 function fmtPassTime(t){
   const d=new Date(t), now=new Date();
@@ -2300,26 +2528,35 @@ function fmtPassTime(t){
     : d.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
   return day+' '+d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12: prefs.time==='12'});
 }
-function renderPasses(){
+// Visible passes for whichever satellite is selected (not just the ISS).
+function renderPasses(sat){
   const el=$('d-passes'); if(!el) return;
-  if(!observer){ el.innerHTML='<div class="pass-note">📍 Enable your location to see when the ISS is visible overhead.</div>'; return; }
-  const now=Date.now();
-  const vis=getIssPasses().filter(p=>p.visible);
-  const upcoming=vis.filter(p=>p.end>=now).slice(0,6);
-  const recent=vis.filter(p=>p.end<now).slice(-3).reverse();
-  const row=p=>{
-    const mins=Math.max(1,Math.round((p.end-p.start)/60000));
-    return `<div class="pass"><div class="pt">${fmtPassTime(p.start)}</div>
-      <div class="pd">max ${Math.round(p.peakEl)}° · ${azCompass(p.startAz)}→${azCompass(p.endAz)} · ${mins} min</div></div>`;
-  };
-  let html='<div class="pass-h">👁 Visible passes over you</div>';
-  if(!upcoming.length && !recent.length){
-    html+='<div class="pass-note">No naked-eye passes in the next 6 days — the ISS flies over, but only in daylight or Earth’s shadow right now. Check back in about a week.</div>';
-  } else {
-    if(upcoming.length){ html+='<div class="pass-sub">Upcoming</div>'+upcoming.map(row).join(''); }
-    if(recent.length){ html+='<div class="pass-sub">Recent</div>'+recent.map(row).join(''); }
-  }
-  el.innerHTML=html;
+  const s = sat || selected; if(!s || !s.satrec){ el.innerHTML=''; return; }
+  const nm = s.id==='25544' ? 'the ISS' : 'this satellite';
+  if(!observer){ el.innerHTML='<div class="pass-note">📍 Enable your location to see when '+nm+' is visible overhead.</div>'; return; }
+  el.innerHTML='<div class="pass-h">👁 Visible passes over you</div><div class="pass-note">Working out the next passes…</div>';
+  const id=s.id;
+  setTimeout(()=>{                       // let the placeholder paint before the SGP4 sweep
+    if(!selected || selected.id!==id) return;          // selection moved on
+    const now=Date.now();
+    const vis=getSatPasses(s).filter(p=>p.visible);
+    const upcoming=vis.filter(p=>p.end>=now).slice(0,6);
+    const recent=vis.filter(p=>p.end<now).slice(-3).reverse();
+    const row=p=>{
+      const mins=Math.max(1,Math.round((p.end-p.start)/60000));
+      return `<div class="pass"><div class="pt">${fmtPassTime(p.start)}</div>
+        <div class="pd">max ${Math.round(p.peakEl)}° · ${azCompass(p.startAz)}→${azCompass(p.endAz)} · ${mins} min</div></div>`;
+    };
+    let html='<div class="pass-h">👁 Visible passes over you</div>';
+    if(!upcoming.length && !recent.length){
+      html+='<div class="pass-note">No naked-eye passes in the next 6 days — it flies over, but only in daylight or Earth’s shadow right now. '+
+        (s.id==='25544'?'Check back in about a week.':'Dim or high-orbit objects often never qualify.')+'</div>';
+    } else {
+      if(upcoming.length){ html+='<div class="pass-sub">Upcoming</div>'+upcoming.map(row).join(''); }
+      if(recent.length){ html+='<div class="pass-sub">Recent</div>'+recent.map(row).join(''); }
+    }
+    el.innerHTML=html;
+  }, 30);
 }
 
 /* ---------- "Was that a satellite?" identifier ----------
@@ -2432,7 +2669,7 @@ function setObserver(lat,lng,recenter,source,accM){
   if(recenter!==false){ flyTo(lat, lng, ME_ZOOM, 900); if(isMobile()) openSheet('overhead'); }
   updateLocHint();
   saveSettings();
-  if(selected && selected.id==='25544') renderPasses();
+  passCache.clear(); if(selected) renderPasses();   // new location invalidates every pass table
   scanAlerts();
   shareLocation();
 }
@@ -2540,12 +2777,13 @@ function selectSat(s){
   const dt=$('d-seen-dt');   // seed the picker once per selection (recorded time, or now)
   if(dt){ const e=seenEntry(s.id); dt.max = tsToLocalInput(Date.now()); dt.value = tsToLocalInput(e?e.ts:Date.now()); }
   enrichDetail(s);   // fetch launch/owner/type/decay + photo (cached, on-demand)
-  if(s.id==='25544') renderPasses(); else { const p=$('d-passes'); if(p) p.innerHTML=''; }
+  renderPasses(s);        // visible passes for whatever is selected
+  updateIssOrbit();       // draw this satellite's ground track
   if(isMobile()) openSheet('detail');
   else $('detail').style.display='block';
 }
 // Drop the current satellite/launch selection and its map highlight (the pulsing ring).
-function deselectSat(){ if(!selected && !selectedLaunch) return; selected=null; selectedLaunch=null; renderFrame(); }
+function deselectSat(){ if(!selected && !selectedLaunch) return; selected=null; selectedLaunch=null; renderFrame(); updateIssOrbit(); }
 function clearSelection(){
   deselectSat();
   if(isMobile()) closeSheets();
@@ -3380,10 +3618,11 @@ function initMobileUI(){
 // Detail card gesture: swipe up reveals the details; swipe down collapses (then closes).
 function enableDetailGesture(el){
   if(!el) return;
-  let sy=0, cy=0, drag=false;
+  let sy=0, cy=0, drag=false, wasCollapsed=false;
   el.addEventListener('touchstart', e=>{
     if(e.touches.length!==1){ drag=false; return; }
     sy=cy=e.touches[0].clientY; drag=true; el.style.transition='none';
+    wasCollapsed=el.classList.contains('collapsed');   // expanded cards scroll; don't treat that as a swipe
   }, {passive:true});
   el.addEventListener('touchmove', e=>{
     if(!drag) return; cy=e.touches[0].clientY; const dy=cy-sy;
@@ -3392,8 +3631,9 @@ function enableDetailGesture(el){
   const end=()=>{
     if(!drag) return; drag=false; const dy=cy-sy;
     el.style.transition=''; el.style.transform='';
-    if(dy < -36){ SFX.swipeOpen(); expandDetail(); }
-    else if(dy > 80){ SFX.swipeClose(); el.classList.contains('collapsed') ? closeSheets() : collapseDetail(); }
+    // Swiping up only means "expand" while the card is collapsed — otherwise it's a scroll.
+    if(dy < -36 && wasCollapsed){ SFX.swipeOpen(); expandDetail(); }
+    else if(dy > 80 && el.scrollTop<=0){ SFX.swipeClose(); el.classList.contains('collapsed') ? closeSheets() : collapseDetail(); }
   };
   el.addEventListener('touchend', end, {passive:true});
   el.addEventListener('touchcancel', end, {passive:true});
@@ -4098,29 +4338,50 @@ function showSightingsList(){
 }
 // One delegated listener gives every control a click sound. Switches are skipped —
 // their own handlers play the on/off tone so the pitch matches the resulting state.
+// Only things that actually *do* something make a sound. Walking up for a real
+// handler beats matching container classes — tapping a row's padding or a label
+// used to click, because the whole row matched the selector.
+const SFX_ACTIONABLE='button,[role="button"],a[href],select,input[type="checkbox"],input[type="radio"],.switch';
+function sfxTargetFor(t){
+  for(let el=t; el && el!==document.body; el=el.parentElement){
+    if(el.matches && el.matches(SFX_ACTIONABLE)) return el;
+    if(typeof el.onclick === 'function') return el;     // list rows wired with .onclick =
+  }
+  return null;
+}
 function initClickSounds(){
   document.addEventListener('pointerdown', e=>{
     if(!prefs.sounds) return;
-    const t=e.target;
-    if(t.closest('.switch')) return;                                   // handled per-switch
-    if(t.closest('#mbar button, #topbar button, .fr-tabs button, .ob-btns button')){ SFX.nav(); return; }
-    if(t.closest('button, .lg, .ac-item, .ll-card, .lb-row, .pod, .icon-opt, .feed-row, .oh, .lm-row, .ach-item, .fr-item, .d-photo'))
-      SFX.tap();
+    if(e.pointerType==='mouse' && e.button!==0) return;   // right/middle click isn't an action
+    const el=sfxTargetFor(e.target);
+    if(!el) return;                                       // plain text, panel background, the globe
+    if(el.matches('.switch')) return;                     // switches chime from their own handler
+    if(el.disabled) return;
+    if(el.closest('#mbar button, #topbar button, .fr-tabs button, .ob-btns button, .ob-dot')){ SFX.nav(); return; }
+    SFX.tap();
   }, true);
 }
 /* ---------- Sky hub: Overhead / Identify ---------- */
 let idfAz=null, idfAlt=null, idfLast=null;
 function initSky(){
-  const now=$('skt-now'), idt=$('skt-id'), c5=$('skt-ce5'), ov=$('overhead');
-  const tab=(id)=>{ ov.classList.toggle('tab-id', id==='id'); ov.classList.toggle('tab-ce5', id==='ce5');
+  const now=$('skt-now'), idt=$('skt-id'), c5=$('skt-ce5'), nt=$('skt-night'), ov=$('overhead');
+  const tab=(id)=>{
+    ov.classList.toggle('tab-id', id==='id');
+    ov.classList.toggle('tab-ce5', id==='ce5');
+    ov.classList.toggle('tab-night', id==='night');
     if(now) now.classList.toggle('on', id==='now');
     if(idt) idt.classList.toggle('on', id==='id');
     if(c5) c5.classList.toggle('on', id==='ce5');
+    if(nt) nt.classList.toggle('on', id==='night');
     if(id==='id'){ const w=$('idf-when'); if(w && !w.value){ w.max=tsToLocalInput(Date.now()); w.value=tsToLocalInput(Date.now()); } updateUapCount(); }
-    if(id==='ce5' && !ce5.run) ce5Conditions(); };
+    if(id==='ce5' && !ce5.run) ce5Conditions();
+    if(id==='night' && !$('night-out').innerHTML.trim()) planTonight();   // auto-run the first time
+  };
   if(now) now.onclick=()=>tab('now');
   if(idt) idt.onclick=()=>tab('id');
   if(c5) c5.onclick=()=>tab('ce5');
+  if(nt) nt.onclick=()=>tab('night');
+  const ng=$('night-go'); if(ng) ng.onclick=planTonight;
   const chips=(wrap, fn)=>{ const el=$(wrap); if(!el) return;
     el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
       el.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); fn(b); }); };
@@ -4177,6 +4438,94 @@ function renderIdentify(res){
   out.innerHTML=h;
   const b=$('idf-uap'); if(b) b.onclick=()=>openUapForm(res);
 }
+/* ---------- "Tonight's sky" digest ----------
+   The one screen that answers "what should I go outside and look at tonight?".
+   Scans tonight's dark window for naked-eye passes and ranks them. */
+function tonightWindow(now){
+  // Dark enough to see satellites = sun below -6°. Find tonight's stretch.
+  const step=300000;                                   // 5-minute resolution
+  let start=null, end=null;
+  const lit=t=>{ const e=sunElevAt(t); return e==null ? false : e>-6; };
+  if(!lit(now)) start=now;                             // already dark — tonight starts now
+  for(let t=now; t<now+30*3600000; t+=step){
+    const a=lit(t), b=lit(t+step);
+    if(start===null && a && !b){ start=t+step; continue; }   // sunset
+    if(start!==null && !a && b){ end=t; break; }              // sunrise
+  }
+  if(start===null) return null;
+  if(end===null) end=start+8*3600000;
+  return {start, end};
+}
+// Which objects are worth scanning: bright ones, stations, favourites, plus anything you follow.
+function tonightCandidates(){
+  const out=[], seenIds=new Set();
+  const push=s=>{ if(s && s.satrec && !seenIds.has(s.id)){ seenIds.add(s.id); out.push(s); } };
+  for(const s of SATS){
+    if(s.group==='iss'||s.group==='stations'||s.group==='visual') push(s);
+    else if(favs.has(s.id)) push(s);
+  }
+  return out.slice(0, 260);                            // keeps the sweep about a second
+}
+function planTonight(){
+  const out=$('night-out'); if(!out) return;
+  if(!observer){ out.innerHTML='<div class="fr-note">Set your location first — tap ⌖ on the map, or long-press it to enter a postal code.</div>'; return; }
+  if(!SATS.length){ out.innerHTML='<div class="fr-note">Satellite data is still loading — try again in a moment.</div>'; return; }
+  out.innerHTML='<div class="fr-note">Scanning tonight’s sky…</div>';
+  setTimeout(()=>{
+    const now=Date.now(), win=tonightWindow(now);
+    if(!win){ out.innerHTML='<div class="fr-note">The sun doesn’t set enough at your latitude right now — there’s no dark window tonight.</div>'; return; }
+    const cands=tonightCandidates(), rows=[];
+    for(const s of cands){
+      let ps=[]; try{ ps=satVisiblePasses(s.satrec, win.start, win.end, 60000); }catch(e){ continue; }
+      for(const p of ps){
+        if(!p.visible || p.peakEl<20) continue;        // low passes aren't worth a coat
+        rows.push({sat:s, p});
+      }
+    }
+    // Best pass per object, then rank by peak elevation (the usable proxy for brightness).
+    const best=new Map();
+    for(const r of rows){ const b=best.get(r.sat.id); if(!b || r.p.peakEl>b.p.peakEl) best.set(r.sat.id, r); }
+    const ranked=[...best.values()].sort((a,b)=>b.p.peakEl-a.p.peakEl).slice(0,10);
+    const launches=(LAUNCHES||[]).filter(l=>{ const t=(l.net&&l.net.getTime)?l.net.getTime():0; return t>=now && t<=win.end+6*3600000; }).slice(0,3);
+    const mo=moonInfo(win.start);
+    const dur=Math.round((win.end-win.start)/3600000);
+    let h='<div class="nt-hero"><div class="nt-win">🌙 '+fmtPassTime(win.start)+' → '+
+      new Date(win.end).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</div>'+
+      '<div class="nt-sub">About '+dur+' hours of usable darkness. Moon '+Math.round(mo.illum*100)+'% lit'+
+      (mo.el!=null && mo.el<0 ? ', below the horizon at dusk' : '')+
+      (mo.illum>.6 && mo.el!=null && mo.el>10 ? ' — bright enough to wash out faint passes' : '')+'.</div></div>';
+    if(!ranked.length){
+      h+='<div class="fr-note">No naked-eye passes above 20° tonight. That happens — the good ones cluster into a few days each month. Try the Identify tab if you spot something anyway.</div>';
+    } else {
+      h+='<div class="idf-lbl">Best passes tonight</div>';
+      ranked.forEach((r,i)=>{
+        const mins=Math.max(1,Math.round((r.p.end-r.p.start)/60000));
+        const grade = r.p.peakEl>=70 ? ['best','Superb'] : r.p.peakEl>=45 ? ['good','Good'] : ['','Fair'];
+        h+='<button class="nt-rank'+(i===0?' top':'')+'" data-id="'+esc(r.sat.id)+'">'+
+          '<span class="nt-num">'+(i+1)+'</span><span class="nt-body">'+
+          '<span class="nt-nm">'+esc(r.sat.name)+'</span>'+
+          '<span class="nt-when">'+fmtPassTime(r.p.start)+' · max '+Math.round(r.p.peakEl)+'° · '+
+          azCompass(r.p.startAz)+'→'+azCompass(r.p.endAz)+' · '+mins+' min</span></span>'+
+          '<span class="nt-grade '+grade[0]+'">'+grade[1]+'</span></button>';
+      });
+    }
+    if(launches.length){
+      h+='<div class="idf-lbl">Launches tonight</div>';
+      for(const l of launches){
+        h+='<button class="nt-rank" data-launch="'+esc(l.id)+'"><span class="nt-num">🚀</span>'+
+          '<span class="nt-body"><span class="nt-nm">'+esc(l.name||'Launch')+'</span>'+
+          '<span class="nt-when">'+(l.net?fmtPassTime(l.net.getTime()):'time TBD')+
+          (l.padName?(' · '+esc(l.padName)):'')+'</span></span></button>';
+      }
+    }
+    out.innerHTML=h;
+    out.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{
+      const s=SATS.find(x=>x.id===b.dataset.id); if(s) selectSat(s); });
+    out.querySelectorAll('[data-launch]').forEach(b=>b.onclick=()=>{
+      const l=(LAUNCHES||[]).find(x=>String(x.id)===b.dataset.launch); if(l) selectLaunch(l); });
+  }, 40);
+}
+
 /* ---------- Set location by postal code ----------
    Long-pressing ⌖ opens this. Two free, key-less geocoders, tried in order:
    Zippopotam for postal codes, Open-Meteo's geocoder for town names (and as a fallback). */
@@ -4977,7 +5326,7 @@ function startCommunityStats(){
   statsTick=setInterval(fetchCommunityStats, 60000);
 }
 
-initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker();
+initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker(); initVisibilityPause();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
