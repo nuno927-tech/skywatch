@@ -734,11 +734,13 @@
   #arview{position:fixed;inset:0;z-index:95;display:none;
     background:radial-gradient(120% 90% at 50% 12%,#0b1730,#05070f 72%)}
   #arview.show{display:block}
-  #ar-close{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;width:36px;height:36px;
+  /* Only the close button is interactive — everything else must not eat taps. */
+  #ar-title,#ar-reticle,#ar-target,#ar-guide,#ar-sub{pointer-events:none}
+  #ar-close{position:absolute;z-index:10;top:calc(env(safe-area-inset-top) + 12px);right:16px;width:44px;height:44px;
     display:flex;align-items:center;justify-content:center;border-radius:50%;border:1px solid var(--border);
     background:rgba(0,0,0,.4);color:#fff;font-size:16px;cursor:pointer}
-  #ar-title{position:absolute;top:calc(env(safe-area-inset-top) + 18px);left:0;right:0;text-align:center;
-    font-size:15px;font-weight:700;letter-spacing:.5px;color:#fff;padding:0 62px}
+  #ar-title{position:absolute;top:calc(env(safe-area-inset-top) + 20px);left:0;right:0;text-align:center;
+    font-size:15px;font-weight:700;letter-spacing:.5px;color:#fff;padding:0 72px}
   #ar-reticle{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;
     border:2px dashed rgba(255,255,255,.35)}
   #ar-reticle::before,#ar-reticle::after{content:'';position:absolute;background:rgba(255,255,255,.35)}
@@ -1110,7 +1112,7 @@
 </script>
 
 <script>
-const BUILD = 'v68';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v69';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -2670,10 +2672,12 @@ function initOnboard(){
 
 /* ---------- AR sky finder ---------- */
 let arActive=false, arTarget=null, arHeading=null, arPitch=null, arOrient=null, arRAF=null;
+let arHeadS=null, arPitchS=null, arAz=null, arEl=null, arLastCalc=0, arOnTarget=false;
 function openAR(){
   if(!selected){ return; }
   if(!observer){ showErr('Enable your location (⌖ button) to use the sky finder.'); return; }
   arTarget=selected; arHeading=null; arPitch=null;
+  arHeadS=null; arPitchS=null; arAz=null; arEl=null; arLastCalc=0; arOnTarget=false;
   $('ar-title').textContent=selected.name;
   $('ar-sub').textContent='Point your phone at the sky.';
   $('arview').classList.add('show'); arActive=true;
@@ -2695,34 +2699,58 @@ function startOrient(){
   } else attach();
 }
 function stopOrient(){ if(arOrient){ window.removeEventListener('deviceorientationabsolute', arOrient, true); window.removeEventListener('deviceorientation', arOrient, true); arOrient=null; } }
+// Circular exponential smoothing for a compass heading (handles the 0/360 wrap).
+function smoothAngle(prev, next, k){
+  if(prev==null || !isFinite(prev)) return next;
+  const d=((next-prev+540)%360)-180;
+  return (prev + d*k + 360) % 360;
+}
 function arTick(){
   if(!arActive){ arRAF=null; return; }
   const s=arTarget, guide=$('ar-guide'), sub=$('ar-sub'), tgt=$('ar-target');
-  let az=null, el=null;
-  if(s && observer){
-    const now=new Date(simNow());
-    let pv; try{ pv=satellite.propagate(s.satrec, now); }catch(e){ pv=null; }
-    if(pv&&pv.position){ const la=satellite.ecfToLookAngles(observer.gd, satellite.eciToEcf(pv.position, satellite.gstime(now)));
-      az=la.azimuth*R2D; el=la.elevation*R2D; }
+  const now=Date.now();
+  // Look angles change slowly — recompute ~5×/s instead of every frame.
+  if(s && observer && now-arLastCalc>200){
+    arLastCalc=now;
+    const d=new Date(simNow());
+    let pv; try{ pv=satellite.propagate(s.satrec, d); }catch(e){ pv=null; }
+    if(pv&&pv.position){ const la=satellite.ecfToLookAngles(observer.gd, satellite.eciToEcf(pv.position, satellite.gstime(d)));
+      arAz=la.azimuth*R2D; arEl=la.elevation*R2D; } else { arAz=null; arEl=null; }
   }
+  // Low-pass the noisy sensor stream so the marker glides instead of twitching.
+  if(arHeading!=null) arHeadS = smoothAngle(arHeadS, arHeading, 0.16);
+  if(arPitch!=null)   arPitchS = (arPitchS==null) ? arPitch : arPitchS + (arPitch-arPitchS)*0.16;
+  const az=arAz, el=arEl;
   if(az==null){ guide.textContent='Locating…'; }
-  else if(el < -1){ guide.textContent='Below the horizon'; sub.textContent='Not visible from your location right now.'; tgt.style.opacity=0; }
-  else if(arHeading==null){ guide.textContent='Move your phone'; sub.textContent='Waiting for the compass…'; }
+  else if(el < -1){ guide.textContent='Below the horizon'; sub.textContent='Not visible from your location right now.'; tgt.style.opacity=0; arOnTarget=false; }
+  else if(arHeadS==null){ guide.textContent='Move your phone'; sub.textContent='Waiting for the compass…'; }
   else {
-    const dAz=((az-arHeading+540)%360)-180;               // + → target is to your right
-    const dEl=el-(arPitch==null?0:arPitch);               // + → target is above where you point
+    const dAz=((az-arHeadS+540)%360)-180;                  // + → target is to your right
+    const dEl=el-(arPitchS==null?0:arPitchS);              // + → target is above where you point
     const hw=innerWidth/2, hh=innerHeight/2;
     const x=Math.max(-hw+34,Math.min(hw-34, dAz/45*hw)), y=Math.max(-hh+34,Math.min(hh-34, -dEl/45*hh));
-    tgt.style.opacity=1; tgt.style.transform='translate(-50%,-50%) translate('+x+'px,'+y+'px)';
-    const near=Math.abs(dAz)<7 && Math.abs(dEl)<7;
-    const hor=Math.abs(dAz)<7?'':(dAz>0?'right':'left'), ver=Math.abs(dEl)<7?'':(dEl>0?'up':'down');
-    tgt.classList.toggle('near', near);
-    guide.textContent = near ? '🎯 On target!' : ('Look '+[ver,hor].filter(Boolean).join('-'));
-    sub.textContent='Az '+Math.round((az+360)%360)+'° '+azCompass(az)+' · Alt '+Math.round(el)+'° · '+Math.round(Math.hypot(dAz,dEl))+'° away';
+    tgt.style.opacity=1; tgt.style.transform='translate(-50%,-50%) translate('+x.toFixed(1)+'px,'+y.toFixed(1)+'px)';
+    // Hysteresis: lock on inside 7°, only release past 11°, so the label can't flicker.
+    const dist=Math.hypot(dAz,dEl);
+    if(dist<7) arOnTarget=true; else if(dist>11) arOnTarget=false;
+    tgt.classList.toggle('near', arOnTarget);
+    const hor=Math.abs(dAz)<8?'':(dAz>0?'right':'left'), ver=Math.abs(dEl)<8?'':(dEl>0?'up':'down');
+    const dirs=[ver,hor].filter(Boolean).join('-');
+    guide.textContent = arOnTarget ? '🎯 On target!' : (dirs ? 'Look '+dirs : 'Almost — hold steady');
+    sub.textContent='Az '+Math.round((az+360)%360)+'° '+azCompass(az)+' · Alt '+Math.round(el)+'° · '+Math.round(dist)+'° away';
   }
   arRAF=requestAnimationFrame(arTick);
 }
-function initAR(){ const b=$('d-ar'); if(b) b.onclick=openAR; const c=$('ar-close'); if(c) c.onclick=closeAR; }
+function initAR(){
+  const b=$('d-ar'); if(b) b.onclick=openAR;
+  const c=$('ar-close');
+  if(c){                                   // pointerup as well as click, so a tap always registers
+    const bye=e=>{ e.preventDefault(); e.stopPropagation(); closeAR(); };
+    c.addEventListener('click', bye);
+    c.addEventListener('pointerup', bye);
+  }
+  document.addEventListener('keydown', e=>{ if(arActive && e.key==='Escape') closeAR(); });
+}
 
 /* ---------- Deep link from a clicked notification ---------- */
 let pendingTarget=null;
