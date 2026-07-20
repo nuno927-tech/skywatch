@@ -426,6 +426,34 @@
   .stg-sec{margin:18px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--border);
     font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--accent)}
   .stg-sec:first-of-type{margin-top:8px}
+  /* Sky hub: Identify tab */
+  #sky-pane-id{display:none}
+  #overhead.tab-id #sky-pane-now{display:none}
+  #overhead.tab-id #sky-pane-id{display:block}
+  .idf-note{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+  .idf-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin:12px 0 6px}
+  #idf-when{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--border);
+    background:var(--panel-solid);color:var(--text);font-size:13px;font-family:inherit;color-scheme:dark}
+  .idf-chips{display:flex;flex-wrap:wrap;gap:5px}
+  .idf-chips button{border:1px solid var(--border);background:rgba(120,160,255,.06);color:var(--muted);
+    border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:600;cursor:pointer}
+  .idf-chips button.on{background:rgba(90,209,255,.18);color:var(--accent);border-color:rgba(90,209,255,.5)}
+  .idf-go{width:100%;margin-top:14px;padding:12px;border-radius:11px;border:1px solid rgba(90,209,255,.55);
+    background:rgba(90,209,255,.16);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer}
+  .idf-go:hover{background:rgba(90,209,255,.26)}
+  .idf-when-hd{margin:14px 0 8px;font-size:11.5px;color:var(--muted);line-height:1.45}
+  .idf-row{border:1px solid var(--border);border-radius:11px;padding:9px 11px;margin-bottom:7px;
+    background:rgba(120,160,255,.04)}
+  .idf-row.strong{border-color:rgba(87,224,138,.5);background:rgba(87,224,138,.1)}
+  .idf-row.launch{border-color:rgba(255,107,53,.45);background:rgba(255,107,53,.09)}
+  .idf-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .idf-n{font-size:13px;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .idf-v{font-size:10.5px;color:var(--muted);flex:0 0 auto;text-transform:uppercase;letter-spacing:.4px}
+  .idf-v.ok{color:#57e08a}
+  .idf-m{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .idf-uap{width:100%;margin-top:10px;padding:11px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(120,160,255,.08);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer}
+  .idf-uap:hover{border-color:var(--accent);color:var(--accent)}
   /* Nudge to set a location: pulsing ring + label on the ⌖ button */
   #gotome.hint{border-color:var(--accent);color:var(--accent);animation:locpulse 2s ease-out infinite}
   @keyframes locpulse{
@@ -950,10 +978,36 @@
 <div id="overhead" class="panel">
   <div class="sheet-handle"></div>
   <div class="head">
-    <h2>Overhead Now</h2>
+    <h2>Sky</h2>
     <div class="sub" id="oh-sub">Enable location to see passes above you</div>
   </div>
-  <div id="ohlist"></div>
+  <div class="fr-tabs">
+    <button id="skt-now" class="on">Overhead now</button>
+    <button id="skt-id">🔎 Identify</button>
+  </div>
+  <div id="sky-pane-now"><div id="ohlist"></div></div>
+  <div id="sky-pane-id">
+    <div class="idf-note">Saw something? Check what was actually above you at that moment.</div>
+    <div class="idf-lbl">When</div>
+    <input type="datetime-local" id="idf-when" />
+    <div class="idf-chips" id="idf-quick">
+      <button data-m="0">Now</button><button data-m="15">15 min ago</button>
+      <button data-m="60">1 hr ago</button><button data-m="180">3 hrs ago</button>
+    </div>
+    <div class="idf-lbl">Direction you looked</div>
+    <div class="idf-chips" id="idf-dirs">
+      <button data-a="" class="on">Any</button>
+      <button data-a="0">N</button><button data-a="45">NE</button><button data-a="90">E</button><button data-a="135">SE</button>
+      <button data-a="180">S</button><button data-a="225">SW</button><button data-a="270">W</button><button data-a="315">NW</button>
+    </div>
+    <div class="idf-lbl">Height in the sky</div>
+    <div class="idf-chips" id="idf-alts">
+      <button data-e="" class="on">Any</button><button data-e="20">Low</button>
+      <button data-e="45">Halfway</button><button data-e="72">Overhead</button>
+    </div>
+    <button id="idf-go" class="idf-go">🔎 Identify what was there</button>
+    <div id="idf-out"></div>
+  </div>
 </div>
 
 <div id="detail" class="panel mono">
@@ -1018,7 +1072,7 @@
 <!-- Mobile bottom toolbar -->
 <nav id="mbar">
   <button id="mb-layers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 21 7l-9 4.5L3 7l9-4.5Z"/><path d="M3 12l9 4.5L21 12"/><path d="M3 16.5 12 21l9-4.5"/></svg></span>Layers</button>
-  <button id="mb-over"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg></span>Overhead</button>
+  <button id="mb-over"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg></span>Sky</button>
   <button id="mb-friends"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.6 6.3a3 3 0 0 1 .2 5.5"/><path d="M16.6 13.3a5.5 5.5 0 0 1 3.9 5.2"/></svg></span>Friends</button>
   <button id="mb-feed"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg></span>Feed</button>
   <button id="mb-board"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>Awards</button>
@@ -1112,7 +1166,7 @@
 </script>
 
 <script>
-const BUILD = 'v69';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v70';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -2013,6 +2067,65 @@ function renderPasses(){
     if(recent.length){ html+='<div class="pass-sub">Recent</div>'+recent.map(row).join(''); }
   }
   el.innerHTML=html;
+}
+
+/* ---------- "Was that a satellite?" identifier ----------
+   Propagates everything we track to a chosen moment, keeps what was above the horizon,
+   and flags whether it was sunlit — the thing that actually decides visibility. */
+function angSep(a1,e1,a2,e2){
+  const t1=(90-e1)*D2R, t2=(90-e2)*D2R, dp=(a1-a2)*D2R;
+  const c=Math.cos(t1)*Math.cos(t2)+Math.sin(t1)*Math.sin(t2)*Math.cos(dp);
+  return Math.acos(Math.max(-1,Math.min(1,c)))*R2D;
+}
+function identifySky(ts, wantAz, wantAlt){
+  if(!observer) return null;
+  const d=new Date(ts), gmst=satellite.gstime(d), sun=sunEci(ts);
+  let sunEl=null;
+  try{ sunEl=satellite.ecfToLookAngles(observer.gd, satellite.eciToEcf(sun, gmst)).elevation*R2D; }catch(e){}
+  const hits=[];
+  for(const s of SATS){                       // every tracked object, even layers you've hidden
+    let pv; try{ pv=satellite.propagate(s.satrec, d); }catch(e){ continue; }
+    if(!pv || !pv.position) continue;
+    let la; try{ la=satellite.ecfToLookAngles(observer.gd, satellite.eciToEcf(pv.position, gmst)); }catch(e){ continue; }
+    const el=la.elevation*R2D; if(el<5) continue;
+    const az=(la.azimuth*R2D+360)%360;
+    const sep = (wantAz==null) ? null : angSep(az, el, wantAz, (wantAlt==null?el:wantAlt));
+    if(sep!=null && sep>55) continue;         // nowhere near where they were looking
+    hits.push({ sat:s, az, el, lit:satLit(pv.position, sun), sep, rangeKm:la.rangeSat });
+  }
+  // Group Starlink into trains — several sats within a few degrees is the classic "UFO fleet".
+  const trains=[], singles=[], sl=hits.filter(h=>h.sat.group==='starlink'), rest=hits.filter(h=>h.sat.group!=='starlink');
+  const used=new Set();
+  for(let i=0;i<sl.length;i++){
+    if(used.has(i)) continue;
+    const cluster=[sl[i]]; used.add(i);
+    for(let j=i+1;j<sl.length;j++){
+      if(used.has(j)) continue;
+      if(angSep(sl[i].az, sl[i].el, sl[j].az, sl[j].el) < 14){ cluster.push(sl[j]); used.add(j); }
+    }
+    if(cluster.length>=3){
+      const lit=cluster.filter(c=>c.lit).length;
+      trains.push({ train:true, n:cluster.length, az:cluster[0].az, el:cluster[0].el,
+        lit:lit>=Math.ceil(cluster.length/2), sep:cluster[0].sep,
+        label:'Starlink train ('+cluster.length+' sats)' });
+    } else cluster.forEach(c=>singles.push(c));
+  }
+  const rows=trains.concat(rest, singles).map(h=>({
+    label: h.label || h.sat.name, train: !!h.train, n:h.n||1,
+    az:h.az, el:h.el, lit:h.lit, sep:h.sep,
+    id: h.sat?h.sat.id:null, group: h.sat?h.sat.group:'starlink'
+  }));
+  // Rank: sunlit first, then how close to where they looked, then how high up.
+  rows.sort((a,b)=> (a.lit===b.lit ? 0 : a.lit?-1:1)
+    || ((a.sep==null?0:a.sep)-(b.sep==null?0:b.sep)) || (b.el-a.el));
+  const launches=(LAUNCHES||[]).filter(l=>l.net && Math.abs(l.net.getTime()-ts)<3600e3);
+  return { rows:rows.slice(0,12), sunEl, launches, ts, wantAz, wantAlt };
+}
+function idfVerdict(r, wantAz){
+  if(wantAz==null) return r.lit ? 'visible' : 'in shadow';
+  if(r.lit && r.sep<14) return 'strong match';
+  if(r.lit && r.sep<30) return 'possible';
+  return r.lit ? 'unlikely' : 'in shadow';
 }
 
 /* ---------- Location ---------- */
@@ -3559,6 +3672,79 @@ function initClickSounds(){
       SFX.tap();
   }, true);
 }
+/* ---------- Sky hub: Overhead / Identify ---------- */
+let idfAz=null, idfAlt=null, idfLast=null;
+function initSky(){
+  const now=$('skt-now'), idt=$('skt-id'), ov=$('overhead');
+  const tab=(id)=>{ ov.classList.toggle('tab-id', id==='id');
+    if(now) now.classList.toggle('on', id==='now');
+    if(idt) idt.classList.toggle('on', id==='id');
+    if(id==='id'){ const w=$('idf-when'); if(w && !w.value){ w.max=tsToLocalInput(Date.now()); w.value=tsToLocalInput(Date.now()); } } };
+  if(now) now.onclick=()=>tab('now');
+  if(idt) idt.onclick=()=>tab('id');
+  const chips=(wrap, fn)=>{ const el=$(wrap); if(!el) return;
+    el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      el.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); fn(b); }); };
+  chips('idf-dirs', b=>{ idfAz = b.dataset.a==='' ? null : +b.dataset.a; });
+  chips('idf-alts', b=>{ idfAlt = b.dataset.e==='' ? null : +b.dataset.e; });
+  const q=$('idf-quick');
+  if(q) q.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    q.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+    const w=$('idf-when'); if(w) w.value=tsToLocalInput(Date.now()-(+b.dataset.m)*60000); });
+  const go=$('idf-go'); if(go) go.onclick=runIdentify;
+}
+function runIdentify(){
+  const out=$('idf-out'); if(!out) return;
+  if(!observer){ out.innerHTML='<div class="fr-note">Set your location first — tap the ⌖ button, or long-press it to place yourself on the map.</div>'; return; }
+  if(!SATS.length){ out.innerHTML='<div class="fr-note">Satellite data is still loading — try again in a moment.</div>'; return; }
+  const w=$('idf-when'), ts = w && w.value ? localInputToTs(w.value) : Date.now();
+  out.innerHTML='<div class="fr-note">Checking the sky…</div>';
+  setTimeout(()=>{                                  // let the "checking" paint before the heavy pass
+    const res=identifySky(ts, idfAz, idfAlt);
+    idfLast=res; renderIdentify(res);
+  }, 30);
+}
+function renderIdentify(res){
+  const out=$('idf-out'); if(!out) return;
+  if(!res){ out.innerHTML='<div class="fr-note">Set your location to identify what was overhead.</div>'; return; }
+  const when=fmtSeen(res.ts);
+  let sky='';
+  if(res.sunEl!=null){
+    sky = res.sunEl>0 ? 'Daylight — satellites are not visible to the eye then.'
+        : res.sunEl>-6 ? 'Twilight — only the very brightest objects show.'
+        : res.sunEl>-18 ? 'Dark enough to see satellites.' : 'Fully dark.';
+  }
+  let h='<div class="idf-when-hd">'+when+' · '+esc(sky)+'</div>';
+  if(res.launches.length) h+=res.launches.map(l=>
+    '<div class="idf-row launch"><div class="idf-top"><span class="idf-n">🚀 '+esc(l.provider+' · '+l.rocket)+'</span>'+
+    '<span class="idf-v">launch nearby</span></div>'+
+    '<div class="idf-m">'+esc(l.padName||l.locationName||'')+' · '+fmtSeen(l.net.getTime())+'</div></div>').join('');
+  if(!res.rows.length){
+    h+='<div class="fr-note">Nothing we track was above your horizon then'+(res.wantAz!=null?' in that direction':'')+'.</div>';
+  } else {
+    h+=res.rows.map(r=>{
+      const v=idfVerdict(r, res.wantAz), strong=(v==='strong match');
+      return '<div class="idf-row'+(strong?' strong':'')+'">'+
+        '<div class="idf-top"><span class="idf-n">'+(r.train?'✨ ':'🛰️ ')+esc(r.label)+'</span>'+
+        '<span class="idf-v'+(strong?' ok':'')+'">'+v+'</span></div>'+
+        '<div class="idf-m">'+azCompass(r.az)+' '+Math.round(r.az)+'° · alt '+Math.round(r.el)+'° · '+
+        (r.lit?'sunlit':'in Earth’s shadow')+(r.sep!=null?(' · '+Math.round(r.sep)+'° off'):'')+'</div></div>';
+    }).join('');
+  }
+  h+='<button id="idf-uap" class="idf-uap">👁 Still unidentified — log it</button>';
+  out.innerHTML=h;
+  const b=$('idf-uap'); if(b) b.onclick=()=>logUap(res);
+}
+// Record an unidentified sighting privately, with what we ruled out attached.
+function logUap(res){
+  const dir = res.wantAz==null ? '' : (azCompass(res.wantAz)+(res.wantAlt!=null?(' · alt '+res.wantAlt+'°'):''));
+  const ruled = res.rows.slice(0,3).map(r=>r.label+' ('+idfVerdict(r,res.wantAz)+')');
+  pushSightLog({ id:'uap-'+res.ts, name:'Unidentified object'+(dir?(' · '+dir):''), kind:'uap', ts:res.ts,
+    note: ruled.length ? ('Checked against: '+ruled.join('; ')) : 'Nothing tracked was overhead' });
+  SFX.success();
+  showToast('👁 Logged as unidentified — saved to your private log', true);
+  if(feedScope==='mine') renderFeed();
+}
 function initListModal(){
   const c=$('lm-close'); if(c) c.onclick=()=>$('listmodal').classList.remove('show');
   const m=$('listmodal'); if(m) m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('show'); });
@@ -3974,7 +4160,7 @@ function startCommunityStats(){
   statsTick=setInterval(fetchCommunityStats, 60000);
 }
 
-initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds();
+initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
