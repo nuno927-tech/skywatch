@@ -161,10 +161,13 @@
   #ld-steps i{width:6px;height:6px;border-radius:50%;background:rgba(90,209,255,.22);
     transition:background .3s,box-shadow .3s}
   #ld-steps i.on{background:var(--accent);box-shadow:0 0 10px rgba(90,209,255,.8)}
+  #ld-ver{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:1;
+    text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--muted);opacity:.55;font-variant-numeric:tabular-nums}
   /* Launch sequence: art rushes past the camera, background clears */
   #loader.zoom #ld-bg{opacity:0;transition:opacity .62s ease-out}
   #loader.zoom #ld-art{transition:transform .92s cubic-bezier(.5,0,.72,.34),opacity .5s ease-in .22s;opacity:0}
-  #loader.zoom #loadmsg,#loader.zoom #ld-steps{opacity:0;transition:opacity .24s ease-out}
+  #loader.zoom #loadmsg,#loader.zoom #ld-steps,#loader.zoom #ld-ver{opacity:0;transition:opacity .24s ease-out}
   #loader.zoom #ld-spin{animation-play-state:paused}
   #globe.warp{will-change:transform}
   @media (prefers-reduced-motion:reduce){
@@ -572,6 +575,30 @@
     padding:4px 9px;border-radius:8px;background:rgba(120,160,255,.14);color:var(--muted)}
   .nt-grade.best{background:rgba(87,224,138,.18);color:#57e08a}
   .nt-grade.good{background:rgba(90,209,255,.18);color:var(--accent)}
+  /* Where you are in tonight's schedule */
+  .nt-rank.now{border-color:rgba(87,224,138,.65);background:rgba(87,224,138,.13);
+    box-shadow:0 0 0 1px rgba(87,224,138,.5),0 0 26px rgba(87,224,138,.4),0 6px 20px rgba(0,0,0,.5);
+    animation:nt-live 2.4s ease-in-out infinite}
+  @keyframes nt-live{0%,100%{box-shadow:0 0 0 1px rgba(87,224,138,.5),0 0 26px rgba(87,224,138,.4),0 6px 20px rgba(0,0,0,.5)}
+    50%{box-shadow:0 0 0 1px rgba(87,224,138,.8),0 0 38px rgba(87,224,138,.6),0 6px 20px rgba(0,0,0,.5)}}
+  .nt-rank.now .nt-num{background:rgba(87,224,138,.28);color:#57e08a;font-size:15px;
+    box-shadow:0 0 12px rgba(87,224,138,.7)}
+  .nt-rank.now .nt-nm{color:#8ff0b4}
+  .nt-rank.now::after{content:'NOW';position:absolute;top:-8px;right:12px;font-size:9px;font-weight:800;
+    letter-spacing:1.2px;padding:2px 8px;border-radius:7px;background:#57e08a;color:#04121f;
+    box-shadow:0 0 14px rgba(87,224,138,.8)}
+  .nt-rank.next{border-color:rgba(90,209,255,.6);background:rgba(90,209,255,.1);
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.5),0 0 22px rgba(var(--neon-c),.34),0 6px 20px rgba(0,0,0,.5)}
+  .nt-rank.next .nt-num{background:rgba(var(--neon-c),.28);color:var(--accent);box-shadow:0 0 12px rgba(var(--neon-c),.6)}
+  .nt-rank.next::after{content:'NEXT UP';position:absolute;top:-8px;right:12px;font-size:9px;font-weight:800;
+    letter-spacing:1.2px;padding:2px 8px;border-radius:7px;background:var(--accent);color:#04121f;
+    box-shadow:0 0 14px rgba(var(--neon-c),.75)}
+  .nt-rank.now,.nt-rank.next{position:relative;overflow:visible;margin-top:14px}
+  .nt-rank.past{opacity:.42;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .nt-rank.past .nt-num{background:rgba(120,160,255,.12);color:var(--muted);box-shadow:none}
+  .nt-rank.past .nt-grade{opacity:.6}
+  .nt-num{font-size:12px;font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion:reduce){ .nt-rank.now{animation:none} }
   /* Sky hub: CE5 tab */
   #sky-pane-ce5{display:none}
   #overhead.tab-ce5 #sky-pane-now,#overhead.tab-ce5 #sky-pane-id,
@@ -1180,12 +1207,12 @@
     #mbar button .ic{width:25px;height:25px}
     #mbar button .ic svg{width:24px;height:24px;filter:drop-shadow(0 0 5px rgba(var(--neon-c),.3))}
     /* Each destination owns a hue, so the lit tab reads at a glance */
-    #mb-layers.active  {--tab:90,209,255}
-    #mb-over.active    {--tab:127,231,255}
+    #mb-layers.active  {--tab:255,96,180}
+    #mb-over.active    {--tab:90,209,255}
     #mb-friends.active {--tab:197,140,255}
     #mb-feed.active    {--tab:87,224,138}
     #mb-board.active   {--tab:255,211,77}
-    #mb-settings.active{--tab:255,140,66}
+    #mb-settings.active{--tab:255,122,92}
     #mbar button.active{
       color:rgb(var(--tab,var(--neon-c)));
       background:rgba(var(--tab,var(--neon-c)),.16);
@@ -1756,6 +1783,7 @@
   </div>
   <p id="loadmsg">Starting up…</p>
   <div id="ld-steps"><i></i><i></i><i></i><i></i></div>
+  <div id="ld-ver">SkyWatch</div>
 </div>
 <div id="err"></div>
 <div id="toast"></div>
@@ -1779,7 +1807,10 @@
 </script>
 
 <script>
-const BUILD = 'v83';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v86';           // shown in Settings and on the loader so you can confirm what's deployed
+// Stamp the loader immediately — it's the first thing on screen and the fastest way
+// to tell whether a deploy actually landed.
+(function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -3687,9 +3718,9 @@ function targetFromHash(){
 let ldStep=0;
 function loadStatus(msg, step){
   const p=$('loadmsg');
-  if(p && msg){                                  // cross-fade so the text doesn't pop
+  if(p && msg!=null){                            // cross-fade so the text doesn't pop ('' clears it)
     p.style.opacity='0';
-    setTimeout(()=>{ if(p) { p.textContent=msg; p.style.opacity='1'; } }, 140);
+    setTimeout(()=>{ if(p) { p.textContent=msg; p.style.opacity = msg ? '1' : '0'; } }, 140);
   }
   if(typeof step==='number'){
     ldStep=step;
@@ -3762,7 +3793,7 @@ async function boot(){
   createPropWorker();       // …then hand ongoing propagation to the worker (if available)
   updateIssOrbit();
   renderFrame();            // initial draw (GPU points or HTML markers)
-  loadStatus('Ready', 4);
+  loadStatus('', 4);            // last dot lights; no wording needed before the flight
   await new Promise(r=>setTimeout(r,420));     // a beat on "Ready" before the flight
   launchIntoGlobe();
 
@@ -4628,7 +4659,9 @@ function initSky(){
     if(nt) nt.classList.toggle('on', id==='night');
     if(id==='id'){ const w=$('idf-when'); if(w && !w.value){ w.max=tsToLocalInput(Date.now()); w.value=tsToLocalInput(Date.now()); } updateUapCount(); }
     if(id==='ce5' && !ce5.run) ce5Conditions();
-    if(id==='night' && !$('night-out').innerHTML.trim()) planTonight();   // auto-run the first time
+    if(id==='night'){                                    // auto-run once, then just refresh the highlight
+      if(!$('night-out').innerHTML.trim()) planTonight(); else markTonightProgress();
+    }
   };
   if(now) now.onclick=()=>tab('now');
   if(idt) idt.onclick=()=>tab('id');
@@ -4738,7 +4771,10 @@ function planTonight(){
     // Best pass per object, then rank by peak elevation (the usable proxy for brightness).
     const best=new Map();
     for(const r of rows){ const b=best.get(r.sat.id); if(!b || r.p.peakEl>b.p.peakEl) best.set(r.sat.id, r); }
-    const ranked=[...best.values()].sort((a,b)=>b.p.peakEl-a.p.peakEl).slice(0,10);
+    // Pick the ten worth going outside for by quality, then run them in the order
+    // they'll actually happen — this is a schedule, not a leaderboard.
+    const ranked=[...best.values()].sort((a,b)=>b.p.peakEl-a.p.peakEl).slice(0,10)
+      .sort((a,b)=>a.p.start-b.p.start);
     const launches=(LAUNCHES||[]).filter(l=>{ const t=(l.net&&l.net.getTime)?l.net.getTime():0; return t>=now && t<=win.end+6*3600000; }).slice(0,3);
     const mo=moonInfo(win.start);
     const dur=Math.round((win.end-win.start)/3600000);
@@ -4750,12 +4786,13 @@ function planTonight(){
     if(!ranked.length){
       h+='<div class="fr-note">No naked-eye passes above 20° tonight. That happens — the good ones cluster into a few days each month. Try the Identify tab if you spot something anyway.</div>';
     } else {
-      h+='<div class="idf-lbl">Best passes tonight</div>';
-      ranked.forEach((r,i)=>{
+      h+='<div class="idf-lbl">Tonight’s running order</div>';
+      ntRows=ranked.map(r=>({id:r.sat.id, start:r.p.start, end:r.p.end}));
+      ranked.forEach(r=>{
         const mins=Math.max(1,Math.round((r.p.end-r.p.start)/60000));
         const grade = r.p.peakEl>=70 ? ['best','Superb'] : r.p.peakEl>=45 ? ['good','Good'] : ['','Fair'];
-        h+='<button class="nt-rank'+(i===0?' top':'')+'" data-id="'+esc(r.sat.id)+'">'+
-          '<span class="nt-num">'+(i+1)+'</span><span class="nt-body">'+
+        h+='<button class="nt-rank" data-id="'+esc(r.sat.id)+'" data-start="'+r.p.start+'" data-end="'+r.p.end+'">'+
+          '<span class="nt-num"></span><span class="nt-body">'+
           '<span class="nt-nm">'+esc(r.sat.name)+'</span>'+
           '<span class="nt-when">'+fmtPassTime(r.p.start)+' · max '+Math.round(r.p.peakEl)+'° · '+
           azCompass(r.p.startAz)+'→'+azCompass(r.p.endAz)+' · '+mins+' min</span></span>'+
@@ -4776,7 +4813,54 @@ function planTonight(){
       const s=SATS.find(x=>x.id===b.dataset.id); if(s) selectSat(s); });
     out.querySelectorAll('[data-launch]').forEach(b=>b.onclick=()=>{
       const l=(LAUNCHES||[]).find(x=>String(x.id)===b.dataset.launch); if(l) selectLaunch(l); });
+    markTonightProgress();
+    startTonightTicker();
   }, 40);
+}
+/* Walk the schedule as the night goes: what's overhead now, what's up next,
+   what's already gone. Cheap enough to re-run on a timer — it only touches classes. */
+let ntRows=[], ntTicker=null;
+function markTonightProgress(){
+  const out=$('night-out'); if(!out) return;
+  const rows=[...out.querySelectorAll('.nt-rank[data-start]')];
+  if(!rows.length) return;
+  const t=Date.now();
+  let nextFound=false, live=0, upcoming=0;
+  for(const b of rows){
+    const s=+b.dataset.start, e=+b.dataset.end;
+    b.classList.remove('now','next','past');
+    const badge=b.querySelector('.nt-num');
+    if(t>=s && t<=e){                                  // happening right now
+      b.classList.add('now'); live++;
+      if(badge) badge.textContent='●';
+    } else if(t<s){
+      upcoming++;
+      if(!nextFound){ nextFound=true; b.classList.add('next');
+        if(badge) badge.textContent='▶'; }
+      else if(badge) badge.textContent=minsUntil(s);
+    } else {
+      b.classList.add('past');
+      if(badge) badge.textContent='✓';
+    }
+  }
+  // Headline the state of play above the list.
+  const hd=out.querySelector('.idf-lbl');
+  if(hd) hd.textContent = live ? 'Look up — something’s overhead'
+    : upcoming ? 'Tonight’s running order' : 'Tonight’s passes have all been and gone';
+  return {live, upcoming};
+}
+function minsUntil(t){
+  const m=Math.round((t-Date.now())/60000);
+  return m<60 ? (m+'m') : (Math.round(m/60)+'h');
+}
+function startTonightTicker(){
+  clearInterval(ntTicker);
+  ntTicker=setInterval(()=>{
+    const ov=$('overhead'), out=$('night-out');
+    // Only while the tab is actually on screen and the app is in the foreground.
+    if(!ov || !ov.classList.contains('tab-night') || document.hidden || !out || !out.children.length) return;
+    markTonightProgress();
+  }, 20000);
 }
 
 /* ---------- Set location by postal code ----------
