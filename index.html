@@ -114,8 +114,16 @@
   #detail .row span{color:var(--text)}
 
   /* Loader — wordmark with an orbiting satellite, then a zoom into the 'a' */
-  #loader{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
+  /* Above everything — at z-index 50 the nav bar, ⌖ button and topbar painted over it. */
+  #loader{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;
     justify-content:center;overflow:hidden}
+  /* Nothing but the loader until boot finishes: no chrome flashing behind the wordmark. */
+  body.booting #topbar,body.booting #mbar,body.booting #gotome,body.booting #loc-hint,
+  body.booting .panel,body.booting #installpop{opacity:0!important;pointer-events:none!important}
+  body.booting #globe{opacity:0}
+  #topbar,#mbar,#gotome,#loc-hint{transition:opacity .55s ease}
+  /* Safety: if boot never finishes, don't leave the app invisible */
+  body.bootfail #topbar,body.bootfail #mbar,body.bootfail #gotome{opacity:1!important;pointer-events:auto!important}
   #ld-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,#0a1226,#05070f 72%)}
   #ld-bg::after{content:'';position:absolute;inset:0;opacity:.5;
     background:radial-gradient(1.5px 1.5px at 18% 22%,#fff,transparent),
@@ -141,14 +149,11 @@
     letter-spacing:-1px;color:#eaf3ff;white-space:nowrap;
     text-shadow:0 0 26px rgba(90,209,255,.45),0 0 60px rgba(90,209,255,.18)}
   #ld-word .w{color:var(--accent)}
-  #ld-a{position:relative;display:inline-block}
-  /* The counter of the 'a' — this is the point we fly into */
-  #ld-hole{position:absolute;left:50%;top:62%;width:.30em;height:.30em;margin:-.15em 0 0 -.15em;
-    border-radius:50%;background:radial-gradient(circle at 38% 34%,#7fe7ff,#1d63b8 62%,#0a2a52);
-    box-shadow:0 0 10px rgba(90,209,255,.9),0 0 22px rgba(90,209,255,.45);
-    animation:ld-hole 3.2s ease-in-out infinite}
-  @keyframes ld-hole{0%,100%{box-shadow:0 0 10px rgba(90,209,255,.9),0 0 22px rgba(90,209,255,.45)}
-    50%{box-shadow:0 0 14px rgba(90,209,255,1),0 0 34px rgba(90,209,255,.6)}}
+  /* The 'a' is the target — it breathes a little brighter so the eye lands on it */
+  #ld-a{position:relative;display:inline-block;color:var(--accent);
+    animation:ld-a 3.2s ease-in-out infinite}
+  @keyframes ld-a{0%,100%{text-shadow:0 0 22px rgba(90,209,255,.55),0 0 48px rgba(90,209,255,.2)}
+    50%{text-shadow:0 0 30px rgba(90,209,255,.85),0 0 66px rgba(90,209,255,.35)}}
   #loadmsg{position:relative;z-index:1;margin:26px 0 0;color:var(--muted);font-size:13.5px;
     letter-spacing:.6px;text-align:center;min-height:20px;
     transition:opacity .28s ease}
@@ -163,7 +168,7 @@
   #loader.zoom #ld-spin{animation-play-state:paused}
   #globe.warp{will-change:transform}
   @media (prefers-reduced-motion:reduce){
-    #ld-spin{animation:none} #ld-hole{animation:none}
+    #ld-spin{animation:none} #ld-a{animation:none}
     #loader.zoom #ld-art{transition:opacity .4s ease-out;transform:none!important}
   }
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -1184,7 +1189,7 @@
   }
 </style>
 </head>
-<body>
+<body class="booting">
 <div id="globe"></div>
 
 <div id="topbar">
@@ -1621,7 +1626,7 @@
       <div id="ld-ring"></div>
       <div id="ld-spin"><div id="ld-sat">🛰️</div></div>
     </div>
-    <h1 id="ld-word">Sky<span class="w">W</span><span id="ld-a">a<span id="ld-hole"></span></span>tch</h1>
+    <h1 id="ld-word">Sky<span class="w">W</span><span id="ld-a">a</span>tch</h1>
   </div>
   <p id="loadmsg">Starting up…</p>
   <div id="ld-steps"><i></i><i></i><i></i><i></i></div>
@@ -1648,7 +1653,7 @@
 </script>
 
 <script>
-const BUILD = 'v80';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v81';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -3566,34 +3571,36 @@ function loadStatus(msg, step){
     dots.forEach((d,i)=>d.classList.toggle('on', i<step));
   }
 }
-// Fly the camera into the counter of the 'a', where the globe is waiting.
+// Fly the camera into the 'a'; the globe simply fades up behind it.
 function launchIntoGlobe(){
-  const ld=$('loader'), art=$('ld-art'), hole=$('ld-hole'), globe=$('globe');
+  const ld=$('loader'), art=$('ld-art'), a=$('ld-a'), globe=$('globe');
   if(!ld) return;
-  if(!art || !hole || !globe){ ld.remove(); return; }
+  document.body.classList.remove('booting');       // chrome fades back in with the globe
+  if(!art || !a || !globe){ ld.remove(); return; }
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const r=hole.getBoundingClientRect();
-  const cx=r.left+r.width/2, cy=r.top+r.height/2;
+  // Aim at the bowl of the 'a' — a touch below the glyph's centre.
+  const r=a.getBoundingClientRect();
+  const cx=r.left+r.width/2, cy=r.top+r.height*0.62;
   const vw=innerWidth, vh=innerHeight;
-  // Scale needed for the hole to cover the furthest corner from it.
   const far=Math.max(Math.hypot(cx,cy), Math.hypot(vw-cx,cy), Math.hypot(cx,vh-cy), Math.hypot(vw-cx,vh-cy));
-  const target=Math.min(90, Math.max(28, (far*2)/Math.max(6,r.width)));
-  // Both layers pivot on the same point, so the letters and the globe share one vanishing point.
+  const target=Math.min(70, Math.max(26, (far*2)/Math.max(10,r.width*0.42)));
   const artR=art.getBoundingClientRect();
   art.style.transformOrigin = (cx-artR.left)+'px '+(cy-artR.top)+'px';
-  globe.style.transformOrigin = cx+'px '+cy+'px';
   globe.classList.add('warp');
   globe.style.transition='none';
-  globe.style.transform = reduced ? 'none' : 'scale(.055)';
-  globe.style.opacity = reduced ? '1' : '0';
-  // Two frames: one to commit the start state, one to start the transition. Prevents the
-  // first-frame jump that makes this kind of animation look janky.
+  globe.style.transformOrigin = cx+'px '+cy+'px';
+  globe.style.transform = reduced ? 'none' : 'scale(1.06)';   // barely-there settle, not a second zoom
+  globe.style.opacity='0';
+  // Two frames: commit the start state, then start the transition. Without this the
+  // browser collapses both into one style change and the animation jumps on frame one.
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     ld.classList.add('zoom');
     if(!reduced){
       art.style.transform='scale('+target.toFixed(2)+')';
-      globe.style.transition='transform .95s cubic-bezier(.34,.02,.28,1), opacity .34s ease-out';
+      globe.style.transition='opacity .62s ease-out .16s, transform .9s cubic-bezier(.25,.7,.3,1)';
       globe.style.transform='scale(1)';
+    } else {
+      globe.style.transition='opacity .4s ease-out';
     }
     globe.style.opacity='1';
     setTimeout(()=>{
@@ -3605,8 +3612,14 @@ function launchIntoGlobe(){
 }
 async function boot(){
   if(typeof Globe==='undefined' || typeof satellite==='undefined'){
+    document.body.classList.add('bootfail');
     $('loadmsg').textContent='Failed to initialise 3D libraries. Check your connection and reopen.'; return;
   }
+  // Backstop: if anything below stalls, reveal the app rather than sitting on the loader.
+  setTimeout(()=>{ if(document.body.classList.contains('booting')){
+    document.body.classList.add('bootfail'); document.body.classList.remove('booting');
+    const l=$('loader'); if(l) l.remove();
+  } }, 25000);
   loadStatus('Building the globe…', 1);
   initGlobe();
   renderLegend();
@@ -5494,6 +5507,7 @@ initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); 
     }
   } catch (e) {
     console.error(e);
+    document.body.classList.add('bootfail');   // never leave the app hidden behind the loader
     msg.textContent = 'Could not load 3D libraries: ' + (e && e.message ? e.message : e) +
       ' — check your internet connection, then reopen.';
   }
