@@ -426,6 +426,20 @@
   .stg-sec{margin:18px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--border);
     font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--accent)}
   .stg-sec:first-of-type{margin-top:8px}
+  /* Nudge to set a location: pulsing ring + label on the ⌖ button */
+  #gotome.hint{border-color:var(--accent);color:var(--accent);animation:locpulse 2s ease-out infinite}
+  @keyframes locpulse{
+    0%{box-shadow:0 0 0 0 rgba(90,209,255,.55)}
+    70%{box-shadow:0 0 0 16px rgba(90,209,255,0)}
+    100%{box-shadow:0 0 0 0 rgba(90,209,255,0)}
+  }
+  #loc-hint{position:fixed;right:78px;z-index:26;display:none;white-space:nowrap;
+    background:var(--panel-solid);border:1px solid rgba(90,209,255,.45);border-radius:10px;
+    padding:7px 11px;font-size:12px;font-weight:600;color:var(--accent);
+    box-shadow:0 8px 22px rgba(0,0,0,.45);bottom:22px}
+  #loc-hint.show{display:block}
+  @media (max-width:820px){ #loc-hint{right:70px;bottom:calc(env(safe-area-inset-bottom) + 118px)} }
+  @media (prefers-reduced-motion:reduce){ #gotome.hint{animation:none} }
   /* Live sighting reactions rising from the Feed button */
   .feedfly{position:fixed;z-index:96;pointer-events:none;font-size:19px;line-height:1;
     transform:translate(-50%,-50%);opacity:0;will-change:transform,opacity;
@@ -688,9 +702,10 @@
     #detail .row{padding:8px 0;font-size:13px}
 
     /* Recenter FAB sits above the toolbar */
-    #gotome{bottom:calc(env(safe-area-inset-bottom) + 72px);right:12px;width:50px;height:50px}
-    #err{bottom:calc(env(safe-area-inset-bottom) + 78px)}
-    #toast{bottom:calc(env(safe-area-inset-bottom) + 78px)}
+    /* clear the floating nav bar (bar sits ~68px tall from the safe-area edge) */
+    #gotome{bottom:calc(env(safe-area-inset-bottom) + 104px);right:12px;width:50px;height:50px}
+    #err{bottom:calc(env(safe-area-inset-bottom) + 96px)}
+    #toast{bottom:calc(env(safe-area-inset-bottom) + 96px)}
 
     /* Floating bottom bar */
     #mbar{display:flex;position:fixed;left:50%;transform:translateX(-50%);
@@ -709,24 +724,6 @@
       box-shadow:inset 0 0 0 1px rgba(90,209,255,.38),0 0 18px rgba(90,209,255,.22)}
     #mbar button.active .ic svg{filter:drop-shadow(0 0 5px rgba(90,209,255,.65))}
   }
-  /* Time control button + bar */
-  #timebtn{pointer-events:auto;flex:0 0 auto;width:38px;height:38px;border-radius:50%;
-    border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;padding:0}
-  #timebtn:hover{border-color:var(--accent);color:var(--accent)}
-  #timebtn.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(90,209,255,.35)}
-  #timebar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 84px);
-    z-index:46;width:min(440px,calc(100vw - 24px));padding:12px 14px;border-radius:16px;
-    background:var(--panel-solid);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    border:1px solid var(--border);box-shadow:0 12px 34px rgba(0,0,0,.5);display:none}
-  #timebar.show{display:block}
-  .tb-row{display:flex;align-items:center;gap:8px}
-  #tb-slider{flex:1;min-width:0;accent-color:var(--accent);height:4px}
-  #timebar button{flex:0 0 auto;border:1px solid var(--border);background:rgba(120,160,255,.08);color:var(--text);
-    border-radius:9px;padding:7px 9px;font-size:12px;font-weight:600;cursor:pointer;min-width:36px}
-  #timebar button:hover{border-color:var(--accent);color:var(--accent)}
-  #tb-time{margin-top:9px;text-align:center;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-  @media (max-width:820px){ #timebar{bottom:calc(env(safe-area-inset-bottom) + 92px)} }
   /* AR button + fullscreen sky finder */
   #d-ar{width:100%;margin-top:2px;padding:10px;border-radius:11px;border:1px solid rgba(90,209,255,.5);
     background:rgba(90,209,255,.12);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer}
@@ -768,6 +765,10 @@
   .ob-icon{font-size:44px;line-height:1;margin-bottom:12px}
   .ob-card h3{margin:0 0 8px;font-size:19px;color:var(--text)}
   .ob-card p{margin:0 0 16px;font-size:13.5px;line-height:1.55;color:var(--muted)}
+  .ob-actbtn{display:none;width:100%;margin:0 0 16px;padding:11px;border-radius:11px;
+    border:1px solid rgba(90,209,255,.55);background:rgba(90,209,255,.16);color:var(--accent);
+    font-size:13px;font-weight:700;cursor:pointer}
+  .ob-actbtn:hover{background:rgba(90,209,255,.26)}
   .ob-dots{display:flex;justify-content:center;gap:6px;margin-bottom:18px}
   .ob-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .2s,width .2s}
   .ob-dot.on{background:var(--accent);width:18px}
@@ -795,9 +796,6 @@
   <div id="clocks" class="mono">
     <div class="clock"><b>Local</b><span id="c-loc">—</span></div>
   </div>
-  <button id="timebtn" title="Time controls" aria-label="Time controls">
-    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-  </button>
   <button id="feedbtn" title="Sighting feed" aria-label="Sighting feed">
     <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg>
   </button>
@@ -813,17 +811,6 @@
 </div>
 <div id="accountmenu" class="panel"></div>
 
-<div id="timebar">
-  <div class="tb-row">
-    <button id="tb-play" title="Play / pause" aria-label="Play or pause">▶</button>
-    <input type="range" id="tb-slider" min="-360" max="360" step="1" value="0" aria-label="Time offset" />
-    <button id="tb-speed" title="Playback speed">1×</button>
-    <button id="tb-now" title="Back to now">Now</button>
-    <button id="tb-close" title="Close" aria-label="Close">✕</button>
-  </div>
-  <div class="tb-time" id="tb-time">—</div>
-</div>
-
 <div id="arview">
   <div id="ar-close" aria-label="Close">✕</div>
   <div id="ar-title">—</div>
@@ -838,6 +825,7 @@
     <div class="ob-icon" id="ob-icon">🛰️</div>
     <h3 id="ob-title">—</h3>
     <p id="ob-text">—</p>
+    <button id="ob-act" class="ob-actbtn">—</button>
     <div class="ob-dots" id="ob-dots"></div>
     <div class="ob-btns">
       <button id="ob-skip">Skip</button>
@@ -1021,6 +1009,7 @@
 </div>
 
 <button id="gotome" title="Center on my location">⌖</button>
+<div id="loc-hint">Set your location ›</div>
 
 <!-- Mobile bottom toolbar -->
 <nav id="mbar">
@@ -1119,7 +1108,7 @@
 </script>
 
 <script>
-const BUILD = 'v65';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v67';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -1162,9 +1151,8 @@ let observer = null;      // {lat,lng, gd:{longitude,latitude,height}}
 let selected = null;
 let selectedLaunch = null;
 const selMarker = {lat:null, lng:null, alt:0, _sel:true};   // pulsing highlight that tracks the selected sat
-// Simulated time (time scrubber). simNow() drives all propagation; offset 0 = real time.
-let timeOffsetMs=0, timeSpeed=1, timePlaying=false, timeRAF=null, timeLastTs=0;
-function simNow(){ return Date.now()+timeOffsetMs; }
+// Single time source for all propagation and overlays.
+function simNow(){ return Date.now(); }
 // User preferences (synced to the signed-in account)
 const prefs = { units:'metric', time:'24', autorotate:true, issPath:true, cutoff:0, music:true,
   notify:false, notifyGroups:{ iss:true, stations:false, visual:false, rocket:true }, favs:[], theme:'blue', borders:false, sounds:true };
@@ -1195,6 +1183,7 @@ const SFX = (function(){
     if(ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
     return ctx;
   }
+  const VOL=3.2;                    // master multiplier for every interface sound
   function blip(freq, dur, type, vol, slideTo, delay){
     const c=ac(); if(!c) return;
     const t0=c.currentTime+(delay||0);
@@ -1203,7 +1192,7 @@ const SFX = (function(){
     o.frequency.setValueAtTime(freq, t0);
     if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0+dur);
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol||0.05, t0+0.008);
+    g.gain.exponentialRampToValueAtTime(Math.min(0.5,(vol||0.05)*VOL), t0+0.008);
     g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
     o.connect(g); g.connect(c.destination);
     o.start(t0); o.stop(t0+dur+0.03);
@@ -1215,6 +1204,9 @@ const SFX = (function(){
     nav(){     play(()=>blip(300,.075,'triangle',.055)); },      // nav / panel buttons — soft thunk
     tap(){     play(()=>blip(760,.045,'triangle',.032)); },      // generic controls — light tick
     select(){  play(()=>blip(880,.09,'sine',.05,1250)); },       // picking an object on the map
+    sighting(){play(()=>{ blip(1050,.12,'sine',.045,1400); blip(1400,.16,'sine',.032,1750,.1); }); },  // someone spotted something
+    swipeClose(){ play(()=>blip(720,.19,'triangle',.05,190)); },   // sheet swiped away — falling whoosh
+    swipeOpen(){  play(()=>blip(240,.19,'triangle',.05,780)); },   // sheet pulled open — rising whoosh
     success(){ play(()=>{ blip(660,.1,'sine',.06,990); blip(990,.13,'sine',.05,1320,.09); }); },
     force:{ on(){ blip(520,.13,'sine',.07,900); }, off(){ blip(520,.13,'sine',.06,280); } }   // ignore the mute flag
   };
@@ -2036,6 +2028,14 @@ function flyTo(lat, lng, altitude, ms){
   flyRAF = requestAnimationFrame(step);
 }
 
+// Nudge the user toward the ⌖ button until they've set a location.
+function updateLocHint(){
+  const b=$('gotome'), h=$('loc-hint'); if(!b) return;
+  const need=!observer;
+  b.classList.toggle('hint', need);
+  b.title = need ? 'Set your location to see what’s overhead' : 'Center on my location';
+  if(h) h.classList.toggle('show', need);
+}
 function setObserver(lat,lng,recenter){
   observer = { lat, lng, gd:{ longitude:satellite.degreesToRadians(lng),
     latitude:satellite.degreesToRadians(lat), height:0.05 } };
@@ -2043,6 +2043,7 @@ function setObserver(lat,lng,recenter){
   $('oh-sub').innerHTML = `Your location · <b>${lat.toFixed(3)}°, ${lng.toFixed(3)}°</b>`;
   world.controls().autoRotate=false;
   if(recenter!==false){ flyTo(lat, lng, ME_ZOOM, 900); if(isMobile()) openSheet('overhead'); }
+  updateLocHint();
   saveSettings();
   if(selected && selected.id==='25544') renderPasses();
   scanAlerts();
@@ -2603,18 +2604,29 @@ function initLightbox(){
 
 /* ---------- First-run onboarding tour ---------- */
 const OB_STEPS=[
-  {i:'🛰️',t:'Welcome to SkyWatch',x:'Track the ISS and hundreds of satellites live on a 3D globe. Drag to spin, pinch or scroll to zoom.'},
-  {i:'👆',t:'Tap a satellite',x:'Tap any dot to zoom in, highlight it with a pulsing ring, and open its card — orbit type, launch, operator, even a photo.'},
-  {i:'📍',t:'What’s overhead',x:'Tap the ⌖ button to set your location. The Overhead panel then lists every satellite above you right now, by elevation.'},
-  {i:'🧭',t:'Find it in the sky',x:'Open a satellite and tap “Find in sky (AR)”. Point your phone up and follow the guide to spot the real thing overhead.'},
-  {i:'🕘',t:'Scrub through time',x:'The clock button lets you fast-forward or rewind — preview a pass or watch orbits wind. The day/night line moves along too.'},
-  {i:'🚀',t:'Rockets & badges',x:'Enable the Launches layer for upcoming rocket launches. Mark satellites and launches as “seen” to earn badges and climb the leaderboard.'},
-  {i:'👥',t:'Friends & sharing',x:'Pick a username to add friends and compare badges, then share the app. Sign in and everything syncs across your devices.'}
+  {i:'🛰️',t:'Welcome to SkyWatch',x:'Track the ISS, thousands of satellites and upcoming rocket launches live on a 3D globe. Drag to spin, pinch or scroll to zoom.'},
+  {i:'📍',t:'Start with your location',x:'This is the big one — it powers what’s overhead, visible-pass alerts and the AR sky finder. Set it now and the ⌖ button re-centres on you anytime.',
+    act:'📍 Use my location', run:()=>requestLocation()},
+  {i:'📡',t:'See what’s overhead',x:'The Overhead tab lists every satellite above you right now, sorted by elevation, with the ISS’s next visible night passes.'},
+  {i:'👆',t:'Tap anything',x:'Tap a dot to zoom in and highlight it, then open its card for orbit type, launch date, operator, photos and its live position.'},
+  {i:'🧭',t:'Find it in the real sky',x:'Open a satellite and tap “Find in sky (AR)” — point your phone up and follow the guide until the target turns green.'},
+  {i:'🎚️',t:'Filter the view',x:'In Layers, toggle satellite groups or filter by orbit (LEO/MEO/GEO), ★ favourites, or 👁 seen. Search with autocomplete to jump to anything.'},
+  {i:'🚀',t:'Rocket launches',x:'The Launches layer pins upcoming launches on their real pads, with countdowns, mission details and optional launch alerts.'},
+  {i:'👁',t:'Log your sightings',x:'Spotted something for real? Tap “Log a sighting” — pick the date and time, earn badges, build streaks and unlock awards.'},
+  {i:'🏆',t:'Awards & rankings',x:'The Awards tab tracks your journey — points, streaks, every award — and ranks you against everyone on the podium.'},
+  {i:'👥',t:'Friends & feed',x:'Pick a username to add friends, ping them to look up, and watch sightings roll in live on the Feed.'},
+  {i:'⚙️',t:'Make it yours',x:'Settings has globe textures, country borders, units, interface sounds and alerts. Sign in and everything syncs across your devices.'}
 ];
 let obStep=0;
 function renderOnboard(){
   const s=OB_STEPS[obStep];
   $('ob-icon').textContent=s.i; $('ob-title').textContent=s.t; $('ob-text').textContent=s.x;
+  const act=$('ob-act');
+  if(act){
+    const show = !!s.act && !(s.run && s===OB_STEPS[1] && observer);   // hide the location CTA once it's set
+    act.style.display = show ? '' : 'none';
+    if(show){ act.textContent=s.act; act.onclick=()=>{ if(s.run) s.run(); act.textContent='✓ Locating…'; }; }
+  }
   $('ob-dots').innerHTML=OB_STEPS.map((_,i)=>'<span class="ob-dot'+(i===obStep?' on':'')+'"></span>').join('');
   $('ob-back').style.visibility=obStep?'visible':'hidden';
   $('ob-next').textContent=obStep===OB_STEPS.length-1?'Done':'Next';
@@ -2629,39 +2641,6 @@ function initOnboard(){
   const tb=$('tourbtn'); if(tb) tb.onclick=()=>{ if(isMobile()) closeSheets(); else $('settings').classList.remove('open'); startOnboard(); };
   let seen; try{ seen=localStorage.getItem('satmap_onboarded'); }catch(e){}
   if(!seen) setTimeout(startOnboard, 1200);   // first run
-}
-
-/* ---------- Time scrubber ---------- */
-function fmtSim(t){ return new Date(t).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit', hour12: prefs.time==='12'}); }
-function updateTimeUI(){
-  const sl=$('tb-slider'); if(sl && document.activeElement!==sl){ sl.value=Math.max(-360,Math.min(360,Math.round(timeOffsetMs/60000))); }
-  const tt=$('tb-time'); if(tt){ const off=timeOffsetMs, rel = Math.abs(off)<30000 ? 'now' : (off>0?'+':'−')+shortDur(Math.abs(off)); tt.textContent=fmtSim(simNow())+'  ·  '+rel; }
-  const sp=$('tb-speed'); if(sp) sp.textContent=timeSpeed+'×';
-  const pl=$('tb-play'); if(pl) pl.textContent=timePlaying?'⏸':'▶';
-  const tb=$('timebtn'); if(tb) tb.classList.toggle('active', timeOffsetMs!==0 || timePlaying);
-}
-function shortDur(ms){ const m=Math.round(ms/60000); if(m<60) return m+'m'; const h=Math.floor(m/60); return h+'h'+(m%60?(' '+(m%60)+'m'):''); }
-function timeApplyNow(){ if(!(useWorker && propWorker && !workerBusy)){ computeInline(); renderFrame(); } updateIssOrbit(); }
-let overlayThrottle=0;
-function timeLoop(ts){
-  if(!timePlaying){ timeRAF=null; return; }
-  if(timeLastTs) timeOffsetMs += (timeSpeed-1)*(ts-timeLastTs);
-  timeLastTs=ts; updateTimeUI();
-  if(ts-overlayThrottle>350){ overlayThrottle=ts; updateIssOrbit(); }
-  timeRAF=requestAnimationFrame(timeLoop);
-}
-function timePlay(on){ timePlaying=on; timeLastTs=0;
-  if(on){ if(timeSpeed<2) timeSpeed=60; if(!timeRAF) timeRAF=requestAnimationFrame(timeLoop); }
-  updateTimeUI();
-}
-function initTimeUI(){
-  $('timebtn').onclick=(e)=>{ e.stopPropagation(); $('timebar').classList.toggle('show'); updateTimeUI(); };
-  $('tb-close').onclick=()=>{ timePlay(false); $('timebar').classList.remove('show'); };
-  $('tb-slider').addEventListener('input', e=>{ timePlay(false); timeOffsetMs=(+e.target.value)*60000; updateTimeUI(); timeApplyNow(); });
-  $('tb-play').onclick=()=>timePlay(!timePlaying);
-  $('tb-now').onclick=()=>{ timePlay(false); timeOffsetMs=0; timeSpeed=1; updateTimeUI(); timeApplyNow(); };
-  $('tb-speed').onclick=()=>{ const o=[1,60,600,3600]; timeSpeed=o[(o.indexOf(timeSpeed)+1)%o.length]; if(timePlaying) timeLastTs=0; updateTimeUI(); };
-  updateTimeUI();
 }
 
 /* ---------- AR sky finder ---------- */
@@ -2786,6 +2765,8 @@ async function boot(){
   setInterval(()=>{ if(enabled['rocket']) loadLaunches(); }, 18e5);  // refresh launches every 30 min
 
   $('gotome').onclick=flyToMe;
+  const lh=$('loc-hint'); if(lh) lh.onclick=()=>{ requestLocation(); lh.classList.remove('show'); };
+  updateLocHint();
   $('search').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(e.target.value); });
 
   // Deep link: clicked notification (cold start via #sel=, or live via SW message)
@@ -2842,14 +2823,14 @@ function enableSwipeClose(el){
     const dy=cy-sy;
     el.style.transition='';          // hand back to the CSS transition
     el.style.transform='';
-    if(dy>90) closeSheets();          // past threshold → dismiss
+    if(dy>90){ SFX.swipeClose(); closeSheets(); }    // past threshold → dismiss
   };
   el.addEventListener('touchend', end, {passive:true});
   el.addEventListener('touchcancel', end, {passive:true});
 }
 
 function initMobileUI(){
-  $('backdrop').addEventListener('click', closeSheets);
+  $('backdrop').addEventListener('click', ()=>{ SFX.swipeClose(); closeSheets(); });
   $('mb-layers').addEventListener('click', ()=>toggleSheet('controls'));
   $('mb-over').addEventListener('click', ()=>toggleSheet('overhead'));
   $('mb-friends').addEventListener('click', ()=>toggleSheet('friends'));
@@ -2879,8 +2860,8 @@ function enableDetailGesture(el){
   const end=()=>{
     if(!drag) return; drag=false; const dy=cy-sy;
     el.style.transition=''; el.style.transform='';
-    if(dy < -36){ expandDetail(); }
-    else if(dy > 80){ el.classList.contains('collapsed') ? closeSheets() : collapseDetail(); }
+    if(dy < -36){ SFX.swipeOpen(); expandDetail(); }
+    else if(dy > 80){ SFX.swipeClose(); el.classList.contains('collapsed') ? closeSheets() : collapseDetail(); }
   };
   el.addEventListener('touchend', end, {passive:true});
   el.addEventListener('touchcancel', end, {passive:true});
@@ -3600,6 +3581,7 @@ function startFeedWatch(){
       const d=ch.doc.data();
       if(!d || !d.ts || d.ts<=feedWatchStart) return;      // skip the initial backlog
       flyFeedIcon(d.kind);
+      if(!currentUser || d.uid!==currentUser.uid) SFX.sighting();   // your own already chimes on log
       if(!feedItems.some(x=>x.ts===d.ts && x.uid===d.uid)){
         feedItems.unshift(d); if(feedScope!=='mine') renderFeed();
       }
@@ -3926,7 +3908,7 @@ function startCommunityStats(){
   statsTick=setInterval(fetchCommunityStats, 60000);
 }
 
-initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initTimeUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds();
+initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
