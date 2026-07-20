@@ -95,7 +95,7 @@
   /* Selection detail */
   #detail{left:16px;top:74px;width:270px;padding:14px 16px;display:none;
     max-height:calc(100vh - 100px);overflow-y:auto}
-  #detail .x,#settings .x,#friends .x{position:absolute;top:12px;right:14px;z-index:3;
+  #detail .x,#settings .x,#friends .x,#feed .x,#board .x{position:absolute;top:12px;right:14px;z-index:3;
     width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;
     color:var(--muted);cursor:pointer;font-size:15px;border:1px solid var(--border);
     background:rgba(120,160,255,.06);transition:color .15s,background .15s}
@@ -177,10 +177,10 @@
   }
 
   /* Settings gear + panel */
-  #settingsbtn{pointer-events:auto;flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+  #settingsbtn,#feedbtn,#boardbtn{pointer-events:auto;flex:0 0 auto;width:38px;height:38px;border-radius:50%;
     border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;
     display:flex;align-items:center;justify-content:center;padding:0}
-  #settingsbtn:hover{border-color:var(--accent);color:var(--accent)}
+  #settingsbtn:hover,#feedbtn:hover,#boardbtn:hover{border-color:var(--accent);color:var(--accent)}
   #settings{position:fixed;top:60px;right:16px;width:300px;padding:16px;z-index:80;display:none;
     max-height:calc(100vh - 90px);overflow-y:auto}
   #settings.open{display:block}
@@ -210,7 +210,7 @@
   .switch.sm.on::after{transform:translateX(16px)}
 
   @media (max-width:820px){
-    #settingsbtn{display:none}
+    #settingsbtn,#feedbtn,#boardbtn{display:none}
     .stg .lbl{font-size:15px}
     #settings{left:0;right:0;bottom:0;top:auto;width:auto;max-width:none;display:block;
       border-radius:22px 22px 0 0;transform:translateY(115%);
@@ -221,10 +221,10 @@
   }
 
   /* Friends panel */
-  #friends{position:fixed;top:60px;right:16px;width:300px;padding:16px;z-index:80;display:none;
+  #friends,#feed,#board{position:fixed;top:60px;right:16px;width:300px;padding:16px;z-index:80;display:none;
     max-height:calc(100vh - 90px);overflow-y:auto}
-  #friends.open{display:block}
-  #friends h2{margin:2px 0 10px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  #friends.open,#feed.open,#board.open{display:block}
+  #friends h2,#feed h2,#board h2{margin:2px 0 10px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
   .fr-note{font-size:12px;color:var(--muted);line-height:1.45;padding:6px 0}
   .fr-me{font-size:13px;margin-bottom:10px} .fr-me b{color:var(--accent)}
   .fr-del-un{color:var(--iss);font-size:11px;cursor:pointer;margin-left:8px;text-decoration:underline}
@@ -313,12 +313,27 @@
   .fr-tabs{display:flex;gap:6px;margin:6px 0 12px;background:rgba(120,160,255,.06);border:1px solid var(--border);border-radius:12px;padding:4px}
   .fr-tabs button{flex:1;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:8px;border-radius:9px;cursor:pointer}
   .fr-tabs button.on{background:rgba(90,209,255,.16);color:var(--accent)}
-  #fr-pane-feed,#fr-pane-leader,#fr-pane-add{display:none}
-  #friends.tab-feed #fr-pane-friends,#friends.tab-add #fr-pane-friends,#friends.tab-leader #fr-pane-friends{display:none}
-  #friends.tab-feed #fr-pane-feed{display:block}
-  #friends.tab-leader #fr-pane-leader{display:block}
+  #fr-pane-add{display:none}
+  #friends.tab-add #fr-pane-friends{display:none}
   #friends.tab-add #fr-pane-add{display:block}
-  #friends.tab-add .fr-tabs{display:none}     /* hide tab bar inside the add-friends drill-in */
+  #bd-pane-rank{display:none}
+  #board.tab-rank #bd-pane-you{display:none}
+  #board.tab-rank #bd-pane-rank{display:block}
+  /* Awards hero */
+  .hero-top{text-align:center;padding:6px 0 14px}
+  .hero-av{width:62px;height:62px;margin:0 auto 10px;border-radius:50%;background:rgba(90,209,255,.16);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px}
+  .hero-name{font-size:20px;font-weight:700;color:var(--text)}
+  .hero-since{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .hero-score{margin-top:8px;font-size:26px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .hero-score span{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+  .hero-stats div{text-align:center;background:rgba(120,160,255,.06);border:1px solid var(--border);border-radius:10px;padding:8px 2px}
+  .hero-stats b{display:block;font-size:16px;color:var(--text)}
+  .hero-stats span{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .hero-note{font-size:12px;color:var(--muted);line-height:1.5;padding:7px 10px;margin-bottom:8px;
+    background:rgba(120,160,255,.05);border:1px solid var(--border);border-radius:10px}
+  .hero-note b{color:var(--text)}
   /* Profile header */
   #fr-profile{margin:4px 0 12px}
   .fr-prof{display:flex;align-items:center;gap:11px;cursor:pointer;padding:4px 2px;border-radius:10px}
@@ -511,13 +526,15 @@
   @media (min-width:821px){ #reqpop{left:auto;right:16px;width:340px} }
 
   @media (max-width:820px){
-    #friends{left:0;right:0;bottom:0;top:auto;width:auto;display:block;
+    #friends,#feed,#board{left:0;right:0;bottom:0;top:auto;width:auto;display:block;
       border-radius:22px 22px 0 0;transform:translateY(115%);
       transition:transform .34s cubic-bezier(.32,.72,0,1);max-height:min(74vh,620px);z-index:60;
       padding:0 16px calc(env(safe-area-inset-bottom) + 18px);overflow-y:auto}
-    #friends.open{transform:translateY(0)}
-    #friends h2{margin-top:2px}
-    #mbar button{font-size:10px;gap:2px} #mbar button .ic{font-size:16px}
+    #friends.open,#feed.open,#board.open{transform:translateY(0)}
+    #friends h2,#feed h2,#board h2{margin-top:2px}
+    #mbar{gap:2px;padding:6px}
+    #mbar button{width:52px;height:50px;font-size:9px;gap:2px;border-radius:15px}
+    #mbar button .ic{width:21px;height:21px} #mbar button .ic svg{width:20px;height:20px}
     .fr-nm{font-size:15px}
   }
 
@@ -591,7 +608,7 @@
     #overhead{padding:0 16px calc(env(safe-area-inset-bottom) + 16px);display:block}
     #overhead .head{padding-top:0}
     #overhead #ohlist{overflow:visible;padding:6px 0}
-    #detail .x,#settings .x,#friends .x{display:none}   /* swipe down / backdrop to close instead */
+    #detail .x,#settings .x,#friends .x,#feed .x,#board .x{display:none}   /* swipe down / backdrop to close instead */
     .sheet-handle{cursor:grab}
     .sheet-handle{display:block;width:42px;height:5px;border-radius:3px;
       background:var(--muted);opacity:.45;margin:10px auto 8px;flex:0 0 auto}
@@ -715,6 +732,12 @@
   </div>
   <button id="timebtn" title="Time controls" aria-label="Time controls">
     <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+  </button>
+  <button id="feedbtn" title="Sighting feed" aria-label="Sighting feed">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg>
+  </button>
+  <button id="boardbtn" title="Achievements &amp; leaderboard" aria-label="Achievements and leaderboard">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>
   </button>
   <button id="settingsbtn" title="Settings" aria-label="Settings">
     <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -918,6 +941,8 @@
   <button id="mb-layers"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 21 7l-9 4.5L3 7l9-4.5Z"/><path d="M3 12l9 4.5L21 12"/><path d="M3 16.5 12 21l9-4.5"/></svg></span>Layers</button>
   <button id="mb-over"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg></span>Overhead</button>
   <button id="mb-friends"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><path d="M15.6 6.3a3 3 0 0 1 .2 5.5"/><path d="M16.6 13.3a5.5 5.5 0 0 1 3.9 5.2"/></svg></span>Friends</button>
+  <button id="mb-feed"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a9.5 9.5 0 0 1 14 0"/><path d="M8 15.5a5 5 0 0 1 8 0"/><circle cx="12" cy="19" r="1.1" fill="currentColor" stroke="none"/></svg></span>Feed</button>
+  <button id="mb-board"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>Awards</button>
   <button id="mb-settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v3M12 18.4v3M21.4 12h-3M5.6 12h-3M18.6 5.4l-2.1 2.1M7.5 16.5l-2.1 2.1M18.6 18.6l-2.1-2.1M7.5 7.5 5.4 5.4"/></svg></span>Settings</button>
 </nav>
 
@@ -926,30 +951,11 @@
   <div class="x" onclick="closeWindow('friends')" title="Close">✕</div>
   <h2>Friends</h2>
   <div id="fr-profile"></div>
-  <div class="fr-tabs">
-    <button id="frt-friends" class="on">Friends</button>
-    <button id="frt-feed">📡 Feed</button>
-    <button id="frt-leader">🏆 Board</button>
-  </div>
   <div id="fr-pane-friends">
     <div id="fr-requests"></div>
     <div class="fr-sub" id="fr-friends-h">Your friends</div>
     <div id="fr-list"></div>
     <button id="fr-add" class="fr-addbtn"><span>🔍</span> Add friends</button>
-  </div>
-  <div id="fr-pane-feed">
-    <div class="fr-lb-ctrl">
-      <button id="feed-scope" class="fav-toggle on">Friends only</button>
-      <button id="feed-refresh" title="Refresh">⟳ Refresh</button>
-    </div>
-    <div id="fr-feed"></div>
-  </div>
-  <div id="fr-pane-leader">
-    <div class="fr-lb-ctrl">
-      <button id="lb-friends-toggle" class="fav-toggle">Friends only</button>
-      <button id="lb-refresh" title="Refresh">⟳ Refresh</button>
-    </div>
-    <div id="fr-leader"></div>
   </div>
   <div id="fr-pane-add">
     <button id="fr-add-back" class="fr-back">‹ Back to friends</button>
@@ -957,6 +963,37 @@
     <div id="fr-total" class="fr-total">—</div>
     <input id="fr-q" class="fr-filter" placeholder="Search users…" autocomplete="off" />
     <div id="fr-dir"></div>
+  </div>
+</div>
+
+<div id="feed" class="panel">
+  <div class="sheet-handle"></div>
+  <div class="x" onclick="closeWindow('feed')" title="Close">✕</div>
+  <h2>Sighting feed</h2>
+  <div class="fr-tabs">
+    <button id="fdt-all" class="on">Everyone</button>
+    <button id="fdt-friends">Friends</button>
+    <button id="fdt-mine">Mine</button>
+  </div>
+  <div class="fr-lb-ctrl"><button id="feed-refresh" title="Refresh">⟳ Refresh</button></div>
+  <div id="fr-feed"></div>
+</div>
+
+<div id="board" class="panel">
+  <div class="sheet-handle"></div>
+  <div class="x" onclick="closeWindow('board')" title="Close">✕</div>
+  <h2>Achievements</h2>
+  <div class="fr-tabs">
+    <button id="bdt-you" class="on">Your journey</button>
+    <button id="bdt-rank">🏆 Rankings</button>
+  </div>
+  <div id="bd-pane-you"><div id="bd-hero"></div></div>
+  <div id="bd-pane-rank">
+    <div class="fr-lb-ctrl">
+      <button id="lb-friends-toggle" class="fav-toggle">Friends only</button>
+      <button id="lb-refresh" title="Refresh">⟳ Refresh</button>
+    </div>
+    <div id="fr-leader"></div>
   </div>
 </div>
 
@@ -996,7 +1033,7 @@
 </script>
 
 <script>
-const BUILD = 'v58';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v59';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -2636,9 +2673,10 @@ async function boot(){
 /* ---------- Mobile sheets + bottom toolbar ---------- */
 const mq = window.matchMedia('(max-width:820px)');
 function isMobile(){ return mq.matches; }
-const SHEETS = ['controls','overhead','detail','settings','friends'];
+const SHEETS = ['controls','overhead','detail','settings','friends','feed','board'];
 function syncBar(){
-  const map={ 'mb-layers':'controls', 'mb-over':'overhead', 'mb-friends':'friends', 'mb-settings':'settings' };
+  const map={ 'mb-layers':'controls', 'mb-over':'overhead', 'mb-friends':'friends',
+              'mb-feed':'feed', 'mb-board':'board', 'mb-settings':'settings' };
   for(const btn in map){ const b=$(btn), sheet=$(map[btn]); if(b && sheet) b.classList.toggle('active', sheet.classList.contains('open')); }
 }
 function closeSheets(){
@@ -2691,6 +2729,12 @@ function initMobileUI(){
   $('mb-over').addEventListener('click', ()=>toggleSheet('overhead'));
   $('mb-friends').addEventListener('click', ()=>toggleSheet('friends'));
   $('mb-settings').addEventListener('click', ()=>toggleSheet('settings'));
+  const openFeed=()=>{ toggleSheet('feed'); if($('feed').classList.contains('open')){ renderFeed(); if(feedScope!=='mine') loadFeed(); } };
+  const openBoard=()=>{ toggleSheet('board'); if($('board').classList.contains('open')){ renderHero(); renderLeaderboard(); } };
+  if($('mb-feed'))  $('mb-feed').addEventListener('click', openFeed);
+  if($('mb-board')) $('mb-board').addEventListener('click', openBoard);
+  if($('feedbtn'))  $('feedbtn').addEventListener('click', (e)=>{ e.stopPropagation(); openFeed(); });
+  if($('boardbtn')) $('boardbtn').addEventListener('click', (e)=>{ e.stopPropagation(); openBoard(); });
   SHEETS.forEach(id=>{ if(id!=='detail') enableSwipeClose($(id)); });   // swipe-down to close
   enableDetailGesture($('detail'));                                     // detail card: swipe up = expand, down = collapse/close
   const more=$('d-more'); if(more) more.addEventListener('click', expandDetail);
@@ -2982,7 +3026,7 @@ function startSocial(user){
   const {db, doc, collection, onSnapshot}=window.fb;
   if(unsubMyProfile) unsubMyProfile();
   unsubMyProfile = onSnapshot(doc(db,'profiles',user.uid), s=>{
-    myProfile = s.exists()? s.data() : null; rebuildSeenSet(); renderMe(); updateAccountUI(currentUser); renderLeaderboard();
+    myProfile = s.exists()? s.data() : null; rebuildSeenSet(); renderMe(); updateAccountUI(currentUser); renderLeaderboard(); renderHero();
     if(selectedLaunch) renderLaunchDetail(selectedLaunch);
   }, err=>console.warn('profile sub',err));
   if(unsubFriends) unsubFriends();
@@ -3031,7 +3075,7 @@ function stopSocial(){
   if(seenOnly){ seenOnly=false; const st=$('seen-toggle'); if(st) st.classList.remove('on'); }
   if(friendsTick){ clearInterval(friendsTick); friendsTick=null; }
   hideReqPop();
-  stopPresence(); updateFriendPins(); renderFriends(); renderMe(); renderRequests(); renderDirectory(); renderLeaderboard();
+  stopPresence(); updateFriendPins(); renderFriends(); renderMe(); renderRequests(); renderDirectory(); renderLeaderboard(); renderHero();
 }
 function startPresence(){
   stopPresence();
@@ -3224,13 +3268,48 @@ function renderAchievements(s){
     lg.style.display='block';
   } else { lg.innerHTML=''; lg.style.display='none'; }
 }
+// Big "your journey" hero on the Awards panel.
+function renderHero(){
+  const el=$('bd-hero'); if(!el) return;
+  if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in (account icon, top-right) to start your journey.</div>'; return; }
+  const st=statsFromProfile(myProfile||{}), earned=achEarned(st), score=scoreOf(st,earned);
+  const earnedSet=new Set(earned.map(a=>a.id));
+  const uname=(myProfile&&myProfile.username)||'you', ini=(uname[0]||'?').toUpperCase();
+  let since='';
+  try{ const t=currentUser.metadata && currentUser.metadata.creationTime;
+    if(t) since=new Date(t).toLocaleDateString([], {month:'long', year:'numeric'}); }catch(e){}
+  if(!since && sightLog.length) since=new Date(sightLog[0].ts).toLocaleDateString([], {month:'long', year:'numeric'});
+  const first=sightLog.length ? sightLog.slice().sort((a,b)=>a.ts-b.ts)[0] : null;
+  const next=ACH.find(a=>!earnedSet.has(a.id));
+  el.innerHTML=
+    '<div class="hero-top"><div class="hero-av">'+ini+'</div>'+
+      '<div class="hero-name">@'+uname+'</div>'+
+      (since?'<div class="hero-since">Member since '+since+'</div>':'')+
+      '<div class="hero-score">'+score+' <span>points</span></div></div>'+
+    '<div class="hero-stats">'+
+      '<div><b>'+st.badges+'</b><span>objects</span></div>'+
+      '<div><b>'+st.sightings+'</b><span>sightings</span></div>'+
+      '<div><b>'+st.maxStreak+'</b><span>best streak</span></div>'+
+      '<div><b>'+earned.length+'/'+ACH.length+'</b><span>awards</span></div>'+
+    '</div>'+
+    (first?'<div class="hero-note">First sighting · <b>'+esc(first.name||'—')+'</b> on '+fmtSeen(first.ts)+'</div>':'')+
+    (next?'<div class="hero-note">Next award · <b>'+next.ic+' '+next.n+'</b> — '+next.d+'</div>'
+        :'<div class="hero-note">🎉 Every award unlocked. Legend.</div>')+
+    '<div class="fr-sub">Your awards</div>'+
+    '<div class="ach-grid">'+ACH.map(a=>{ const on=earnedSet.has(a.id);
+      return '<div class="ach-item'+(on?' on':'')+'"><div class="ach-ic">'+a.ic+'</div>'+
+        '<div class="ach-txt"><b>'+a.n+'</b><span>'+a.d+'</span></div>'+
+        (on?'<span class="ach-pts">+'+a.p+'</span>':'<span class="ach-lock">🔒</span>')+'</div>'; }).join('')+'</div>'+
+    '<button id="bd-log" class="fr-addbtn">🗒 View my full sighting log</button>';
+  const lg=$('bd-log'); if(lg) lg.onclick=openMyAchievements;
+}
 function initAchievements(){
   const c=$('ach-close'); if(c) c.onclick=()=>$('achieve').classList.remove('show');
   const a=$('achieve'); if(a) a.addEventListener('click', e=>{ if(e.target===a) a.classList.remove('show'); });
 }
 
 /* ---------- Sighting feed ---------- */
-let feedItems=[], feedScope='friends';
+let feedItems=[], feedScope='all';   // all | friends | mine (mine = your private lifetime log)
 async function postFeed(entry){
   if(!currentUser||!window.fb||!myProfile||!myProfile.username) return;
   const {db, collection, addDoc}=window.fb;
@@ -3252,7 +3331,16 @@ function timeAgo(ts){ const s=Math.max(1,Math.round((Date.now()-ts)/1000));
   if(s<60) return s+'s ago'; const m=Math.round(s/60); if(m<60) return m+'m ago';
   const h=Math.round(m/60); if(h<24) return h+'h ago'; return Math.round(h/24)+'d ago'; }
 function renderFeed(){
-  const el=$('fr-feed'); if(!el || !currentUser) return;
+  const el=$('fr-feed'); if(!el) return;
+  if(feedScope==='mine'){          // your private lifetime log (device + your own account doc)
+    if(!sightLog.length){ el.innerHTML='<div class="fr-note">No sightings logged yet — open an object and tap “Log a sighting”.</div>'; return; }
+    const rows=sightLog.slice().sort((a,b)=>b.ts-a.ts).slice(0,200);
+    el.innerHTML='<div class="fr-total">'+sightLog.length+' lifetime sighting'+(sightLog.length===1?'':'s')+' · private to you</div>'+
+      rows.map(x=>'<div class="feed-row"><span class="feed-u">You</span> spotted <b>'+esc(x.name||'—')+'</b>'+
+        '<span class="feed-t">'+fmtSeen(x.ts)+(x.how?(' · '+(x.how==='person'?'in person':'overhead')):'')+'</span></div>').join('');
+    return;
+  }
+  if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in to see the feed.</div>'; return; }
   const fset=new Set(friends.map(f=>f.uid)); fset.add(currentUser.uid);
   let items=(feedScope==='friends') ? feedItems.filter(x=>fset.has(x.uid)) : feedItems;
   items=items.slice(0,40);
@@ -3514,21 +3602,29 @@ function initFriendsUI(){
   const rf=$('fr-refresh');
   if(rf) rf.onclick=async ()=>{ if(!currentUser){ showErr('Sign in to load users.'); return; }
     rf.classList.add('spin'); await loadAllUsers(); rf.classList.remove('spin'); showToast('User list refreshed'); };
-  // sub-tabs: friends / feed / leader (+ the "add friends" drill-in)
-  const showTab=(name)=>{ const f=$('friends'); f.classList.remove('tab-feed','tab-leader','tab-add');
-    if(name!=='friends') f.classList.add('tab-'+name);
-    ['friends','feed','leader'].forEach(t=>{ const b=$('frt-'+t); if(b) b.classList.toggle('on', t===name || (name==='add'&&t==='friends')); });
-    if(name==='leader') renderLeaderboard(); if(name==='feed') loadFeed(); if(name==='add') renderDirectory(); };
-  if($('frt-friends')) $('frt-friends').onclick=()=>showTab('friends');
-  if($('frt-feed'))    $('frt-feed').onclick=()=>showTab('feed');
-  if($('frt-leader'))  $('frt-leader').onclick=()=>showTab('leader');
-  if($('fr-add'))      $('fr-add').onclick=()=>{ showTab('add'); if(currentUser && !allUsers.length) loadAllUsers(); };
-  if($('fr-add-back')) $('fr-add-back').onclick=()=>showTab('friends');
+  // Friends panel: the "add friends" drill-in
+  const showAdd=(on)=>{ $('friends').classList.toggle('tab-add', on); if(on) renderDirectory(); };
+  if($('fr-add'))      $('fr-add').onclick=()=>{ showAdd(true); if(currentUser && !allUsers.length) loadAllUsers(); };
+  if($('fr-add-back')) $('fr-add-back').onclick=()=>showAdd(false);
+  // Feed tabs: everyone (default) / friends / mine
+  const feedTab=(scope)=>{ feedScope=scope;
+    ['all','friends','mine'].forEach(t=>{ const b=$('fdt-'+t); if(b) b.classList.toggle('on', t===scope); });
+    if(scope!=='mine' && !feedItems.length) loadFeed(); else renderFeed(); };
+  if($('fdt-all'))     $('fdt-all').onclick=()=>feedTab('all');
+  if($('fdt-friends')) $('fdt-friends').onclick=()=>feedTab('friends');
+  if($('fdt-mine'))    $('fdt-mine').onclick=()=>feedTab('mine');
+  if($('feed-refresh')) $('feed-refresh').onclick=async (e)=>{ if(feedScope==='mine'){ renderFeed(); return; }
+    e.currentTarget.textContent='…'; await loadFeed(); e.currentTarget.textContent='⟳ Refresh'; };
+  // Awards panel: your journey (default) / rankings
+  const boardTab=(name)=>{ $('board').classList.toggle('tab-rank', name==='rank');
+    if($('bdt-you')) $('bdt-you').classList.toggle('on', name==='you');
+    if($('bdt-rank')) $('bdt-rank').classList.toggle('on', name==='rank');
+    if(name==='you') renderHero(); else renderLeaderboard(); };
+  if($('bdt-you'))  $('bdt-you').onclick=()=>boardTab('you');
+  if($('bdt-rank')) $('bdt-rank').onclick=()=>boardTab('rank');
   if($('lb-friends-toggle')) $('lb-friends-toggle').onclick=(e)=>{ lbFriendsOnly=!lbFriendsOnly; e.currentTarget.classList.toggle('on', lbFriendsOnly); renderLeaderboard(); };
   if($('lb-refresh')) $('lb-refresh').onclick=async (e)=>{ if(!currentUser) return; e.currentTarget.textContent='…'; await loadAllUsers(); e.currentTarget.textContent='⟳ Refresh'; renderLeaderboard(); };
-  if($('feed-scope')) $('feed-scope').onclick=(e)=>{ feedScope=(feedScope==='friends')?'all':'friends'; e.currentTarget.classList.toggle('on', feedScope==='friends'); e.currentTarget.textContent=feedScope==='friends'?'Friends only':'Everyone'; renderFeed(); };
-  if($('feed-refresh')) $('feed-refresh').onclick=async (e)=>{ e.currentTarget.textContent='…'; await loadFeed(); e.currentTarget.textContent='⟳ Refresh'; };
-  renderMe(); renderFriends(); renderRequests(); renderDirectory(); renderLeaderboard();
+  renderMe(); renderFriends(); renderRequests(); renderDirectory(); renderLeaderboard(); renderHero();
 }
 
 /* ---------- Global community counter (total users + online now) ---------- */
