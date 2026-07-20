@@ -1,4 +1,4 @@
-# SatMap — Live Satellite & ISS Tracker
+# SkyWatch — Live Satellite & ISS Tracker
 
 A single-file web app that tracks the ISS and hundreds of satellites in real time,
 rendered on a beautiful 3D globe. Live orbital data (TLEs) from
