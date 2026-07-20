@@ -164,7 +164,8 @@
   #accountmenu .who .em{font-size:12px;color:var(--muted);word-break:break-all}
   #accountmenu .act{width:100%;padding:11px;border-radius:11px;border:1px solid var(--border);
     background:rgba(90,209,255,.12);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:9px}
+    display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:9px}
+  #accountmenu .act:last-of-type{margin-bottom:0}
   #accountmenu .act:hover{background:rgba(90,209,255,.22)}
   #accountmenu .act.g{background:#fff;color:#3c4043;border-color:#dadce0}
   #accountmenu .act.g:hover{background:#f5f5f5}
@@ -459,7 +460,42 @@
   #sky-pane-id{display:none}
   #overhead.tab-id #sky-pane-now{display:none}
   #overhead.tab-id #sky-pane-id{display:block}
-  .idf-note{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+  .idf-note{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:6px}
+  /* User panel (opened from the account menu) */
+  #usermodal{position:fixed;inset:0;z-index:109;display:none;align-items:center;justify-content:center;padding:18px;
+    background:rgba(3,6,15,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  #usermodal.show{display:flex}
+  #usr-close{position:absolute;top:12px;right:14px;width:30px;height:30px;display:flex;align-items:center;
+    justify-content:center;border-radius:50%;border:1px solid var(--border);background:rgba(120,160,255,.06);
+    color:var(--muted);cursor:pointer;font-size:14px;z-index:2}
+  .usr-hero{display:flex;align-items:center;gap:12px;margin:14px 0 4px}
+  .usr-av{width:52px;height:52px;border-radius:50%;background:rgba(90,209,255,.16);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto;overflow:hidden}
+  .usr-av img{width:100%;height:100%;object-fit:cover}
+  .usr-id{min-width:0}
+  .usr-nm{font-size:16px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .usr-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .usr-sec{margin:18px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border);
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:var(--accent)}
+  .usr-sec.danger{color:var(--iss)}
+  .usr-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:9px}
+  .usr-btn{width:100%;margin-bottom:9px;padding:11px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(90,209,255,.12);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px}
+  .usr-btn:hover{background:rgba(90,209,255,.22)}
+  .usr-btn.danger{background:rgba(255,90,77,.1);color:var(--iss);border-color:rgba(255,90,77,.3)}
+  .usr-btn.danger:hover{background:rgba(255,90,77,.2);border-color:var(--iss)}
+  .usr-row{display:flex;gap:7px;margin-bottom:9px}
+  .usr-row input{flex:1;min-width:0;padding:10px 12px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(0,0,0,.35);color:var(--text);font-size:14px;font-family:inherit;outline:none}
+  .usr-row input:focus{border-color:var(--accent)}
+  .usr-row button{flex:0 0 auto;padding:10px 16px;border-radius:11px;border:none;background:var(--accent);
+    color:#04121f;font-size:13px;font-weight:700;cursor:pointer}
+  .usr-stats{display:flex;gap:8px;margin:12px 0 2px}
+  .usr-stats > div{flex:1;text-align:center;padding:10px 6px;border-radius:12px;border:1px solid var(--border);
+    background:rgba(120,160,255,.05)}
+  .usr-stats b{display:block;font-size:17px;color:var(--accent);font-variant-numeric:tabular-nums}
+  .usr-stats span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
   /* Sky hub: CE5 tab */
   #sky-pane-ce5{display:none}
   #overhead.tab-ce5 #sky-pane-now,#overhead.tab-ce5 #sky-pane-id{display:none}
@@ -499,29 +535,45 @@
     background:rgba(30,0,0,.9);border:1px solid rgba(255,90,70,.55);color:#ff9a86;cursor:pointer;
     letter-spacing:.4px}
   body.nightmode #nightbadge{display:flex}
-  .idf-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin:12px 0 6px}
-  #idf-when{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--border);
-    background:var(--panel-solid);color:var(--text);font-size:13px;font-family:inherit;color-scheme:dark}
-  .idf-chips{display:flex;flex-wrap:wrap;gap:5px}
+  .idf-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin:18px 0 8px}
+  #idf-when{width:100%;padding:14px 12px;border-radius:12px;border:1px solid var(--border);
+    background:var(--panel-solid);color:var(--text);font-size:15px;font-family:inherit;color-scheme:dark}
+  .idf-chips{display:flex;flex-wrap:wrap;gap:7px}
   .idf-chips button{border:1px solid var(--border);background:rgba(120,160,255,.06);color:var(--muted);
-    border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:600;cursor:pointer}
-  .idf-chips button.on{background:rgba(90,209,255,.18);color:var(--accent);border-color:rgba(90,209,255,.5)}
-  .idf-go{width:100%;margin-top:14px;padding:12px;border-radius:11px;border:1px solid rgba(90,209,255,.55);
-    background:rgba(90,209,255,.16);color:var(--accent);font-size:13px;font-weight:700;cursor:pointer}
+    border-radius:12px;padding:13px 12px;font-size:13.5px;font-weight:600;cursor:pointer;
+    min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;
+    line-height:1.2;transition:background .12s,border-color .12s,color .12s}
+  .idf-chips button.on{background:rgba(90,209,255,.2);color:var(--accent);border-color:rgba(90,209,255,.55);
+    box-shadow:0 0 0 1px rgba(90,209,255,.25) inset}
+  .idf-chips button:active{transform:scale(.97)}
+  /* Identify: full-width grids so every target is big and thumb-reachable */
+  #idf-quick,#idf-alts{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+  #idf-dirs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  #idf-dirs button:first-child{grid-column:1 / -1}          /* "Any" spans the row */
+  #idf-dirs button{font-size:15px;font-weight:700;min-height:52px}
+  @media (min-width:560px){
+    #idf-quick,#idf-alts{grid-template-columns:repeat(4,1fr)}
+  }
+  /* UAP form chips: same generous sizing, auto-fitting columns */
+  .uap-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px}
+  .idf-go{width:100%;margin-top:20px;padding:17px;border-radius:14px;border:1px solid rgba(90,209,255,.55);
+    background:rgba(90,209,255,.16);color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;min-height:54px}
   .idf-go:hover{background:rgba(90,209,255,.26)}
-  .idf-when-hd{margin:14px 0 8px;font-size:11.5px;color:var(--muted);line-height:1.45}
-  .idf-row{border:1px solid var(--border);border-radius:11px;padding:9px 11px;margin-bottom:7px;
+  .idf-go:active{transform:scale(.985)}
+  .idf-when-hd{margin:18px 0 10px;font-size:12.5px;color:var(--muted);line-height:1.5}
+  .idf-row{border:1px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;
     background:rgba(120,160,255,.04)}
   .idf-row.strong{border-color:rgba(87,224,138,.5);background:rgba(87,224,138,.1)}
   .idf-row.launch{border-color:rgba(255,107,53,.45);background:rgba(255,107,53,.09)}
   .idf-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-  .idf-n{font-size:13px;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .idf-v{font-size:10.5px;color:var(--muted);flex:0 0 auto;text-transform:uppercase;letter-spacing:.4px}
+  .idf-n{font-size:14.5px;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .idf-v{font-size:11px;color:var(--muted);flex:0 0 auto;text-transform:uppercase;letter-spacing:.4px}
   .idf-v.ok{color:#57e08a}
-  .idf-m{font-size:11.5px;color:var(--muted);margin-top:3px}
-  .idf-uap{width:100%;margin-top:10px;padding:11px;border-radius:11px;border:1px solid var(--border);
-    background:rgba(120,160,255,.08);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer}
+  .idf-m{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
+  .idf-uap{width:100%;margin-top:12px;padding:16px;border-radius:14px;border:1px solid var(--border);
+    background:rgba(120,160,255,.08);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;min-height:52px}
   .idf-uap:hover{border-color:var(--accent);color:var(--accent)}
+  .idf-uap:active{transform:scale(.985)}
   /* Nudge to set a location: pulsing ring + label on the ⌖ button */
   #gotome.hint{border-color:var(--accent);color:var(--accent);animation:locpulse 2s ease-out infinite}
   @keyframes locpulse{
@@ -536,8 +588,25 @@
   #loc-hint.show{display:block}
   @media (max-width:820px){ #loc-hint{right:70px;bottom:calc(env(safe-area-inset-bottom) + 118px)} }
   @media (prefers-reduced-motion:reduce){ #gotome.hint{animation:none} }
-  body.locpick #globe{cursor:crosshair}
-  body.locpick #gotome{border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px rgba(90,209,255,.5)}
+  /* Postal-code location picker */
+  #locmodal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:18px;
+    background:rgba(3,6,15,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  #locmodal.show{display:flex}
+  #loc-close{position:absolute;top:12px;right:14px;width:30px;height:30px;display:flex;align-items:center;
+    justify-content:center;border-radius:50%;border:1px solid var(--border);background:rgba(120,160,255,.06);
+    color:var(--muted);cursor:pointer;font-size:14px;z-index:2}
+  .loc-row{display:flex;gap:7px;margin:12px 0 0}
+  .loc-row select,.loc-row input{padding:11px 12px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(0,0,0,.35);color:var(--text);font-size:14px;font-family:inherit;outline:none;min-width:0}
+  .loc-row select{flex:0 0 108px;color-scheme:dark}
+  .loc-row input{flex:1}
+  .loc-row select:focus,.loc-row input:focus{border-color:var(--accent)}
+  #loc-res{margin-top:10px}
+  .loc-hit{width:100%;text-align:left;padding:11px 12px;margin-bottom:7px;border-radius:11px;
+    border:1px solid var(--border);background:rgba(120,160,255,.05);color:var(--text);
+    font-size:13px;font-family:inherit;cursor:pointer}
+  .loc-hit:hover{border-color:rgba(90,209,255,.5);background:rgba(90,209,255,.1)}
+  .loc-hit small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
   /* Live sighting reactions rising from the Feed button */
   .feedfly{position:fixed;z-index:96;pointer-events:none;font-size:19px;line-height:1;
     transform:translate(-50%,-50%);opacity:0;will-change:transform,opacity;
@@ -857,27 +926,54 @@
     color:var(--text);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
   #tourbtn:hover{background:rgba(90,209,255,.14);border-color:rgba(90,209,255,.5);color:var(--accent)}
   #tourbtn svg{display:block}
-  #onboard{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
-    padding:20px;background:rgba(3,6,15,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  /* Full-screen swipeable onboarding */
+  #onboard{position:fixed;inset:0;z-index:100;display:none;flex-direction:column;overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 0%,rgba(24,44,84,.96),rgba(3,6,15,.99) 70%);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   #onboard.show{display:flex}
-  .ob-card{width:min(360px,100%);background:var(--panel-solid);border:1px solid var(--border);border-radius:20px;
-    padding:26px 22px 20px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.6)}
-  .ob-icon{font-size:44px;line-height:1;margin-bottom:12px}
-  .ob-card h3{margin:0 0 8px;font-size:19px;color:var(--text)}
-  .ob-card p{margin:0 0 16px;font-size:13.5px;line-height:1.55;color:var(--muted)}
-  .ob-actbtn{display:none;width:100%;margin:0 0 16px;padding:11px;border-radius:11px;
-    border:1px solid rgba(90,209,255,.55);background:rgba(90,209,255,.16);color:var(--accent);
-    font-size:13px;font-weight:700;cursor:pointer}
-  .ob-actbtn:hover{background:rgba(90,209,255,.26)}
-  .ob-dots{display:flex;justify-content:center;gap:6px;margin-bottom:18px}
-  .ob-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:background .2s,width .2s}
-  .ob-dot.on{background:var(--accent);width:18px}
-  .ob-btns{display:flex;gap:8px;align-items:center}
-  .ob-btns button{border:1px solid var(--border);background:rgba(120,160,255,.06);color:var(--text);
-    border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer}
-  #ob-skip{margin-right:auto;color:var(--muted);border-color:transparent;background:transparent;padding-left:4px}
-  #ob-next{background:rgba(90,209,255,.16);border-color:rgba(90,209,255,.5);color:var(--accent)}
+  #ob-skip{position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;z-index:3;
+    border:1px solid var(--border);background:rgba(120,160,255,.08);color:var(--muted);
+    border-radius:20px;padding:8px 16px;font-size:12.5px;font-weight:600;cursor:pointer}
+  #ob-skip:hover{color:var(--text);border-color:var(--accent)}
+  #ob-view{flex:1;min-height:0;overflow:hidden;touch-action:pan-y}
+  #ob-track{display:flex;height:100%;will-change:transform}
+  .ob-slide{flex:0 0 100%;height:100%;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;padding:64px 26px 12px;box-sizing:border-box}
+  .ob-inner{width:min(420px,100%);display:flex;flex-direction:column;align-items:center}
+  .ob-icon{font-size:60px;line-height:1;margin-bottom:20px;filter:drop-shadow(0 6px 22px rgba(90,209,255,.35))}
+  .ob-slide h3{margin:0 0 12px;font-size:26px;font-weight:700;letter-spacing:-.3px;color:var(--text)}
+  .ob-slide p{margin:0;font-size:15px;line-height:1.65;color:var(--muted);max-width:400px}
+  .ob-tips{margin:20px 0 0;padding:0;list-style:none;width:100%;max-width:400px}
+  .ob-tips li{display:flex;gap:11px;align-items:flex-start;text-align:left;padding:11px 13px;margin-bottom:7px;
+    border-radius:13px;background:rgba(120,160,255,.07);border:1px solid rgba(120,160,255,.13);
+    font-size:13.5px;line-height:1.5;color:var(--text)}
+  .ob-tips li b{color:var(--accent);font-weight:600}
+  .ob-tips .ob-em{flex:0 0 auto;font-size:17px;line-height:1.35}
+  .ob-actbtn{display:none;width:100%;max-width:400px;margin:22px 0 0;padding:16px;border-radius:14px;
+    border:1px solid rgba(90,209,255,.55);background:rgba(90,209,255,.18);color:var(--accent);
+    font-size:15px;font-weight:700;cursor:pointer;min-height:54px}
+  .ob-actbtn:hover{background:rgba(90,209,255,.28)}
+  .ob-alt{display:none;margin:10px 0 0;background:transparent;border:none;color:var(--muted);
+    font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .ob-alt:hover{color:var(--accent)}
+  #ob-foot{flex:0 0 auto;padding:14px 22px calc(env(safe-area-inset-bottom) + 20px);
+    display:flex;flex-direction:column;align-items:center;gap:16px}
+  .ob-dots{display:flex;justify-content:center;gap:7px}
+  .ob-dot{width:8px;height:8px;border-radius:50%;background:rgba(120,160,255,.28);cursor:pointer;
+    transition:background .2s,width .2s;padding:0;border:none}
+  .ob-dot.on{background:var(--accent);width:22px}
+  .ob-btns{display:flex;gap:10px;align-items:center;width:min(420px,100%)}
+  .ob-btns button{flex:1;border:1px solid var(--border);background:rgba(120,160,255,.07);color:var(--text);
+    border-radius:14px;padding:15px;font-size:14.5px;font-weight:700;cursor:pointer;min-height:52px}
+  #ob-back{flex:0 0 34%;color:var(--muted)}
+  #ob-back[hidden]{display:none}
+  #ob-next{background:rgba(90,209,255,.18);border-color:rgba(90,209,255,.5);color:var(--accent)}
   .ob-btns button:hover{border-color:var(--accent)}
+  .ob-btns button:active{transform:scale(.985)}
+  @media (max-height:620px){
+    .ob-icon{font-size:42px;margin-bottom:12px} .ob-slide h3{font-size:21px}
+    .ob-slide p{font-size:13.5px} .ob-tips li{padding:9px 11px;font-size:12.5px}
+  }
 </style>
 </head>
 <body>
@@ -921,15 +1017,12 @@
 </div>
 
 <div id="onboard">
-  <div class="ob-card">
-    <div class="ob-icon" id="ob-icon">🛰️</div>
-    <h3 id="ob-title">—</h3>
-    <p id="ob-text">—</p>
-    <button id="ob-act" class="ob-actbtn">—</button>
+  <button id="ob-skip">Skip</button>
+  <div id="ob-view"><div id="ob-track"></div></div>
+  <div id="ob-foot">
     <div class="ob-dots" id="ob-dots"></div>
     <div class="ob-btns">
-      <button id="ob-skip">Skip</button>
-      <button id="ob-back">Back</button>
+      <button id="ob-back" hidden>Back</button>
       <button id="ob-next">Next</button>
     </div>
   </div>
@@ -950,6 +1043,29 @@
     <div id="ach-stats" class="ach-stats"></div>
     <div id="ach-grid" class="ach-grid"></div>
     <div id="ach-log"></div>
+  </div>
+</div>
+
+<div id="locmodal">
+  <div class="uap-card">
+    <div id="loc-close" aria-label="Close">✕</div>
+    <div class="uap-title">📍 Set your location</div>
+    <div class="usr-note">Enter a postal code or a town — more accurate than a Wi-Fi fix, which can land you in the wrong state.</div>
+    <div class="loc-row">
+      <select id="loc-country"></select>
+      <input id="loc-code" placeholder="ZIP or town" autocomplete="postal-code" autocapitalize="characters" />
+    </div>
+    <button id="loc-find" class="idf-go">Find location</button>
+    <div id="loc-res"></div>
+    <button id="loc-gps" class="idf-uap">⌖ Use device location instead</button>
+  </div>
+</div>
+
+<div id="usermodal">
+  <div class="uap-card">
+    <div id="usr-close" aria-label="Close">✕</div>
+    <div class="uap-title">👤 User</div>
+    <div id="usr-body"></div>
   </div>
 </div>
 
@@ -1310,7 +1426,7 @@
 </script>
 
 <script>
-const BUILD = 'v72';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v76';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -1776,16 +1892,6 @@ function initGlobe(){
 
   window.addEventListener('resize',()=>{ world.width(innerWidth).height(innerHeight); });
   world.width(innerWidth).height(innerHeight);
-
-  // Manual location placement: runs in the capture phase so it wins over satellite picking.
-  world.renderer().domElement.addEventListener('pointerup', e=>{
-    if(!locPickMode) return;
-    e.stopPropagation();
-    locPickMode=false; document.body.classList.remove('locpick');
-    const c = world.toGlobeCoords ? world.toGlobeCoords(e.clientX, e.clientY) : null;
-    if(c){ setObserver(c.lat, c.lng, true, 'manual'); showToast('📍 Location set manually', true); }
-    else showErr('Tap on the globe itself to place your location.');
-  }, true);
 
   initSatPoints();   // GPU point cloud for satellites (falls back to HTML markers if THREE is absent)
 }
@@ -2311,7 +2417,7 @@ function updateLocHint(){
   if(h) h.classList.toggle('show', need);
 }
 // How the current fix was obtained: 'gps' (device), 'manual' (tapped on the map), 'saved' (synced).
-let observerSource='saved', observerAcc=null, locPickMode=false;
+let observerSource='saved', observerAcc=null;
 function setObserver(lat,lng,recenter,source,accM){
   observer = { lat, lng, gd:{ longitude:satellite.degreesToRadians(lng),
     latitude:satellite.degreesToRadians(lat), height:0.05 } };
@@ -2891,40 +2997,144 @@ function initLightbox(){
 
 /* ---------- First-run onboarding tour ---------- */
 const OB_STEPS=[
-  {i:'🛰️',t:'Welcome to SkyWatch',x:'Track the ISS, thousands of satellites and upcoming rocket launches live on a 3D globe. Drag to spin, pinch or scroll to zoom.'},
-  {i:'📍',t:'Start with your location',x:'This is the big one — it powers what’s overhead, visible-pass alerts and the AR sky finder. Set it now and the ⌖ button re-centres on you anytime.',
-    act:'📍 Use my location', run:()=>requestLocation()},
-  {i:'📡',t:'See what’s overhead',x:'The Overhead tab lists every satellite above you right now, sorted by elevation, with the ISS’s next visible night passes.'},
-  {i:'👆',t:'Tap anything',x:'Tap a dot to zoom in and highlight it, then open its card for orbit type, launch date, operator, photos and its live position.'},
-  {i:'🧭',t:'Find it in the real sky',x:'Open a satellite and tap “Find in sky (AR)” — point your phone up and follow the guide until the target turns green.'},
-  {i:'🎚️',t:'Filter the view',x:'In Layers, toggle satellite groups or filter by orbit (LEO/MEO/GEO), ★ favourites, or 👁 seen. Search with autocomplete to jump to anything.'},
-  {i:'🚀',t:'Rocket launches',x:'The Launches layer pins upcoming launches on their real pads, with countdowns, mission details and optional launch alerts.'},
-  {i:'👁',t:'Log your sightings',x:'Spotted something for real? Tap “Log a sighting” — pick the date and time, earn badges, build streaks and unlock awards.'},
-  {i:'🏆',t:'Awards & rankings',x:'The Awards tab tracks your journey — points, streaks, every award — and ranks you against everyone on the podium.'},
-  {i:'👥',t:'Friends & feed',x:'Pick a username to add friends, ping them to look up, and watch sightings roll in live on the Feed.'},
-  {i:'⚙️',t:'Make it yours',x:'Settings has globe textures, country borders, units, interface sounds and alerts. Sign in and everything syncs across your devices.'}
+  {i:'🛰️',t:'Welcome to SkyWatch',
+   x:'Thousands of satellites and upcoming rocket launches, tracked live on a 3D globe.',
+   tips:[['🖐','<b>Drag</b> to spin the Earth, pinch or scroll to zoom.'],
+         ['🔴','The <b>ISS</b> is the red dot, with its orbit drawn ahead of it.'],
+         ['🌗','A shaded terminator shows where night has fallen right now.']]},
+  {i:'📍',t:'Start with your location',
+   x:'Everything good here depends on it — what’s overhead, pass alerts, the sky finder and CE5 sessions.',
+   tips:[['⌖','Tap the <b>⌖ button</b> anytime to re-centre on yourself.'],
+         ['🏠','Wi-Fi fixes can be tens of miles off — <b>long-press ⌖</b> to enter a postal code instead.']],
+   act:'📍 Use my location', run:()=>requestLocation(),
+   alt:'Enter a postal code instead', altRun:()=>openLocPicker()},
+  {i:'📡',t:'See what’s above you',
+   x:'The Sky tab lists everything over your horizon right now, brightest and highest first.',
+   tips:[['👆','<b>Tap any dot</b> to zoom in, highlight it and open its card.'],
+         ['📄','Cards carry orbit type, launch date, operator, photos and live position.'],
+         ['🧭','Tap <b>Find in sky (AR)</b> and follow the guide until the target turns green.']]},
+  {i:'🎚️',t:'Filter and search',
+   x:'Layers controls what’s drawn on the globe — and the filters take effect the moment you tap.',
+   tips:[['🛰️','Toggle groups, or filter by orbit — <b>LEO / MEO / GEO</b>.'],
+         ['★','Narrow to <b>favourites</b> or things you’ve already <b>👁 seen</b>.'],
+         ['🚀','The <b>Launches</b> layer pins upcoming rockets on their real pads, with countdowns and alerts.']]},
+  {i:'🔎',t:'Identify what you saw',
+   x:'Saw something odd? SkyWatch rewinds the sky to that exact moment and tells you what was actually there.',
+   tips:[['🕐','Pick the <b>time</b>, the direction you looked and how high it was.'],
+         ['🔗','It flags <b>Starlink trains</b> — the usual culprit behind “UFO fleet” reports.'],
+         ['👁','Nothing matches? File a <b>UAP report</b> with shape, motion and duration — your ruled-out candidates attach automatically.']]},
+  {i:'🧘',t:'CE5 sessions',
+   x:'A guided quiet-observation session for serious sky-watching, with the timekeeping handled for you.',
+   tips:[['🌙','A conditions check reads <b>darkness, Moon and cloud</b> before you commit.'],
+         ['🔴','<b>Red night mode</b> protects your dark adaptation the whole way through.'],
+         ['✅','Mark anything you see — afterwards it <b>cross-references</b> every object that crossed your sky.']]},
+  {i:'🏅',t:'Log it, earn it, share it',
+   x:'Every sighting you log builds a permanent record — and a bit of friendly competition.',
+   tips:[['👁','<b>Log a sighting</b> with the real date and time you saw it.'],
+         ['🏆','Earn <b>badges, streaks and awards</b>, and climb the podium.'],
+         ['👥','Add friends, <b>ping them to look up</b>, and watch sightings land live in the Feed.']]},
+  {i:'⚙️',t:'Make it yours',
+   x:'Sign in and your location, filters and history follow you to every device.',
+   tips:[['🌍','Globe textures, country borders and names, units.'],
+         ['🔔','Pass alerts, launch alerts and interface sounds.'],
+         ['👤','The <b>User</b> panel holds your username, profile icon and account controls.']]}
 ];
-let obStep=0;
-function renderOnboard(){
-  const s=OB_STEPS[obStep];
-  $('ob-icon').textContent=s.i; $('ob-title').textContent=s.t; $('ob-text').textContent=s.x;
-  const act=$('ob-act');
-  if(act){
-    const show = !!s.act && !(s.run && s===OB_STEPS[1] && observer);   // hide the location CTA once it's set
-    act.style.display = show ? '' : 'none';
-    if(show){ act.textContent=s.act; act.onclick=()=>{ if(s.run) s.run(); act.textContent='✓ Locating…'; }; }
-  }
-  $('ob-dots').innerHTML=OB_STEPS.map((_,i)=>'<span class="ob-dot'+(i===obStep?' on':'')+'"></span>').join('');
-  $('ob-back').style.visibility=obStep?'visible':'hidden';
-  $('ob-next').textContent=obStep===OB_STEPS.length-1?'Done':'Next';
+let obStep=0, obDrag=null;
+function obSlideHTML(s, i){
+  return '<div class="ob-slide" data-i="'+i+'"><div class="ob-inner">'+
+    '<div class="ob-icon">'+s.i+'</div><h3>'+esc(s.t)+'</h3><p>'+esc(s.x)+'</p>'+
+    (s.tips?('<ul class="ob-tips">'+s.tips.map(t=>
+      '<li><span class="ob-em">'+t[0]+'</span><span>'+t[1]+'</span></li>').join('')+'</ul>'):'')+
+    (s.act?'<button class="ob-actbtn">'+esc(s.act)+'</button>':'')+
+    (s.alt?'<button class="ob-alt">'+esc(s.alt)+'</button>':'')+
+    '</div></div>';
 }
-function startOnboard(){ obStep=0; renderOnboard(); $('onboard').classList.add('show'); }
-function endOnboard(){ $('onboard').classList.remove('show'); try{ localStorage.setItem('satmap_onboarded','1'); }catch(e){} }
+function buildOnboard(){
+  const tr=$('ob-track'); if(!tr) return;
+  tr.innerHTML=OB_STEPS.map(obSlideHTML).join('');
+  tr.querySelectorAll('.ob-slide').forEach((sl,i)=>{
+    const s=OB_STEPS[i];
+    const a=sl.querySelector('.ob-actbtn');
+    if(a) a.onclick=()=>{ if(s.run) s.run(); a.textContent='✓ Locating…'; };
+    const al=sl.querySelector('.ob-alt');
+    if(al) al.onclick=()=>{ if(s.altRun) s.altRun(); };
+  });
+  $('ob-dots').innerHTML=OB_STEPS.map((_,i)=>'<button class="ob-dot" data-i="'+i+'" aria-label="Step '+(i+1)+'"></button>').join('');
+  $('ob-dots').querySelectorAll('.ob-dot').forEach(d=>d.onclick=()=>obGo(+d.dataset.i));
+}
+function obPos(px, animate){
+  const tr=$('ob-track'); if(!tr) return;
+  tr.style.transition = animate ? 'transform .32s cubic-bezier(.22,.9,.3,1)' : 'none';
+  tr.style.transform = 'translate3d('+px+'px,0,0)';
+}
+function obGo(i, silent){
+  const n=OB_STEPS.length;
+  obStep=Math.max(0, Math.min(n-1, i));
+  obPos(-obStep*($('ob-view').clientWidth||innerWidth), true);
+  $('ob-dots').querySelectorAll('.ob-dot').forEach((d,k)=>d.classList.toggle('on', k===obStep));
+  $('ob-back').hidden = obStep===0;
+  $('ob-next').textContent = obStep===n-1 ? 'Start exploring' : 'Next';
+  // The "use my location" CTA is pointless once a location exists.
+  $('ob-track').querySelectorAll('.ob-slide').forEach(sl=>{
+    const s=OB_STEPS[+sl.dataset.i], done=!!observer;
+    const a=sl.querySelector('.ob-actbtn'), al=sl.querySelector('.ob-alt');
+    if(a) a.style.display = (s && s.run && done) ? 'none' : 'block';
+    if(al) al.style.display = (s && s.run && done) ? 'none' : 'block';
+  });
+  if(!silent) SFX.nav();
+}
+function initObSwipe(){
+  const view=$('ob-view'); if(!view) return;
+  let id=null, x0=0, y0=0, base=0, locked=null;
+  view.addEventListener('pointerdown', e=>{
+    if(e.target.closest('button')) return;                 // let CTAs work
+    id=e.pointerId; x0=e.clientX; y0=e.clientY; locked=null;
+    base=-obStep*(view.clientWidth||innerWidth);
+    try{ view.setPointerCapture(id); }catch(err){}
+  });
+  view.addEventListener('pointermove', e=>{
+    if(id===null || e.pointerId!==id) return;
+    const dx=e.clientX-x0, dy=e.clientY-y0;
+    if(locked===null){ if(Math.abs(dx)<6 && Math.abs(dy)<6) return; locked=Math.abs(dx)>Math.abs(dy)?'x':'y'; }
+    if(locked!=='x') return;
+    const n=OB_STEPS.length, w=view.clientWidth||innerWidth;
+    let d=dx;
+    if((obStep===0 && dx>0) || (obStep===n-1 && dx<0)) d=dx*0.32;   // rubber-band at the ends
+    obDrag=d; obPos(base+d, false);
+  });
+  const finish=e=>{
+    if(id===null || (e && e.pointerId!==undefined && e.pointerId!==id)) return;
+    try{ view.releasePointerCapture(id); }catch(err){}
+    id=null;
+    const w=view.clientWidth||innerWidth, d=obDrag||0; obDrag=null;
+    if(locked==='x' && Math.abs(d)>Math.min(70, w*0.18)) obGo(obStep + (d<0?1:-1));
+    else obPos(-obStep*w, true);
+    locked=null;
+  };
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>view.addEventListener(ev, finish));
+  window.addEventListener('resize', ()=>{ if($('onboard').classList.contains('show')) obPos(-obStep*(view.clientWidth||innerWidth), false); });
+}
+function startOnboard(){
+  buildOnboard();
+  $('onboard').classList.add('show');
+  requestAnimationFrame(()=>{ obPos(0,false); obGo(0, true); });
+}
+function endOnboard(){
+  $('onboard').classList.remove('show');
+  try{ localStorage.setItem('satmap_onboarded','1'); }catch(e){}
+  if(!observer) updateLocHint();
+}
 function initOnboard(){
   $('ob-skip').onclick=endOnboard;
-  $('ob-back').onclick=()=>{ if(obStep>0){ obStep--; renderOnboard(); } };
-  $('ob-next').onclick=()=>{ if(obStep<OB_STEPS.length-1){ obStep++; renderOnboard(); } else endOnboard(); };
-  $('onboard').addEventListener('click', e=>{ if(e.target===$('onboard')) endOnboard(); });
+  $('ob-back').onclick=()=>obGo(obStep-1);
+  $('ob-next').onclick=()=>{ if(obStep<OB_STEPS.length-1) obGo(obStep+1); else { SFX.success(); endOnboard(); } };
+  document.addEventListener('keydown', e=>{
+    if(!$('onboard').classList.contains('show')) return;
+    if(e.key==='ArrowRight') obGo(obStep+1);
+    else if(e.key==='ArrowLeft') obGo(obStep-1);
+    else if(e.key==='Escape') endOnboard();
+  });
+  initObSwipe();
   const tb=$('tourbtn'); if(tb) tb.onclick=()=>{ if(isMobile()) closeSheets(); else $('settings').classList.remove('open'); startOnboard(); };
   let seen; try{ seen=localStorage.getItem('satmap_onboarded'); }catch(e){}
   if(!seen) setTimeout(startOnboard, 1200);   // first run
@@ -3077,15 +3287,14 @@ async function boot(){
   if(enabled['rocket']) setTimeout(loadLaunches, 2500);   // fetch upcoming launches in the background
   setInterval(()=>{ if(enabled['rocket']) loadLaunches(); }, 18e5);  // refresh launches every 30 min
 
-  // Tap = use my location. Long-press = place it manually on the map (fixes bad network fixes).
+  // Tap = use my location. Long-press = set it by postal code (network fixes are often far off).
   const gm=$('gotome');
   gm.onclick=()=>{ if(gm._lp){ gm._lp=false; return; } flyToMe(); };
   let lpT=null;
   gm.addEventListener('pointerdown', ()=>{ gm._lp=false; clearTimeout(lpT);
-    lpT=setTimeout(()=>{ lpT=null; gm._lp=true; locPickMode=true;
-      document.body.classList.add('locpick'); SFX.tap();
+    lpT=setTimeout(()=>{ lpT=null; gm._lp=true; SFX.tap();
       if(navigator.vibrate){ try{ navigator.vibrate(15); }catch(e){} }
-      showToast('📍 Tap the map to place your location'); }, 550); });
+      openLocPicker(); }, 550); });
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>
     gm.addEventListener(ev, ()=>{ if(lpT){ clearTimeout(lpT); lpT=null; } }));
   const lh=$('loc-hint'); if(lh) lh.onclick=()=>{ requestLocation(); lh.classList.remove('show'); };
@@ -3398,6 +3607,92 @@ async function saveProfileIcon(icon){
     showToast(icon+' Profile icon updated', true);
   }catch(e){ console.error(e); showErr('Could not save icon: '+(e.code||e.message||e)); }
 }
+/* ---------- User panel — identity, icon, and account removal all live here ---------- */
+function openUserPanel(){
+  const m=$('usermodal'); if(!m) return;
+  renderUserPanel();
+  m.classList.add('show');
+}
+function renderUserPanel(){
+  const el=$('usr-body'); if(!el) return;
+  if(!currentUser){ el.innerHTML='<div class="usr-note">Sign in first to manage your user profile.</div>'; return; }
+  const u=currentUser, p=myProfile||{}, has=!!p.username;
+  const photo=u.photoURL;
+  let h='<div class="usr-hero">'+
+      '<div class="usr-av">'+(photo?('<img src="'+esc(photo)+'" referrerpolicy="no-referrer" alt="">'):(p.icon||'👤'))+'</div>'+
+      '<div class="usr-id"><div class="usr-nm">'+esc(has?('@'+p.username):(u.displayName||'Signed in'))+'</div>'+
+      '<div class="usr-sub">'+esc(u.email||'')+'</div></div>'+
+    '</div>';
+  if(has){
+    const st=statsFromProfile(p), score=scoreOf(st, achEarned(st));
+    h+='<div class="usr-stats">'+
+        '<div><b>'+st.badges+'</b><span>badges</span></div>'+
+        '<div><b>'+st.sightings+'</b><span>sightings</span></div>'+
+        '<div><b>'+score+'</b><span>score</span></div>'+
+      '</div>';
+  }
+  h+='<div class="usr-sec">Username</div>';
+  if(has){
+    h+='<div class="usr-note">Friends find you by this name. Changing it frees the old one for someone else.</div>'+
+       '<div class="usr-row"><input id="usr-uname" value="'+esc(p.username)+'" maxlength="20" autocomplete="off" /><button id="usr-uname-save">Save</button></div>';
+  } else {
+    h+='<div class="usr-note">Pick a username so friends can find you and you appear on the leaderboard.</div>'+
+       '<div class="usr-row"><input id="usr-uname" placeholder="username" maxlength="20" autocomplete="off" /><button id="usr-uname-save">Save</button></div>';
+  }
+  if(has){
+    h+='<div class="usr-sec">Profile icon</div>'+
+       '<div class="usr-note">Shown next to your name in the feed, leaderboard, and your friends’ lists.</div>'+
+       '<div class="icon-grid" id="usr-icons">'+PROFILE_ICONS.map(ic=>
+         '<button class="icon-opt'+((p.icon||'')===ic?' on':'')+'" data-ic="'+ic+'">'+ic+'</button>').join('')+'</div>';
+  }
+  h+='<div class="usr-sec danger">Danger zone</div>';
+  if(has) h+='<div class="usr-note">Deleting your username removes you from everyone’s friends list and clears your friends. Your sightings stay.</div>'+
+    '<button class="usr-btn danger" id="usr-deluname">Delete username</button>';
+  h+='<div class="usr-note">Deleting your account erases your username, friends, profile, feed posts, and synced settings for good.</div>'+
+     '<button class="usr-btn danger" id="usr-delacct">Delete my account</button>';
+  el.innerHTML=h;
+  const sv=$('usr-uname-save'), inp=$('usr-uname');
+  if(sv) sv.onclick=async ()=>{ await saveUsername(inp.value); renderUserPanel(); };
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); sv.click(); } });
+  el.querySelectorAll('#usr-icons .icon-opt').forEach(b=>b.onclick=async ()=>{
+    await saveProfileIcon(b.dataset.ic); renderUserPanel(); });
+  const du=$('usr-deluname'); if(du) du.onclick=async ()=>{ await deleteUsername(); renderUserPanel(); };
+  const da=$('usr-delacct'); if(da) da.onclick=deleteAccount;
+}
+// Wipe everything this user owns, then sign out. Auth deletion may need a fresh sign-in.
+async function deleteAccount(){
+  if(!currentUser||!window.fb) return;
+  const name=(myProfile&&myProfile.username)?('@'+myProfile.username):(currentUser.email||'this account');
+  if(!confirm('Permanently delete '+name+'?\n\nThis erases your username, friends, profile, feed posts and synced settings. Your on-device history stays on this device. This cannot be undone.')) return;
+  if(!confirm('Last check — really delete everything?')) return;
+  const {db, doc, deleteDoc, setDoc, collection, query, where, getDocs}=window.fb;
+  const me=currentUser.uid;
+  try{
+    for(const f of friends.slice()){
+      try{ await deleteDoc(doc(db,'profiles',me,'friends',f.uid)); }catch(e){}
+      try{ await deleteDoc(doc(db,'profiles',f.uid,'friends',me)); }catch(e){}
+    }
+    try{ for(const r of incomingReqs.slice()) await deleteDoc(doc(db,'profiles',me,'requests',r.uid)); }catch(e){}
+    try{ const snap=await getDocs(query(collection(db,'feed'), where('uid','==',me)));
+      for(const d of snap.docs){ try{ await deleteDoc(d.ref); }catch(e){} } }catch(e){}
+    if(myProfile && myProfile.unameLower){ try{ await deleteDoc(doc(db,'usernames',myProfile.unameLower)); }catch(e){} }
+    try{ await deleteDoc(doc(db,'presence',me)); }catch(e){}
+    try{ await deleteDoc(doc(db,'profiles',me)); }
+    catch(e){ try{ await setDoc(doc(db,'profiles',me), {username:'', unameLower:'', seen:{}, deleted:true}, {merge:true}); }catch(e2){} }
+    try{ await deleteDoc(doc(db,'users',me)); }catch(e){}
+    $('usermodal').classList.remove('show');
+    showToast('Account deleted.');
+    try{ if(currentUser.delete) await currentUser.delete(); }catch(e){ console.warn('auth delete', e); }
+    signOutUser();
+  }catch(e){ console.error(e); showErr('Could not fully delete the account: '+(e.code||e.message||e)); }
+}
+function initUserPanel(){
+  const m=$('usermodal'); if(!m) return;
+  const close=()=>m.classList.remove('show');
+  const c=$('usr-close'); if(c) c.onclick=close;
+  m.addEventListener('click', e=>{ if(e.target===m) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && m.classList.contains('show')) close(); });
+}
 function updateAccountUI(user){
   const btn=$('account'), menu=$('accountmenu');
   const note=$('stg-note'); if(note) note.textContent = user
@@ -3412,19 +3707,12 @@ function updateAccountUI(user){
         <div><div class="nm">${user.displayName||'Signed in'}</div><div class="em">${user.email||''}</div></div>
       </div>
       <div class="acct-uname">${(myProfile&&myProfile.username)?('@'+myProfile.username+' · 🏅 '+(myProfile.badges||0)+' badges'):'<span class="lnk" id="acct-setuname">+ choose a username</span>'}</div>
-      ${(myProfile&&myProfile.username)?`
-      <div class="acct-sec">Profile icon</div>
-      <div class="icon-grid" id="icon-grid">${PROFILE_ICONS.map(ic=>
-        `<button class="icon-opt${(myProfile.icon||'')===ic?' on':''}" data-ic="${ic}">${ic}</button>`).join('')}</div>`:''}
-      <button class="act" id="acct-friends">👥 Friends</button>
+      <button class="act" id="acct-user">👤 User</button>
       <button class="act" id="signout">Sign out</button>
-      ${(myProfile&&myProfile.username)?'<button class="act danger" id="acct-deluname">Delete username</button>':''}
       <div class="note bot">✓ Your location & settings sync to your account across devices.</div>`;
     const so=$('signout'); if(so) so.onclick=()=>{ signOutUser(); menu.classList.remove('open'); };
-    const af=$('acct-friends'); if(af) af.onclick=()=>{ menu.classList.remove('open'); openSheet('friends'); };
-    const su=$('acct-setuname'); if(su) su.onclick=()=>{ menu.classList.remove('open'); openSheet('friends'); };
-    const du=$('acct-deluname'); if(du) du.onclick=()=>{ menu.classList.remove('open'); deleteUsername(); };
-    menu.querySelectorAll('.icon-opt').forEach(b=>b.onclick=()=>saveProfileIcon(b.dataset.ic));
+    const au=$('acct-user'); if(au) au.onclick=()=>{ menu.classList.remove('open'); openUserPanel(); };
+    const su=$('acct-setuname'); if(su) su.onclick=()=>{ menu.classList.remove('open'); openUserPanel(); };
   } else {
     btn.innerHTML = USER_ICON;
     menu.innerHTML = `
@@ -3494,6 +3782,7 @@ function startSocial(user){
   unsubMyProfile = onSnapshot(doc(db,'profiles',user.uid), s=>{
     myProfile = s.exists()? s.data() : null; rebuildSeenSet(); backfillSightLog();
     renderMe(); updateAccountUI(currentUser); renderLeaderboard(); renderHero();
+    if($('usermodal') && $('usermodal').classList.contains('show')) renderUserPanel();   // keep the User panel live
     if(feedScope==='mine') renderFeed();
     if(selectedLaunch) renderLaunchDetail(selectedLaunch);
   }, err=>console.warn('profile sub',err));
@@ -3847,7 +4136,7 @@ function initSky(){
 }
 function runIdentify(){
   const out=$('idf-out'); if(!out) return;
-  if(!observer){ out.innerHTML='<div class="fr-note">Set your location first — tap the ⌖ button, or long-press it to place yourself on the map.</div>'; return; }
+  if(!observer){ out.innerHTML='<div class="fr-note">Set your location first — tap the ⌖ button, or long-press it to enter a postal code.</div>'; return; }
   if(!SATS.length){ out.innerHTML='<div class="fr-note">Satellite data is still loading — try again in a moment.</div>'; return; }
   const w=$('idf-when'), ts = w && w.value ? localInputToTs(w.value) : Date.now();
   out.innerHTML='<div class="fr-note">Checking the sky…</div>';
@@ -3888,6 +4177,83 @@ function renderIdentify(res){
   out.innerHTML=h;
   const b=$('idf-uap'); if(b) b.onclick=()=>openUapForm(res);
 }
+/* ---------- Set location by postal code ----------
+   Long-pressing ⌖ opens this. Two free, key-less geocoders, tried in order:
+   Zippopotam for postal codes, Open-Meteo's geocoder for town names (and as a fallback). */
+const LOC_COUNTRIES=[
+  ['US','United States'],['CA','Canada'],['GB','United Kingdom'],['AU','Australia'],['NZ','New Zealand'],
+  ['IE','Ireland'],['DE','Germany'],['FR','France'],['ES','Spain'],['IT','Italy'],['NL','Netherlands'],
+  ['BE','Belgium'],['CH','Switzerland'],['AT','Austria'],['DK','Denmark'],['SE','Sweden'],['NO','Norway'],
+  ['FI','Finland'],['PL','Poland'],['PT','Portugal'],['CZ','Czechia'],['MX','Mexico'],['BR','Brazil'],
+  ['AR','Argentina'],['IN','India'],['JP','Japan'],['ZA','South Africa'],['TR','Turkey'],['PH','Philippines']
+];
+const LOC_CC_KEY='skywatch_loc_cc';
+function openLocPicker(){
+  const m=$('locmodal'); if(!m) return;
+  $('loc-res').innerHTML='';
+  m.classList.add('show');
+  setTimeout(()=>{ const i=$('loc-code'); if(i){ i.focus(); i.select(); } }, 60);
+}
+async function locLookup(){
+  const res=$('loc-res'), code=($('loc-code').value||'').trim(), cc=$('loc-country').value||'US';
+  if(!code){ res.innerHTML='<div class="fr-note">Enter a postal code or town name.</div>'; return; }
+  try{ localStorage.setItem(LOC_CC_KEY, cc); }catch(e){}
+  res.innerHTML='<div class="fr-note">Looking it up…</div>';
+  let hits=[];
+  // Postal-code lookup first when it looks like one (digits, or a UK-style outcode).
+  if(/[0-9]/.test(code)){
+    try{
+      const r=await fetch('https://api.zippopotam.us/'+cc.toLowerCase()+'/'+encodeURIComponent(code.replace(/\s+/g,'')));
+      if(r.ok){ const j=await r.json();
+        hits=(j.places||[]).map(p=>({
+          lat:parseFloat(p.latitude), lng:parseFloat(p.longitude),
+          name:p['place name'], sub:[p['state']||p['state abbreviation'], j.country, code].filter(Boolean).join(' · ')
+        })).filter(h=>isFinite(h.lat)&&isFinite(h.lng));
+      }
+    }catch(e){ /* fall through to the name geocoder */ }
+  }
+  if(!hits.length){
+    try{
+      const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&format=json&language=en&name='+encodeURIComponent(code));
+      if(r.ok){ const j=await r.json();
+        hits=(j.results||[]).filter(x=>!x.country_code || x.country_code===cc || !/[0-9]/.test(code))
+          .map(x=>({ lat:x.latitude, lng:x.longitude, name:x.name,
+                     sub:[x.admin1, x.country, x.postcodes&&x.postcodes[0]].filter(Boolean).join(' · ') }));
+      }
+    }catch(e){}
+  }
+  if(!hits.length){
+    res.innerHTML='<div class="fr-note">No match for “'+esc(code)+'” in '+esc(cc)+
+      '. Check the country, or try the nearest town by name.</div>';
+    return;
+  }
+  if(hits.length===1){ applyLocHit(hits[0]); return; }
+  res.innerHTML='<div class="idf-lbl">'+hits.length+' matches</div>'+hits.map((h,i)=>
+    '<button class="loc-hit" data-i="'+i+'">'+esc(h.name)+'<small>'+esc(h.sub||'')+
+    ' · '+h.lat.toFixed(3)+', '+h.lng.toFixed(3)+'</small></button>').join('');
+  res.querySelectorAll('.loc-hit').forEach(b=>b.onclick=()=>applyLocHit(hits[+b.dataset.i]));
+}
+function applyLocHit(h){
+  setObserver(h.lat, h.lng, true, 'manual');
+  $('locmodal').classList.remove('show');
+  SFX.success();
+  showToast('📍 Location set — '+h.name, true);
+  updateLocHint();
+}
+function initLocPicker(){
+  const m=$('locmodal'); if(!m) return;
+  const sel=$('loc-country');
+  let cc='US'; try{ cc=localStorage.getItem(LOC_CC_KEY)||'US'; }catch(e){}
+  sel.innerHTML=LOC_COUNTRIES.map(([c,n])=>'<option value="'+c+'"'+(c===cc?' selected':'')+'>'+c+' — '+n+'</option>').join('');
+  const close=()=>m.classList.remove('show');
+  $('loc-close').onclick=close;
+  m.addEventListener('click', e=>{ if(e.target===m) close(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && m.classList.contains('show')) close(); });
+  $('loc-find').onclick=locLookup;
+  $('loc-code').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); locLookup(); } });
+  $('loc-gps').onclick=()=>{ close(); requestLocation(); };
+}
+
 /* ---------- CE5 session mode ---------- */
 // Low-precision lunar position (Meeus, abridged) — good to ~0.3° which is plenty for
 // "is the Moon up and how bright is it".
@@ -3998,7 +4364,7 @@ function nightMode(on){
   document.body.classList.toggle('nightmode', !!on);
 }
 function startCe5(){
-  if(!observer){ showErr('Set your location first so the session can cross-reference the sky.'); return; }
+  if(!observer){ showErr('Set your location first — tap ⌖ on the map, or long-press it to enter a postal code.'); return; }
   ce5.len = +(($('ce5-len').querySelector('button.on')||{dataset:{m:30}}).dataset.m) || 30;
   ce5.cues = $('ce5-cues').checked;
   ce5.red  = $('ce5-red').checked;
@@ -4496,10 +4862,9 @@ function renderMe(){
         '<div><b>'+score+'</b><span>score</span></div>'+
       '</div>';
   } else {
-    el.innerHTML='<div class="fr-note">Pick a username so friends can find you:</div>'+
-      '<div class="fr-search"><input id="uname-in" placeholder="username" maxlength="20" autocomplete="off"/><button id="uname-save">Save</button></div>';
-    const s=$('uname-save'); if(s) s.onclick=()=>saveUsername($('uname-in').value);
-    const inp=$('uname-in'); if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter') saveUsername(inp.value); });
+    el.innerHTML='<div class="fr-note">Pick a username so friends can find you.</div>'+
+      '<button class="fr-addbtn" id="fr-setuser">👤 Open User settings</button>';
+    const s=$('fr-setuser'); if(s) s.onclick=openUserPanel;
   }
 }
 function renderFriends(){
@@ -4612,7 +4977,7 @@ function startCommunityStats(){
   statsTick=setInterval(fetchCommunityStats, 60000);
 }
 
-initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5();
+initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
