@@ -440,6 +440,8 @@
   #loc-hint.show{display:block}
   @media (max-width:820px){ #loc-hint{right:70px;bottom:calc(env(safe-area-inset-bottom) + 118px)} }
   @media (prefers-reduced-motion:reduce){ #gotome.hint{animation:none} }
+  body.locpick #globe{cursor:crosshair}
+  body.locpick #gotome{border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px rgba(90,209,255,.5)}
   /* Live sighting reactions rising from the Feed button */
   .feedfly{position:fixed;z-index:96;pointer-events:none;font-size:19px;line-height:1;
     transform:translate(-50%,-50%);opacity:0;will-change:transform,opacity;
@@ -1108,7 +1110,7 @@
 </script>
 
 <script>
-const BUILD = 'v67';           // shown in Settings so you can confirm what's deployed
+const BUILD = 'v68';           // shown in Settings so you can confirm what's deployed
 const EARTH_R = 6371;          // km
 const IS_MOBILE = window.matchMedia('(max-width:820px)').matches || window.matchMedia('(pointer:coarse)').matches;
 const UPDATE_MS = IS_MOBILE ? 600 : 200;         // gentler propagation cadence on phones
@@ -1571,6 +1573,16 @@ function initGlobe(){
 
   window.addEventListener('resize',()=>{ world.width(innerWidth).height(innerHeight); });
   world.width(innerWidth).height(innerHeight);
+
+  // Manual location placement: runs in the capture phase so it wins over satellite picking.
+  world.renderer().domElement.addEventListener('pointerup', e=>{
+    if(!locPickMode) return;
+    e.stopPropagation();
+    locPickMode=false; document.body.classList.remove('locpick');
+    const c = world.toGlobeCoords ? world.toGlobeCoords(e.clientX, e.clientY) : null;
+    if(c){ setObserver(c.lat, c.lng, true, 'manual'); showToast('📍 Location set manually', true); }
+    else showErr('Tap on the globe itself to place your location.');
+  }, true);
 
   initSatPoints();   // GPU point cloud for satellites (falls back to HTML markers if THREE is absent)
 }
@@ -2036,11 +2048,18 @@ function updateLocHint(){
   b.title = need ? 'Set your location to see what’s overhead' : 'Center on my location';
   if(h) h.classList.toggle('show', need);
 }
-function setObserver(lat,lng,recenter){
+// How the current fix was obtained: 'gps' (device), 'manual' (tapped on the map), 'saved' (synced).
+let observerSource='saved', observerAcc=null, locPickMode=false;
+function setObserver(lat,lng,recenter,source,accM){
   observer = { lat, lng, gd:{ longitude:satellite.degreesToRadians(lng),
     latitude:satellite.degreesToRadians(lat), height:0.05 } };
+  observerSource = source || 'saved';
+  observerAcc = (typeof accM==='number' && isFinite(accM)) ? accM : null;
   world.ringsData([{lat,lng}]).ringAltitude(0.006);
-  $('oh-sub').innerHTML = `Your location · <b>${lat.toFixed(3)}°, ${lng.toFixed(3)}°</b>`;
+  const acc = observerAcc==null ? ''
+    : observerAcc>5000 ? ` · ±${Math.round(observerAcc/1000)} km approx`
+    : ` · ±${Math.round(observerAcc)} m`;
+  $('oh-sub').innerHTML = `Your location · <b>${lat.toFixed(3)}°, ${lng.toFixed(3)}°</b>${acc}`;
   world.controls().autoRotate=false;
   if(recenter!==false){ flyTo(lat, lng, ME_ZOOM, 900); if(isMobile()) openSheet('overhead'); }
   updateLocHint();
@@ -2061,7 +2080,13 @@ function requestLocation(){
   if(!navigator.geolocation){ showErr('Geolocation is not available in this browser.'); return; }
   $('gotome').classList.add('busy');
   navigator.geolocation.getCurrentPosition(
-    p=>{ setObserver(p.coords.latitude, p.coords.longitude, true); $('gotome').classList.remove('busy'); },
+    p=>{ const a=p.coords.accuracy;
+      setObserver(p.coords.latitude, p.coords.longitude, true, 'gps', a);
+      $('gotome').classList.remove('busy');
+      // Desktops without GPS fall back to Wi-Fi/IP positioning, which can be tens of km off.
+      if(typeof a==='number' && a>5000)
+        showErr('Approximate location (±'+Math.round(a/1000)+' km) — your device used network positioning. Long-press ⌖ to place it exactly.');
+    },
     e=>{ showErr('Location permission denied — showing the global view.'); $('gotome').classList.remove('busy'); },
     {enableHighAccuracy:true, timeout:15000, maximumAge:0});   // exact, fresh fix
 }
@@ -2764,7 +2789,17 @@ async function boot(){
   if(enabled['rocket']) setTimeout(loadLaunches, 2500);   // fetch upcoming launches in the background
   setInterval(()=>{ if(enabled['rocket']) loadLaunches(); }, 18e5);  // refresh launches every 30 min
 
-  $('gotome').onclick=flyToMe;
+  // Tap = use my location. Long-press = place it manually on the map (fixes bad network fixes).
+  const gm=$('gotome');
+  gm.onclick=()=>{ if(gm._lp){ gm._lp=false; return; } flyToMe(); };
+  let lpT=null;
+  gm.addEventListener('pointerdown', ()=>{ gm._lp=false; clearTimeout(lpT);
+    lpT=setTimeout(()=>{ lpT=null; gm._lp=true; locPickMode=true;
+      document.body.classList.add('locpick'); SFX.tap();
+      if(navigator.vibrate){ try{ navigator.vibrate(15); }catch(e){} }
+      showToast('📍 Tap the map to place your location'); }, 550); });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>
+    gm.addEventListener(ev, ()=>{ if(lpT){ clearTimeout(lpT); lpT=null; } }));
   const lh=$('loc-hint'); if(lh) lh.onclick=()=>{ requestLocation(); lh.classList.remove('show'); };
   updateLocHint();
   $('search').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(e.target.value); });
@@ -3045,8 +3080,11 @@ function applySettings(s){
     }
     const z = (typeof s.zoom==='number' && s.zoom>0) ? s.zoom : ME_ZOOM;
     if(typeof s.lat==='number' && typeof s.lng==='number'){
-      setObserver(s.lat, s.lng, false);
-      if(firstSyncPending){ firstSyncPending=false; flyTo(s.lat, s.lng, z, 1000); }
+      // Only restore the synced location if we don't already have a real fix this session —
+      // otherwise an old saved position would clobber a fresh GPS/manual one.
+      if(!observer || observerSource==='saved') setObserver(s.lat, s.lng, false, 'saved');
+      if(firstSyncPending){ firstSyncPending=false;
+        const o=observer||{lat:s.lat,lng:s.lng}; flyTo(o.lat, o.lng, z, 1000); }
     } else if(firstSyncPending && typeof s.zoom==='number' && s.zoom>0){
       firstSyncPending=false;
       const p=world.pointOfView(); flyTo(p.lat, p.lng, z, 800);   // restore zoom even without a saved location
