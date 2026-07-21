@@ -52,6 +52,27 @@
   #brand h1 span{color:var(--accent);text-shadow:var(--glow)}
   #brand .tag{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
   #clocks{margin-left:auto;display:flex;gap:22px;pointer-events:auto}
+  /* Compass — device heading, so you can orient yourself against a pass bearing */
+  #compass{pointer-events:auto;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+    gap:1px;margin-left:auto;padding:0;border:none;background:transparent;cursor:pointer;
+    color:var(--muted);font-size:10px;letter-spacing:.8px;line-height:1}
+  #compass svg{display:block;overflow:visible}
+  #compass .cmp-ring{fill:rgba(12,18,34,.55);stroke:rgba(var(--neon-c),.45);stroke-width:1.4}
+  #compass .cmp-n{fill:#ff5a4d}
+  #compass .cmp-s{fill:#dbe7ff;opacity:.65}
+  #compass .cmp-hub{fill:rgb(var(--neon-c))}
+  #compass #cmp-rose{transform-origin:20px 20px;transition:transform .18s linear}
+  #compass #cmp-lbl{color:var(--text);font-weight:700;font-size:11px;
+    text-shadow:0 0 10px rgba(var(--neon-c),.5),0 1px 4px rgba(0,0,0,.9)}
+  #compass.live .cmp-ring{stroke:rgba(var(--neon-c),.85);
+    filter:drop-shadow(0 0 6px rgba(var(--neon-c),.6))}
+  #compass.off{opacity:.5}
+  #compass.off #cmp-rose{transform:none}
+  #clocks{margin-left:0}
+  @media (max-width:820px){
+    #compass svg{width:26px;height:26px}
+    #compass #cmp-lbl{font-size:10px}
+  }
   .clock b{display:block;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
   .clock span{font-size:16px}
   #stat{display:flex;gap:18px;pointer-events:auto}
@@ -1642,6 +1663,17 @@
     <div class="stat ov"><b>Overhead</b><span id="s-over">—</span></div>
     <div class="stat"><b>Online</b><span id="s-users">—</span></div>
   </div>
+  <button id="compass" class="mono" title="Device heading — tap to enable" aria-label="Compass heading">
+    <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
+      <circle cx="20" cy="20" r="17" class="cmp-ring"/>
+      <g id="cmp-rose">
+        <path d="M20 6 L23.4 20 L20 17.2 L16.6 20 Z" class="cmp-n"/>
+        <path d="M20 34 L16.6 20 L20 22.8 L23.4 20 Z" class="cmp-s"/>
+      </g>
+      <circle cx="20" cy="20" r="1.7" class="cmp-hub"/>
+    </svg>
+    <span id="cmp-lbl">--</span>
+  </button>
   <div id="clocks" class="mono">
     <div class="clock"><b>Local</b><span id="c-loc">—</span></div>
   </div>
@@ -2136,7 +2168,7 @@
 </script>
 
 <script>
-const BUILD = 'v117';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v118';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -4123,6 +4155,56 @@ function startOrient(){
   } else attach();
 }
 function stopOrient(){ if(arOrient){ window.removeEventListener('deviceorientationabsolute', arOrient, true); window.removeEventListener('deviceorientation', arOrient, true); arOrient=null; } }
+/* ---------- Topbar compass ----------
+   Shares the AR sky-finder's orientation plumbing, but runs independently so the
+   heading is there whenever you need to line up a pass bearing. */
+let cmpHeading=null, cmpSmooth=null, cmpOrient=null, cmpRAF=null, cmpOn=false;
+function cmpEvent(e){
+  let h=null;
+  if(typeof e.webkitCompassHeading==='number') h=e.webkitCompassHeading;   // iOS, true north
+  else if(typeof e.alpha==='number' && e.absolute!==false) h=(360-e.alpha+360)%360;
+  if(h==null || !isFinite(h)) return;
+  cmpHeading=h;
+  if(!cmpOn){ cmpOn=true; const c=$('compass'); if(c){ c.classList.add('live'); c.classList.remove('off'); } }
+}
+function cmpTick(){
+  cmpRAF=requestAnimationFrame(cmpTick);
+  if(cmpHeading==null) return;
+  cmpSmooth=smoothAngle(cmpSmooth, cmpHeading, 0.18);     // same easing as the AR reticle
+  const rose=document.getElementById('cmp-rose');
+  if(rose) rose.style.transform='rotate('+(-cmpSmooth).toFixed(1)+'deg)';   // rose turns opposite
+  const lbl=$('cmp-lbl');
+  if(lbl) lbl.textContent=azCompass(cmpSmooth)+' '+Math.round(cmpSmooth)+'°';
+}
+function startCompass(){
+  if(cmpOrient) return;
+  cmpOrient=cmpEvent;
+  window.addEventListener('deviceorientationabsolute', cmpOrient, true);
+  window.addEventListener('deviceorientation', cmpOrient, true);
+  if(!cmpRAF) cmpRAF=requestAnimationFrame(cmpTick);
+}
+function initCompass(){
+  const c=$('compass'); if(!c) return;
+  const noSensor = typeof DeviceOrientationEvent==='undefined';
+  if(noSensor){ c.classList.add('off'); $('cmp-lbl').textContent='n/a';
+    c.title='This device has no compass'; c.onclick=()=>showErr('This device doesn’t report a heading.');
+    return; }
+  c.classList.add('off');
+  // iOS needs an explicit gesture-triggered permission request; everything else can start now.
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+    $('cmp-lbl').textContent='tap';
+    c.onclick=()=>{
+      DeviceOrientationEvent.requestPermission()
+        .then(p=>{ if(p==='granted'){ startCompass(); c.onclick=null; }
+                   else showErr('Compass permission denied — enable motion access in Settings.'); })
+        .catch(()=>showErr('Compass unavailable on this device.'));
+    };
+  } else {
+    startCompass();
+    // No reading after a moment means there's no magnetometer behind the API.
+    setTimeout(()=>{ if(!cmpOn) $('cmp-lbl').textContent='n/a'; }, 3000);
+  }
+}
 // Circular exponential smoothing for a compass heading (handles the 0/360 wrap).
 function smoothAngle(prev, next, k){
   if(prev==null || !isFinite(prev)) return next;
@@ -6778,7 +6860,7 @@ function startCommunityStats(){
   statsTick=setInterval(fetchCommunityStats, 60000);
 }
 
-initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker(); initVisibilityPause(); initTip(); initAchReplay();
+initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker(); initVisibilityPause(); initTip(); initAchReplay(); initCompass();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
