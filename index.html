@@ -1361,6 +1361,8 @@
   .fr-prof-name,.usr-nm{text-shadow:0 0 16px rgba(var(--neon-c),.4)}
   .fr-avatar,.usr-av{box-shadow:0 0 0 1px rgba(var(--neon-c),.4),0 0 20px rgba(var(--neon-c),.28)}
   /* --- Friends list: avatar, tappable row, glowing actions --- */
+  #fr-showall{margin-bottom:14px}
+  .fr-hint{font-size:9.5px;letter-spacing:.6px;text-transform:none;color:var(--muted);opacity:.7}
   .fr-item{gap:11px;min-height:64px;padding:11px 12px;margin-bottom:8px;border-radius:14px;
     border:1px solid var(--border);background:rgba(120,160,255,.05);cursor:pointer;
     box-shadow:var(--neon-rest);transition:box-shadow .18s,background .18s,border-color .18s}
@@ -2236,7 +2238,7 @@
   </div>
   <div id="fr-pane-friends">
     <div id="fr-requests"></div>
-    <div class="fr-sub" id="fr-friends-h">Your friends</div>
+    <div class="fr-sub fr-sub-row" id="fr-friends-h"><span>Your friends</span><span class="fr-hint">tap a card for their profile</span></div>
     <button id="fr-showall" class="idf-uap">🗺 Show everyone on the map</button>
     <div id="fr-list"></div>
     <button id="fr-add" class="fr-addbtn"><span>🔍</span> Add friends</button>
@@ -2330,7 +2332,7 @@
 </script>
 
 <script>
-const BUILD = 'v133';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v134';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -6136,7 +6138,10 @@ function startSocial(user){
         friendProfileUnsubs[fid]=onSnapshot(doc(db,'profiles',fid), ps=>{
           if(ps.exists()){ const p=ps.data();
             f.username=p.username||f.username; f.displayName=p.displayName||f.displayName; f.photoURL=p.photoURL||f.photoURL;
-            f.lat=(typeof p.lat==='number')?p.lat:null; f.lng=(typeof p.lng==='number')?p.lng:null; f.lastSeen=p.lastSeen||0; f.badges=p.badges||0; f.icon=p.icon||''; }
+            f.lat=(typeof p.lat==='number')?p.lat:null; f.lng=(typeof p.lng==='number')?p.lng:null; f.lastSeen=p.lastSeen||0; f.badges=p.badges||0; f.icon=p.icon||'';
+            // The full profile is already here, so derive their headline numbers once.
+            const fst=statsFromProfile(p);
+            f.badges=fst.badges; f.sightings=fst.sightings; f.score=scoreOf(fst, achEarned(fst)); }
           renderFriends(); evalFriendStatus();
         }, err=>{});
       } else { f.username=base.username||f.username; }
@@ -7820,14 +7825,18 @@ function renderMe(){
       '<span class="fr-av on">'+avatarHTML(myProfile, myProfile.username)+
         '<span class="fr-status on"></span></span>'+
       '<div class="fr-nm">@'+esc(myProfile.username)+
-        '<small class="fr-sub-ln">🏅 '+st.badges+' badges · '+st.sightings+' sightings'+
-        (observer?'':' · no location')+'</small></div>'+
+        '<small class="fr-sub-ln">'+frStatLine({badges:st.badges, sightings:st.sightings,
+          score:scoreOf(st, achEarned(st))})+'</small></div>'+
       '<button class="fr-locate" id="fr-me-loc" title="Centre on me">📍</button>'+
     '</div>';
   const card=$('fr-me-card');
   if(card) card.onclick=()=>{ openSheet('board'); renderHero(); renderLeaderboard(); };
   const loc=$('fr-me-loc');
   if(loc) loc.onclick=e=>{ e.stopPropagation(); if(isMobile()) closeSheets(); flyToMe(); };
+}
+/* One stat line, shared by your card and everyone else's. */
+function frStatLine(f){
+  return '🏅 '+(f.badges||0)+' · 👁 '+(f.sightings||0)+' · ⭐ '+(f.score||0);
 }
 function renderFriends(){
   const el=$('fr-list'); if(!el) return;
@@ -7840,8 +7849,8 @@ function renderFriends(){
     const av = avatarHTML(f, f.username);
     return '<div class="fr-item" data-open="'+f.uid+'">'+
       '<span class="fr-av'+(on?' on':'')+'">'+av+'<span class="fr-status '+(on?'on':'off')+'"></span></span>'+
-      '<div class="fr-nm">@'+esc(f.username)+(has?'':' <small>· no location</small>')+
-        '<small class="fr-sub-ln">🏅 '+(f.badges||0)+' badges · view profile ›</small></div>'+
+      '<div class="fr-nm">@'+esc(f.username)+
+        '<small class="fr-sub-ln">'+frStatLine(f)+'</small></div>'+
       '<button class="fr-ping" data-uid="'+f.uid+'" data-un="'+esc(f.username)+'" title="Ping to look up">👋</button>'+
       (has?'<button class="fr-locate" data-uid="'+f.uid+'" title="Show on map">📍</button>':'')+
       '<button class="fr-del" data-uid="'+f.uid+'" data-un="'+esc(f.username)+'" title="Remove">✕</button></div>';
