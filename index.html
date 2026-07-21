@@ -1560,14 +1560,19 @@
     #unlock.show .ul-glow,#unlock.show .ul-ic{animation:none}
     .ul-burst{display:none}
   }
-  /* --- Developer panel --- */
-  #devmodal{position:fixed;inset:0;z-index:220;display:none;align-items:center;justify-content:center;padding:18px;
-    background:rgba(3,6,15,.86);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  #devmodal.show{display:flex}
-  .dev-card{--neon-c:87,224,138;width:min(460px,100%)}
-  #dev-close{position:absolute;top:12px;right:14px;width:30px;height:30px;display:flex;align-items:center;
-    justify-content:center;border-radius:50%;border:1px solid var(--border);background:rgba(120,160,255,.06);
-    color:var(--muted);cursor:pointer;font-size:14px;z-index:2}
+  /* --- Settings tabs: Settings / Developer / Admin --- */
+  #stg-pane-dev,#stg-pane-admin{display:none}
+  #settings.tab-dev #stg-pane-main,#settings.tab-dev #stg-pane-admin{display:none}
+  #settings.tab-dev #stg-pane-dev{display:block;--neon-c:87,224,138}
+  #settings.tab-admin #stg-pane-main,#settings.tab-admin #stg-pane-dev{display:none}
+  #settings.tab-admin #stg-pane-admin{display:block;--neon-c:255,107,53}
+  #stg-tabs button{font-size:12.5px;padding:8px 6px;white-space:nowrap}
+  #stt-dev.on{color:#57e08a;background:rgba(87,224,138,.16);
+    box-shadow:0 0 0 1px rgba(87,224,138,.55),0 0 20px rgba(87,224,138,.4);
+    text-shadow:0 0 12px rgba(87,224,138,.7)}
+  #stt-admin.on{color:#ff6b35;background:rgba(255,107,53,.16);
+    box-shadow:0 0 0 1px rgba(255,107,53,.55),0 0 20px rgba(255,107,53,.4);
+    text-shadow:0 0 12px rgba(255,107,53,.7)}
   .dev-sec{margin:16px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--border);
     font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.3px;color:rgb(var(--neon-c))}
   .dev-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:5px 0;
@@ -1585,6 +1590,37 @@
   .dev-empty{font-size:12px;color:var(--muted);padding:6px 0}
   .dev-bar{height:4px;border-radius:3px;background:rgba(120,160,255,.14);overflow:hidden;margin-top:3px}
   .dev-bar i{display:block;height:100%;background:rgb(var(--neon-c))}
+  /* Admin console */
+  .adm-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 4px}
+  .adm-nav button{font-size:12px;min-height:40px}
+  .adm-card{border:1px solid var(--border);border-radius:13px;padding:12px 13px;margin-bottom:9px;
+    background:rgba(120,160,255,.04);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .adm-card.new{border-color:rgba(255,107,53,.5);box-shadow:0 0 0 1px rgba(255,107,53,.3),0 0 18px rgba(255,107,53,.2)}
+  .adm-card.done{opacity:.55}
+  .adm-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .adm-top b{font-size:13px;color:var(--text)}
+  .adm-st{font-size:9.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+    padding:2px 7px;border-radius:6px;background:rgba(120,160,255,.12);flex:0 0 auto}
+  .adm-msg{font-size:13px;line-height:1.5;color:var(--text);white-space:pre-wrap;word-break:break-word}
+  .adm-diag{font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5;
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace}
+  .adm-errs{margin-top:6px;padding:7px 9px;border-radius:8px;background:rgba(255,90,77,.08);
+    border:1px solid rgba(255,90,77,.22);font-size:10px;color:#ff9a86;line-height:1.5;
+    font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;word-break:break-word}
+  .adm-reply{margin-top:7px;padding:7px 9px;border-radius:8px;background:rgba(87,224,138,.08);
+    border:1px solid rgba(87,224,138,.25);font-size:12px;color:#8ff0b4}
+  .adm-meta{font-size:10px;color:var(--muted);margin-top:7px}
+  .adm-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .adm-btn{flex:1 1 auto;min-height:38px;padding:8px 12px;border-radius:11px;cursor:pointer;
+    border:1px solid var(--border);background:rgba(120,160,255,.07);color:rgb(var(--neon-c));
+    font-size:12px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  .adm-btn:hover{background:rgba(var(--neon-c),.14);border-color:rgba(var(--neon-c),.5)}
+  .adm-btn.danger{color:var(--iss);border-color:rgba(255,90,77,.3)}
+  .adm-btn.danger:hover{background:rgba(255,90,77,.14);border-color:var(--iss)}
+  .adm-x{background:transparent;border:none;color:var(--iss);font-size:11px;cursor:pointer;padding:0}
+  #adm-user select,#adm-bc-title,#adm-bc-msg{width:100%;padding:10px 12px;border-radius:11px;
+    border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--text);font:inherit;font-size:13px}
+  #adm-bc-msg{min-height:70px;resize:vertical;margin-top:7px}
   #stg-ver{cursor:pointer;-webkit-user-select:none;user-select:none}
   #stg-ver.dev-on{color:#57e08a;text-shadow:0 0 10px rgba(87,224,138,.6)}
   .stg-off{opacity:.45}
@@ -1789,13 +1825,17 @@
   </div>
 </div>
 
-<div id="devmodal">
-  <div class="uap-card dev-card">
-    <div id="dev-close" aria-label="Close">✕</div>
-    <div class="uap-title">🛠 Developer</div>
-    <div id="dev-body"></div>
-    <button id="dev-nuke" class="usr-btn danger">💣 Clear caches &amp; hard reload</button>
-    <button id="dev-off" class="idf-uap">Turn off developer mode</button>
+<div id="fbmodal">
+  <div class="uap-card">
+    <div id="fb-close" aria-label="Close">✕</div>
+    <div class="uap-title">✉️ Send feedback</div>
+    <div class="usr-note">Your build, device and any recent errors are attached automatically —
+      that's usually what makes a bug fixable.</div>
+    <div class="idf-chips uap-g" id="fb-kind">
+      <button data-v="bug" class="on">🐞 Bug</button><button data-v="idea">💡 Idea</button>
+    </div>
+    <textarea id="fb-msg" rows="5" placeholder="What happened, or what would you like?"></textarea>
+    <button id="fb-send" class="idf-go">Send</button>
   </div>
 </div>
 
@@ -1853,7 +1893,13 @@
 <div id="settings" class="panel">
   <div class="sheet-handle"></div>
   <div class="x" onclick="closeWindow('settings')" title="Close">✕</div>
-  <h2>Settings</h2>
+  <h2 id="stg-title">Settings</h2>
+  <div class="fr-tabs" id="stg-tabs">
+    <button id="stt-main" class="on">Settings</button>
+    <button id="stt-dev" style="display:none">🛠 Developer</button>
+    <button id="stt-admin" style="display:none">🛡 Admin</button>
+  </div>
+  <div id="stg-pane-main">
 
   <div class="stg-sec">Map &amp; globe</div>
   <div class="stg">
@@ -1947,12 +1993,21 @@
     <button data-amt="">✨<span>Other</span></button>
   </div>
   <button id="tipbtn" class="tip-go">Send with Venmo · @Nuno-Bernardino</button>
+  <div class="stg-sec">Feedback</div>
+  <div class="tip-note">Something broken, or an idea? This reaches the developer directly.</div>
+  <button id="fbbtn" class="idf-uap">✉️ Report a bug or request a feature</button>
   <div class="stg" id="tip-monthly-row">
     <div class="lbl">Remind me monthly<small>Venmo has no recurring payments — this just nudges you once a month</small></div>
     <div class="switch" id="sw-tipmonthly" role="switch"></div>
   </div>
   <div class="tip-thanks" id="tip-thanks"></div>
   <div class="stg-ver" id="stg-ver">—</div>
+  </div><!-- /stg-pane-main -->
+  <div id="stg-pane-dev"><div id="dev-body"></div>
+    <button id="dev-nuke" class="usr-btn danger">💣 Clear caches &amp; hard reload</button>
+    <button id="dev-off" class="idf-uap">Turn off developer mode</button>
+  </div>
+  <div id="stg-pane-admin"><div id="adm-body"></div></div>
 </div>
 
 <div id="overhead" class="panel">
@@ -2201,7 +2256,7 @@
 </script>
 
 <script>
-const BUILD = 'v121';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v123';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -4573,9 +4628,9 @@ async function boot(){
   setInterval(tickClock, 1000); tickClock();
   setInterval(updateIssOrbit, 30000);  // refresh ISS track periodically
   setInterval(()=>{ scanAlerts(); scanLaunchAlerts(); syncAlertSchedule(); }, 120000); scanAlerts();  // visible passes + launch alerts
-  setTimeout(loadMoreStarlink, 4000);  // then pull the rest of Starlink in the background
-  if(enabled['rocket']) setTimeout(loadLaunches, 2500);   // fetch upcoming launches in the background
-  setInterval(()=>{ if(enabled['rocket']) loadLaunches(); }, 18e5);  // refresh launches every 30 min
+  if(flagOn('starlink')) setTimeout(loadMoreStarlink, 4000);  // then pull the rest of Starlink in the background
+  if(enabled['rocket'] && flagOn('launches')) setTimeout(loadLaunches, 2500);   // fetch upcoming launches in the background
+  setInterval(()=>{ if(enabled['rocket'] && flagOn('launches')) loadLaunches(); }, 18e5);  // refresh launches every 30 min
 
   // Tap = use my location. Long-press = set it by postal code (network fixes are often far off).
   const gm=$('gotome');
@@ -4814,56 +4869,126 @@ async function shareApp(){
    ============================================================ */
 const DEV_KEY='skywatch_dev';
 let devOn=false, devTaps=0, devTapAt=0, devTimer=null, devFpsRAF=null;
+
+/* ============================================================
+   Admin
+   ------------------------------------------------------------
+   Identity, never a password. A password in a static file is in the file —
+   view-source and it's yours. The real lock is in firestore.rules, which
+   checks the caller's UID against this same list server-side. Everything
+   below only decides whether to draw a button.
+   ============================================================ */
+const ADMIN_BOOTSTRAP=[
+  // Your UID. Find it in Developer → Account, or Firebase console → Authentication.
+  'b9vuRysatqQ3hs5yySXb64CEFSi1'
+];
+let adminExtra=new Set();      // additional admins, loaded from the `admins` collection
+let isAdminUser=false, adminShown=false;
+function computeAdmin(){
+  const uid=currentUser&&currentUser.uid;
+  isAdminUser = !!uid && (ADMIN_BOOTSTRAP.includes(uid) || adminExtra.has(uid));
+  return isAdminUser;
+}
+async function loadAdmins(){
+  if(!currentUser || !window.fb) return;
+  try{
+    const {db, collection, getDocs}=window.fb;
+    const snap=await getDocs(collection(db,'admins'));
+    adminExtra=new Set(snap.docs.map(d=>d.id));
+  }catch(e){ /* non-admins can't read it; that's fine */ }
+  const was=isAdminUser;
+  computeAdmin();
+  syncSettingsTabs();
+  if(isAdminUser && !was && !adminShown){
+    adminShown=true;
+    showPremiumCard({
+      hue:'255,107,53', icon:'🛡', kicker:'Admin console',
+      name:'Absolute power, minor responsibility',
+      desc:'You can now hand out medals you did not earn. History is watching.',
+      ms:7000, onTap:()=>{ openSheet('settings'); setStgTab('admin'); }
+    });
+    SFX.fanfare(); Haptics.unlock(); fireConfetti();
+  }
+}
+// Every privileged write goes through here, so there's always a trail.
+async function adminLog(action, target, detail){
+  if(!currentUser || !window.fb) return;
+  try{
+    const {db, collection, addDoc}=window.fb;
+    await addDoc(collection(db,'adminlog'), {
+      by:currentUser.uid, byName:(myProfile&&myProfile.username)||'', action,
+      target:target||'', detail:detail?String(detail).slice(0,400):'', ts:Date.now() });
+  }catch(e){ console.warn('adminlog', e); }
+}
+
+/* ---------- Settings tabs ---------- */
+let stgTab='main';
+function setStgTab(name){
+  stgTab=name;
+  const p=$('settings'); if(!p) return;
+  p.classList.toggle('tab-dev', name==='dev');
+  p.classList.toggle('tab-admin', name==='admin');
+  ['main','dev','admin'].forEach(t=>{ const b=$('stt-'+t); if(b) b.classList.toggle('on', t===name); });
+  const title=$('stg-title');
+  if(title) title.textContent = name==='dev' ? 'Developer' : name==='admin' ? 'Admin console' : 'Settings';
+  clearInterval(devTimer); devTimer=null;
+  cancelAnimationFrame(devFpsRAF); devFpsRAF=null;
+  if(name==='dev') startDevRefresh();
+  if(name==='admin') renderAdmin();
+}
+function syncSettingsTabs(){
+  const d=$('stt-dev'), a=$('stt-admin');
+  if(d) d.style.display = devOn ? '' : 'none';
+  if(a) a.style.display = isAdminUser ? '' : 'none';
+  if(!devOn && stgTab==='dev') setStgTab('main');
+  if(!isAdminUser && stgTab==='admin') setStgTab('main');
+}
 function devEnabled(){ try{ return localStorage.getItem(DEV_KEY)==='1'; }catch(e){ return false; } }
 function setDev(on){
   devOn=on;
   try{ on ? localStorage.setItem(DEV_KEY,'1') : localStorage.removeItem(DEV_KEY); }catch(e){}
   const v=$('stg-ver'); if(v) v.classList.toggle('dev-on', on);
+  syncSettingsTabs();
 }
 function initDevMode(){
   devOn=devEnabled();
-  const v=$('stg-ver'); if(!v) return;
-  v.classList.toggle('dev-on', devOn);
-  v.onclick=()=>{
-    if(devOn){ openDevPanel(); return; }
-    const now=Date.now();
-    if(now-devTapAt>1200) devTaps=0;      // taps have to be deliberate
-    devTapAt=now; devTaps++;
-    if(devTaps>=7 && devTaps<10) showToast((10-devTaps)+' more…');
-    if(devTaps>=10){
-      devTaps=0; setDev(true);
-      showPremiumCard({
-        hue:'87,224,138', icon:'🛠', kicker:'Developer mode',
-        name:'You have the keys now',
-        desc:'Try not to break anything. I only recently stopped breaking things myself.',
-        ms:7000, onTap:openDevPanel
-      });
-      SFX.fanfare(); Haptics.unlock(); fireConfetti();
-    }
-  };
-  const c=$('dev-close'); if(c) c.onclick=closeDevPanel;
-  const m=$('devmodal');
-  if(m) m.addEventListener('click', e=>{ if(e.target===m) closeDevPanel(); });
+  computeAdmin();
+  const v=$('stg-ver');
+  if(v){
+    v.classList.toggle('dev-on', devOn);
+    v.onclick=()=>{
+      if(devOn){ setStgTab('dev'); return; }
+      const now=Date.now();
+      if(now-devTapAt>1200) devTaps=0;      // taps have to be deliberate
+      devTapAt=now; devTaps++;
+      if(devTaps>=7 && devTaps<10) showToast((10-devTaps)+' more…');
+      if(devTaps>=10){
+        devTaps=0; setDev(true);
+        showPremiumCard({
+          hue:'87,224,138', icon:'🛠', kicker:'Developer mode',
+          name:'You have the keys now',
+          desc:'Try not to break anything. I only recently stopped breaking things myself.',
+          ms:7000, onTap:()=>setStgTab('dev')
+        });
+        SFX.fanfare(); Haptics.unlock(); fireConfetti();
+      }
+    };
+  }
+  ['main','dev','admin'].forEach(t=>{ const b=$('stt-'+t); if(b) b.onclick=()=>setStgTab(t); });
   const off=$('dev-off');
-  if(off) off.onclick=()=>{ setDev(false); closeDevPanel(); showToast('Developer mode off'); };
+  if(off) off.onclick=()=>{ setDev(false); setStgTab('main'); showToast('Developer mode off'); };
   const nuke=$('dev-nuke'); if(nuke) nuke.onclick=devNuke;
+  syncSettingsTabs();
 }
-function openDevPanel(){
-  const m=$('devmodal'); if(!m) return;
-  m.classList.add('show');
+function startDevRefresh(){
   renderDev();
-  clearInterval(devTimer); devTimer=setInterval(renderDev, 1000);
+  clearInterval(devTimer); devTimer=setInterval(()=>{ if(stgTab==='dev') renderDev(); }, 1000);
   devPerf.frames=0; devPerf.fpsAt=performance.now();
   const loop=()=>{ devPerf.frames++;
     const dt=performance.now()-devPerf.fpsAt;
     if(dt>=1000){ devPerf.fps=Math.round(devPerf.frames*1000/dt); devPerf.frames=0; devPerf.fpsAt=performance.now(); }
     devFpsRAF=requestAnimationFrame(loop); };
   cancelAnimationFrame(devFpsRAF); devFpsRAF=requestAnimationFrame(loop);
-}
-function closeDevPanel(){
-  const m=$('devmodal'); if(m) m.classList.remove('show');
-  clearInterval(devTimer); devTimer=null;
-  cancelAnimationFrame(devFpsRAF); devFpsRAF=null;
 }
 function devBytes(n){ return n<1024 ? n+' B' : n<1048576 ? (n/1024).toFixed(1)+' KB' : (n/1048576).toFixed(2)+' MB'; }
 function devRow(k, v, cls){ return '<div class="dev-row"><span class="dev-k">'+k+'</span>'+
@@ -4901,6 +5026,8 @@ async function renderDev(){
     devRow('Service worker', swState, swState==='active'?'ok':swState==='update waiting'?'warn':'bad')+
     devRow('Caches', swCache)+
     devRow('Standalone', isStandalone()?'yes':'no')+
+    devRow('Your UID', currentUser?currentUser.uid:'not signed in', currentUser?'ok':'warn')+
+    devRow('Admin', isAdminUser?'yes':'no', isAdminUser?'ok':'')+
     devRow('User agent', navigator.userAgent.slice(0,60)+'…')+
 
     '<div class="dev-sec">Render path</div>'+
@@ -4944,6 +5071,400 @@ async function renderDev(){
           '<span>'+e.kind+(e.extra?(' · '+esc(e.extra)):'')+' · '+
           new Date(e.at).toLocaleTimeString()+'</span></div>').join('')
       : '<div class="dev-empty">Nothing has thrown. Suspicious, but good.</div>');
+}
+/* ---------- Feedback (user side) ---------- */
+let fbKind='bug';
+// The diagnostics that turn "it's broken" into something fixable.
+function feedbackDiag(){
+  return {
+    build:BUILD,
+    render: usePoints ? 'GPU points' : 'HTML markers',
+    prop: useWorker ? 'worker' : 'main thread',
+    push: ('Notification' in window) ? Notification.permission : 'unsupported',
+    standalone: isStandalone(),
+    ua: navigator.userAgent.slice(0,140),
+    screen: innerWidth+'x'+innerHeight,
+    sats: SATS.length,
+    located: !!observer,
+    errors: devErrors.slice(0,6).map(e=>e.kind+': '+e.msg+(e.extra?(' ('+e.extra+')'):''))
+  };
+}
+function initFeedback(){
+  const m=$('fbmodal'); if(!m) return;
+  const open=()=>{ $('fb-msg').value=''; m.classList.add('show'); setTimeout(()=>$('fb-msg').focus(),80); };
+  const close=()=>m.classList.remove('show');
+  const b=$('fbbtn'); if(b) b.onclick=open;
+  $('fb-close').onclick=close;
+  m.addEventListener('click', e=>{ if(e.target===m) close(); });
+  const k=$('fb-kind');
+  k.querySelectorAll('button').forEach(x=>x.onclick=()=>{
+    k.querySelectorAll('button').forEach(y=>y.classList.toggle('on', y===x)); fbKind=x.dataset.v; });
+  $('fb-send').onclick=async ()=>{
+    const msg=($('fb-msg').value||'').trim();
+    if(!msg){ showErr('Write something first.'); return; }
+    if(!currentUser || !window.fb){ showErr('Sign in so I can reply to you.'); return; }
+    const btn=$('fb-send'); btn.disabled=true; btn.textContent='Sending…';
+    try{
+      const {db, collection, addDoc}=window.fb;
+      await addDoc(collection(db,'feedback'), {
+        uid:currentUser.uid, username:(myProfile&&myProfile.username)||'',
+        kind:fbKind, msg:msg.slice(0,1200), diag:feedbackDiag(), status:'new', ts:Date.now() });
+      close(); SFX.success(); Haptics.success();
+      showToast('✉️ Sent — thank you, genuinely', true);
+    }catch(e){ showErr('Could not send: '+(e.code||e.message||e)); }
+    btn.disabled=false; btn.textContent='Send';
+  };
+}
+/* ---------- Broadcast + remote kill switches (user side) ---------- */
+let FLAGS={};
+function flagOn(k){ return FLAGS[k]!==false; }     // absent means on
+async function loadConfig(){
+  if(!window.fb) return;
+  const {db, doc, getDoc}=window.fb;
+  try{ const f=await getDoc(doc(db,'config','flags')); if(f.exists()) FLAGS=f.data(); }catch(e){}
+  try{
+    const b=await getDoc(doc(db,'config','broadcast'));
+    if(!b.exists()) return;
+    const d=b.data();
+    if(!d.msg || !d.id) return;
+    let seen=null; try{ seen=localStorage.getItem('skywatch_bc'); }catch(e){}
+    if(seen===d.id) return;                       // already shown on this device
+    try{ localStorage.setItem('skywatch_bc', d.id); }catch(e){}
+    setTimeout(()=>{
+      showPremiumCard({ hue:'90,209,255', icon:'📣', kicker:'From the developer',
+        name:d.title||'SkyWatch', desc:d.msg, ms:9000 });
+      SFX.lookup(); Haptics.ping();
+    }, 2500);
+  }catch(e){}
+}
+
+/* ============================================================
+   Admin console
+   ============================================================ */
+let admView='inbox', admFeedback=[], admLookup=null, admStats=null, admFlags={}, admins=[];
+function admSec(t){ return '<div class="dev-sec">'+t+'</div>'; }
+function admBtn(id,label,cls){ return '<button class="adm-btn'+(cls?(' '+cls):'')+'" data-a="'+id+'">'+label+'</button>'; }
+function renderAdmin(){
+  const el=$('adm-body'); if(!el) return;
+  if(!isAdminUser){ el.innerHTML='<div class="fr-note">Not an admin on this account.</div>'; return; }
+  el.innerHTML=
+    '<div class="idf-chips adm-nav">'+
+      ['inbox','users','broadcast','flags','stats','admins'].map(v=>
+        '<button data-v="'+v+'"'+(admView===v?' class="on"':'')+'>'+
+        ({inbox:'📥 Inbox',users:'👤 Users',broadcast:'📣 Broadcast',flags:'🚩 Flags',stats:'📊 Stats',admins:'🛡 Admins'})[v]+
+        '</button>').join('')+
+    '</div><div id="adm-pane"></div>';
+  el.querySelectorAll('.adm-nav button').forEach(b=>b.onclick=()=>{ admView=b.dataset.v; renderAdmin(); });
+  const pane=$('adm-pane');
+  if(admView==='inbox') admRenderInbox(pane);
+  else if(admView==='users') admRenderUsers(pane);
+  else if(admView==='broadcast') admRenderBroadcast(pane);
+  else if(admView==='flags') admRenderFlags(pane);
+  else if(admView==='stats') admRenderStats(pane);
+  else admRenderAdmins(pane);
+}
+/* ---- 1 + 2: feedback inbox, with the reporter's diagnostics attached ---- */
+async function admLoadFeedback(){
+  if(!window.fb) return [];
+  const {db, collection, query, orderBy, limit, getDocs}=window.fb;
+  const snap=await getDocs(query(collection(db,'feedback'), orderBy('ts','desc'), limit(60)));
+  return snap.docs.map(d=>Object.assign({_id:d.id}, d.data()));
+}
+async function admRenderInbox(pane){
+  pane.innerHTML='<div class="fr-note">Loading…</div>';
+  try{ admFeedback=await admLoadFeedback(); }
+  catch(e){ pane.innerHTML='<div class="fr-note">Couldn’t load feedback: '+esc(e.code||e.message)+'</div>'; return; }
+  if(!admFeedback.length){ pane.innerHTML='<div class="dev-empty">No reports yet.</div>'; return; }
+  const nNew=admFeedback.filter(f=>(f.status||'new')==='new').length;
+  pane.innerHTML='<div class="fr-total">'+admFeedback.length+' reports · '+nNew+' new</div>'+
+    admFeedback.map((f,i)=>{
+      const st=f.status||'new', d=f.diag||{};
+      return '<div class="adm-card '+st+'">'+
+        '<div class="adm-top"><b>'+(f.kind==='bug'?'🐞 Bug':'💡 Idea')+' · @'+esc(f.username||'anon')+'</b>'+
+          '<span class="adm-st">'+st+'</span></div>'+
+        '<div class="adm-msg">'+esc(f.msg||'')+'</div>'+
+        '<div class="adm-diag">'+
+          [d.build&&('build '+d.build), d.render, d.prop, d.push&&('push '+d.push),
+           d.standalone&&'standalone', d.ua].filter(Boolean).map(esc).join(' · ')+
+        '</div>'+
+        (d.errors&&d.errors.length ? '<div class="adm-errs">'+d.errors.slice(0,4).map(x=>esc(x)).join('<br>')+'</div>' : '')+
+        (f.reply?'<div class="adm-reply">↩ '+esc(f.reply)+'</div>':'')+
+        '<div class="adm-acts">'+
+          admBtn('fb-read:'+i,'Mark read')+admBtn('fb-done:'+i,'Done')+
+          admBtn('fb-reply:'+i,'Reply')+admBtn('fb-del:'+i,'Delete','danger')+
+        '</div>'+
+        '<div class="adm-meta">'+fmtSeen(f.ts||0)+'</div>'+
+      '</div>';
+    }).join('');
+  admWire(pane);
+}
+/* ---- 3 + 4 + 5 + 6 + 7 + 12 + 13: user lookup and the actions on a user ---- */
+function admRenderUsers(pane){
+  pane.innerHTML=
+    '<div class="usr-row"><input id="adm-q" placeholder="@username" autocomplete="off" />'+
+      '<button id="adm-go">Find</button></div>'+
+    '<div id="adm-user"></div>';
+  $('adm-go').onclick=admFind;
+  $('adm-q').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); admFind(); } });
+  if(admLookup) admShowUser();
+}
+async function admFind(){
+  const raw=($('adm-q').value||'').trim().replace(/^@/,'').toLowerCase();
+  const box=$('adm-user');
+  if(!raw){ box.innerHTML=''; return; }
+  box.innerHTML='<div class="fr-note">Looking up…</div>';
+  try{
+    const {db, doc, getDoc}=window.fb;
+    const u=await getDoc(doc(db,'usernames',raw));
+    if(!u.exists()){ box.innerHTML='<div class="fr-note">No user @'+esc(raw)+'.</div>'; admLookup=null; return; }
+    const uid=u.data().uid;
+    const pr=await getDoc(doc(db,'profiles',uid));
+    admLookup={ uid, uname:u.data().username||raw, reg:u.data(), profile: pr.exists()?pr.data():null };
+    admShowUser();
+  }catch(e){ box.innerHTML='<div class="fr-note">Lookup failed: '+esc(e.code||e.message)+'</div>'; }
+}
+function admShowUser(){
+  const box=$('adm-user'); if(!box || !admLookup) return;
+  const p=admLookup.profile||{}, st=statsFromProfile(p), earned=achEarned(st);
+  const earnedSet=new Set(earned.map(a=>a.id));
+  box.innerHTML=
+    '<div class="adm-card">'+
+      '<div class="adm-top"><b>@'+esc(admLookup.uname)+'</b><span class="adm-st">'+esc(admLookup.uid.slice(0,10))+'…</span></div>'+
+      '<div class="dev-row"><span class="dev-k">Objects / sightings</span><span class="dev-v">'+st.badges+' / '+st.sightings+'</span></div>'+
+      '<div class="dev-row"><span class="dev-k">Awards</span><span class="dev-v">'+earned.length+' of '+ACH.length+'</span></div>'+
+      '<div class="dev-row"><span class="dev-k">Best streak</span><span class="dev-v">'+st.maxStreak+'</span></div>'+
+      '<div class="dev-row"><span class="dev-k">Friends</span><span class="dev-v">'+(p.friendCount||0)+'</span></div>'+
+      '<div class="dev-row"><span class="dev-k">Last seen</span><span class="dev-v">'+(p.lastSeen?fmtSeen(p.lastSeen):'—')+'</span></div>'+
+      '<div class="dev-row"><span class="dev-k">Blocked</span><span class="dev-v '+(admLookup.reg.blocked?'bad':'ok')+'">'+
+        (admLookup.reg.blocked?'yes':'no')+'</span></div>'+
+    '</div>'+
+    admSec('Awards')+
+    '<div class="usr-row"><select id="adm-award">'+
+      ACH.map(a=>'<option value="'+a.id+'">'+(earnedSet.has(a.id)?'✓ ':'')+a.n+'</option>').join('')+
+    '</select><button id="adm-grant">Grant</button></div>'+
+    '<div class="adm-acts">'+
+      admBtn('u-revoke','Revoke selected')+
+      admBtn('u-resetcel','Reset unlock history')+
+      admBtn('u-clearset','Clear synced settings')+
+      admBtn('u-pushtest','Send test push')+
+    '</div>'+
+    admSec('Moderation')+
+    '<div class="adm-acts">'+
+      admBtn('u-block', admLookup.reg.blocked?'Unblock username':'Block username', admLookup.reg.blocked?'':'danger')+
+      admBtn('u-snapshot','Snapshot sightings')+
+      admBtn('u-restore','Restore last snapshot','danger')+
+    '</div>';
+  const g=$('adm-grant'); if(g) g.onclick=()=>admAction('u-grant');
+  admWire(box);
+}
+/* Every destructive change snapshots first, so "restore" always has something. */
+async function admSnapshot(uid, why){
+  const {db, doc, getDoc, collection, addDoc}=window.fb;
+  const pr=await getDoc(doc(db,'profiles',uid));
+  if(!pr.exists()) throw new Error('no profile');
+  const d=pr.data();
+  await addDoc(collection(db,'backups'), { uid, why:why||'manual', ts:Date.now(),
+    seen:d.seen||[], sightDays:d.sightDays||[], badges:d.badges||0, stats:d.stats||{} });
+}
+async function admRestore(uid){
+  const {db, collection, query, where, orderBy, limit, getDocs, doc, setDoc}=window.fb;
+  const snap=await getDocs(query(collection(db,'backups'), where('uid','==',uid), orderBy('ts','desc'), limit(1)));
+  if(snap.empty) throw new Error('no snapshot for this user');
+  const b=snap.docs[0].data();
+  await setDoc(doc(db,'profiles',uid),
+    { seen:b.seen||[], sightDays:b.sightDays||[], badges:b.badges||0 }, {merge:true});
+  return b.ts;
+}
+/* ---- 8: broadcast ---- */
+function admRenderBroadcast(pane){
+  pane.innerHTML=
+    '<div class="usr-note">Shown once to everyone on their next open. Leave blank and save to clear it.</div>'+
+    '<div class="usr-row"><input id="adm-bc-title" placeholder="Title" maxlength="40" /></div>'+
+    '<textarea id="adm-bc-msg" placeholder="Message" maxlength="160"></textarea>'+
+    '<div class="adm-acts">'+admBtn('bc-send','📣 Publish')+admBtn('bc-clear','Clear','danger')+'</div>';
+  admWire(pane);
+}
+/* ---- 9 + 10: feature flags and kill switches ---- */
+const ADM_FLAGS=[
+  ['launches','Launch layer (Launch Library)'],
+  ['starlink','Starlink bulk download'],
+  ['borders','Country borders (jsDelivr)'],
+  ['wiki','Wikipedia enrichment'],
+  ['weather','CE5 cloud cover (open-meteo)'],
+  ['feed','Public sighting feed'],
+];
+async function admRenderFlags(pane){
+  pane.innerHTML='<div class="fr-note">Loading…</div>';
+  try{
+    const {db, doc, getDoc}=window.fb;
+    const d=await getDoc(doc(db,'config','flags'));
+    admFlags=d.exists()?d.data():{};
+  }catch(e){ admFlags={}; }
+  pane.innerHTML='<div class="usr-note">Off disables the feature for everyone — use if an upstream service breaks or gets expensive.</div>'+
+    ADM_FLAGS.map(([k,label])=>{
+      const on=admFlags[k]!==false;     // default on
+      return '<div class="stg"><div class="lbl">'+esc(label)+'<small>'+k+'</small></div>'+
+        '<div class="switch'+(on?' on':'')+'" data-flag="'+k+'"></div></div>';
+    }).join('');
+  pane.querySelectorAll('[data-flag]').forEach(sw=>sw.onclick=async ()=>{
+    const k=sw.dataset.flag, next=!(admFlags[k]!==false);
+    try{
+      const {db, doc, setDoc}=window.fb;
+      await setDoc(doc(db,'config','flags'), {[k]:next}, {merge:true});
+      admFlags[k]=next; sw.classList.toggle('on', next); sfxToggle(next);
+      adminLog('flag', k, String(next));
+    }catch(e){ showErr('Could not save flag: '+(e.code||e.message)); }
+  });
+}
+/* ---- 11: aggregate stats ---- */
+async function admRenderStats(pane){
+  pane.innerHTML='<div class="fr-note">Counting…</div>';
+  try{
+    const {db, collection, getCountFromServer, query, where}=window.fb;
+    const now=Date.now();
+    const [users, feed, fb] = await Promise.all([
+      getCountFromServer(collection(db,'usernames')),
+      getCountFromServer(collection(db,'feed')),
+      getCountFromServer(collection(db,'feedback'))
+    ]);
+    const day=await getCountFromServer(query(collection(db,'presence'), where('ts','>', now-86400000)));
+    const week=await getCountFromServer(query(collection(db,'feed'), where('ts','>', now-7*86400000)));
+    pane.innerHTML=
+      '<div class="usr-stats">'+
+        '<div><b>'+users.data().count+'</b><span>accounts</span></div>'+
+        '<div><b>'+day.data().count+'</b><span>active 24h</span></div>'+
+        '<div><b>'+feed.data().count+'</b><span>feed posts</span></div>'+
+      '</div>'+
+      '<div class="usr-stats">'+
+        '<div><b>'+week.data().count+'</b><span>sightings 7d</span></div>'+
+        '<div><b>'+fb.data().count+'</b><span>reports</span></div>'+
+        '<div><b>'+(LAUNCHES||[]).length+'</b><span>launches</span></div>'+
+      '</div>';
+  }catch(e){ pane.innerHTML='<div class="fr-note">Counts unavailable: '+esc(e.code||e.message)+'</div>'; }
+}
+/* ---- adding more admins ---- */
+async function admRenderAdmins(pane){
+  pane.innerHTML='<div class="fr-note">Loading…</div>';
+  try{
+    const {db, collection, getDocs}=window.fb;
+    const snap=await getDocs(collection(db,'admins'));
+    admins=snap.docs.map(d=>Object.assign({_id:d.id}, d.data()));
+  }catch(e){ admins=[]; }
+  pane.innerHTML=
+    '<div class="usr-note">Bootstrap admins live in the app source. These are added at runtime and take effect on their next launch.</div>'+
+    (ADMIN_BOOTSTRAP.filter(u=>u!=='PASTE_YOUR_UID_HERE').map(u=>
+      '<div class="dev-row"><span class="dev-k">built in</span><span class="dev-v">'+esc(u)+'</span></div>').join(''))+
+    admins.map(a=>'<div class="dev-row"><span class="dev-k">'+esc(a.username||a._id.slice(0,10))+'</span>'+
+      '<span class="dev-v"><button class="adm-x" data-a="adm-del:'+esc(a._id)+'">remove</button></span></div>').join('')+
+    '<div class="usr-row"><input id="adm-new" placeholder="@username to promote" /><button id="adm-add">Add</button></div>';
+  $('adm-add').onclick=admAddAdmin;
+  admWire(pane);
+}
+async function admAddAdmin(){
+  const raw=($('adm-new').value||'').trim().replace(/^@/,'').toLowerCase();
+  if(!raw) return;
+  try{
+    const {db, doc, getDoc, setDoc}=window.fb;
+    const u=await getDoc(doc(db,'usernames',raw));
+    if(!u.exists()){ showErr('No user @'+raw); return; }
+    const uid=u.data().uid;
+    await setDoc(doc(db,'admins',uid), { username:u.data().username||raw, addedBy:currentUser.uid, at:Date.now() });
+    adminLog('admin-add', uid, raw);
+    showToast('🛡 @'+raw+' is now an admin', true);
+    admRenderAdmins($('adm-pane'));
+  }catch(e){ showErr('Could not add: '+(e.code||e.message)); }
+}
+/* ---- action router ---- */
+function admWire(root){
+  root.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>admAction(b.dataset.a));
+}
+async function admAction(a){
+  const [cmd, arg]=a.split(':');
+  const fb=window.fb; if(!fb) return;
+  const {db, doc, setDoc, deleteDoc}=fb;
+  try{
+    if(cmd==='fb-read' || cmd==='fb-done'){
+      const f=admFeedback[+arg]; const st=cmd==='fb-read'?'read':'done';
+      await setDoc(doc(db,'feedback',f._id), {status:st}, {merge:true});
+      f.status=st; adminLog('feedback-'+st, f._id); renderAdmin(); return;
+    }
+    if(cmd==='fb-reply'){
+      const f=admFeedback[+arg];
+      const r=prompt('Reply to @'+(f.username||'user')+':', f.reply||'');
+      if(r==null) return;
+      await setDoc(doc(db,'feedback',f._id), {reply:r, replyAt:Date.now(), status:'done'}, {merge:true});
+      adminLog('feedback-reply', f._id); renderAdmin(); return;
+    }
+    if(cmd==='fb-del'){
+      const f=admFeedback[+arg];
+      if(!confirm('Delete this report?')) return;
+      await deleteDoc(doc(db,'feedback',f._id));
+      adminLog('feedback-delete', f._id); renderAdmin(); return;
+    }
+    if(cmd==='adm-del'){
+      if(!confirm('Remove this admin?')) return;
+      await deleteDoc(doc(db,'admins',arg));
+      adminLog('admin-remove', arg); admRenderAdmins($('adm-pane')); return;
+    }
+    if(cmd==='bc-send'){
+      const t=($('adm-bc-title').value||'').trim(), m=($('adm-bc-msg').value||'').trim();
+      if(!m){ showErr('Message is empty.'); return; }
+      await setDoc(doc(db,'config','broadcast'), {title:t||'SkyWatch', msg:m, id:'bc'+Date.now(), at:Date.now()});
+      adminLog('broadcast', '', m); showToast('📣 Broadcast published', true); return;
+    }
+    if(cmd==='bc-clear'){
+      await setDoc(doc(db,'config','broadcast'), {msg:'', id:'', at:Date.now()});
+      adminLog('broadcast-clear'); showToast('Broadcast cleared'); return;
+    }
+    // everything below acts on the looked-up user
+    if(!admLookup){ showErr('Find a user first.'); return; }
+    const uid=admLookup.uid, uname=admLookup.uname;
+    if(cmd==='u-grant' || cmd==='u-revoke'){
+      const id=$('adm-award').value, ach=ACH.find(x=>x.id===id);
+      if(!ach) return;
+      if(!confirm((cmd==='u-grant'?'Grant "':'Revoke "')+ach.n+'" for @'+uname+'?')) return;
+      await admSnapshot(uid, cmd);
+      const cur=Array.isArray(admLookup.profile&&admLookup.profile.granted)?admLookup.profile.granted.slice():[];
+      const next = cmd==='u-grant' ? [...new Set([...cur, id])] : cur.filter(x=>x!==id);
+      await setDoc(doc(db,'profiles',uid), {granted:next}, {merge:true});
+      admLookup.profile=Object.assign({}, admLookup.profile, {granted:next});
+      adminLog(cmd, uid, id);
+      showToast('✓ '+(cmd==='u-grant'?'Granted':'Revoked')+' '+ach.n, true);
+      admShowUser(); return;
+    }
+    if(cmd==='u-resetcel'){
+      await setDoc(doc(db,'profiles',uid), {achReset:Date.now()}, {merge:true});
+      adminLog('reset-unlocks', uid); showToast('Unlock history reset — their next open re-fires', true); return;
+    }
+    if(cmd==='u-clearset'){
+      if(!confirm('Clear synced settings for @'+uname+'? Their sightings are untouched.')) return;
+      await setDoc(doc(db,'users',uid), {theme:null, cutoff:null, groups:null}, {merge:true});
+      adminLog('clear-settings', uid); showToast('Settings cleared', true); return;
+    }
+    if(cmd==='u-pushtest'){
+      await setDoc(doc(db,'pushTests',uid), {by:currentUser.uid, ts:Date.now(),
+        title:'SkyWatch test', body:'If you can read this, background alerts work.'});
+      adminLog('push-test', uid);
+      showToast('Queued — the Cloud Function sends it within a minute', true); return;
+    }
+    if(cmd==='u-block'){
+      const next=!admLookup.reg.blocked;
+      if(next && !confirm('Block @'+uname+'? They stay signed in but are hidden from search and the feed.')) return;
+      await setDoc(doc(db,'usernames',uname.toLowerCase()), {blocked:next}, {merge:true});
+      admLookup.reg.blocked=next; adminLog(next?'block':'unblock', uid, uname);
+      showToast(next?'Blocked':'Unblocked', true); admShowUser(); return;
+    }
+    if(cmd==='u-snapshot'){
+      await admSnapshot(uid, 'manual'); adminLog('snapshot', uid);
+      showToast('📸 Snapshot saved', true); return;
+    }
+    if(cmd==='u-restore'){
+      if(!confirm('Restore @'+uname+' from their most recent snapshot?\n\nThis overwrites their current sightings.')) return;
+      const ts=await admRestore(uid);
+      adminLog('restore', uid, String(ts));
+      showToast('Restored from '+fmtSeen(ts), true); return;
+    }
+  }catch(e){ console.error(e); showErr('Action failed: '+(e.code||e.message||e)); }
 }
 async function devNuke(){
   if(!confirm('Clear every cache, unregister the service worker and reload?\n\nYour account data is untouched — this only clears what this device stored.')) return;
@@ -5312,6 +5833,7 @@ function initAuth(){
       firstSyncPending=true;
       wasSignedIn=true;
       try{ showSignInCard(user); }catch(e){ console.warn('welcome card', e); }   // never block sign-in
+      loadAdmins(); loadConfig();
       const {db, doc, onSnapshot}=window.fb;
       unsubSettings = onSnapshot(doc(db,'users',user.uid),
         snap=>{ if(snap.exists()) applySettings(snap.data()); },
@@ -5570,9 +6092,11 @@ function statsFromProfile(p){
     gps:groups['gps-ops']||0, galileo:groups['galileo']||0, weather:groups['weather']||0,
     amateur:groups['amateur']||0, oneweb:groups['oneweb']||0,
     idf:x.idf||0, uap:x.uap||0, ce5:x.ce5||0, ce5min:x.ce5min||0,
-    planned:x.planned||0, perfect:x.perfect||0, friends:(p&&p.friendCount)||0 };
+    planned:x.planned||0, perfect:x.perfect||0, friends:(p&&p.friendCount)||0,
+    granted:new Set(Array.isArray(p&&p.granted)?p.granted:[]) };
 }
-function achEarned(st){ return ACH.filter(a=>a.t(st)); }
+// An award counts if it was earned, or granted by an admin (support fix-ups).
+function achEarned(st){ return ACH.filter(a=>a.t(st) || (st.granted && st.granted.has(a.id))); }
 /* Counters for awards that can't be derived from the sightings list — how many
    Identify runs, UAP reports and CE5 sessions you've done. Stored on the profile
    so they survive a reinstall and are visible on your card. */
@@ -5808,6 +6332,14 @@ function saveAchSeen(set){
 }
 function checkNewAchievements(){
   if(!myProfile || !currentUser) return;
+  // Support can reset this remotely so a user's unlocks replay.
+  try{
+    const rk='skywatch_achreset_'+currentUser.uid;
+    if(myProfile.achReset && localStorage.getItem(rk)!==String(myProfile.achReset)){
+      localStorage.setItem(rk, String(myProfile.achReset));
+      localStorage.removeItem(achSeenKey());
+    }
+  }catch(e){}
   const st=statsFromProfile(myProfile);
   const ids=new Set(achEarned(st).map(a=>a.id));
   const known=loadAchSeen();
@@ -6873,7 +7405,7 @@ function renderDirectory(){
   if(!currentUser){ el.innerHTML=''; return; }
   const friendIds=new Set(friends.map(f=>f.uid)), reqIds=new Set(incomingReqs.map(r=>r.uid));
   const f=(dirFilter||'').toLowerCase().replace(/^@/,'');
-  const list=allUsers.filter(u=> !f || (u.username||'').toLowerCase().includes(f))
+  const list=allUsers.filter(u=> !u.blocked && (!f || (u.username||'').toLowerCase().includes(f)))
     .sort((a,b)=>(a.username||'').localeCompare(b.username||''));
   if(!list.length){ el.innerHTML='<div class="fr-note">'+(allUsers.length?'No match.':'No other users have a username yet.')+'</div>'; return; }
   el.innerHTML=list.slice(0,150).map(u=>{
@@ -7213,7 +7745,7 @@ function startCommunityStats(){
   statsTick=setInterval(fetchCommunityStats, 60000);
 }
 
-initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker(); initVisibilityPause(); initTip(); initAchReplay(); initCompass(); initDevMode();
+initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); initFriendsUI(); initAR(); initOnboard(); initLightbox(); initAchievements(); initListModal(); initClickSounds(); initSky(); initUapForm(); initCe5(); initUserPanel(); initLocPicker(); initVisibilityPause(); initTip(); initAchReplay(); initCompass(); initDevMode(); initFeedback();
 </script>
 
 <!-- Module loader: import the 3D libs, expose them as globals, then boot -->
