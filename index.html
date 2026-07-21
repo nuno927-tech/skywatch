@@ -1436,9 +1436,9 @@
   .ul-card{position:relative;display:flex;align-items:center;gap:14px;overflow:hidden;
     padding:16px 18px;border-radius:20px;cursor:pointer;
     background:linear-gradient(135deg,rgba(22,30,54,.97),rgba(12,18,34,.97));
-    border:1px solid rgba(255,211,77,.55);
-    box-shadow:0 0 0 1px rgba(255,211,77,.3),0 0 34px rgba(255,211,77,.35),
-               0 0 78px rgba(255,211,77,.14),0 18px 48px rgba(0,0,0,.65)}
+    border:1px solid rgba(var(--ul-c,255,211,77),.55);
+    box-shadow:0 0 0 1px rgba(var(--ul-c,255,211,77),.3),0 0 34px rgba(var(--ul-c,255,211,77),.35),
+               0 0 78px rgba(var(--ul-c,255,211,77),.14),0 18px 48px rgba(0,0,0,.65)}
   /* A sheen that sweeps across once as the card lands */
   .ul-glow{position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(105deg,transparent 30%,rgba(255,236,180,.22) 48%,transparent 66%);
@@ -1446,29 +1446,66 @@
   #unlock.show .ul-glow{animation:ul-sheen 1.1s .22s cubic-bezier(.3,.7,.4,1) both}
   @keyframes ul-sheen{to{transform:translateX(120%)}}
   .ul-burst{position:absolute;left:32px;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;
-    border-radius:50%;border:2px solid rgba(255,211,77,.85);opacity:0;pointer-events:none}
+    border-radius:50%;border:2px solid rgba(var(--ul-c,255,211,77),.85);opacity:0;pointer-events:none}
   #unlock.show .ul-burst{animation:ul-burst .9s .1s ease-out both}
   @keyframes ul-burst{0%{transform:scale(.35);opacity:.95}100%{transform:scale(2.6);opacity:0}}
   .ul-ic{flex:0 0 auto;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;
-    justify-content:center;font-size:28px;background:rgba(255,211,77,.16);
-    box-shadow:0 0 0 1px rgba(255,211,77,.5),0 0 22px rgba(255,211,77,.45);
-    filter:drop-shadow(0 0 10px rgba(255,211,77,.7))}
+    justify-content:center;font-size:28px;background:rgba(var(--ul-c,255,211,77),.16);
+    box-shadow:0 0 0 1px rgba(var(--ul-c,255,211,77),.5),0 0 22px rgba(var(--ul-c,255,211,77),.45);
+    filter:drop-shadow(0 0 10px rgba(var(--ul-c,255,211,77),.7))}
   #unlock.show .ul-ic{animation:ul-pop .7s .06s cubic-bezier(.2,1.5,.4,1) both}
   @keyframes ul-pop{0%{transform:scale(.2) rotate(-25deg)}60%{transform:scale(1.18) rotate(6deg)}100%{transform:scale(1) rotate(0)}}
   .ul-txt{flex:1;min-width:0}
   .ul-kicker{font-size:9.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;
-    color:#ffd34d;text-shadow:0 0 14px rgba(255,211,77,.7)}
+    color:rgb(var(--ul-c,255,211,77));text-shadow:0 0 14px rgba(var(--ul-c,255,211,77),.7)}
   .ul-name{font-size:17px;font-weight:800;color:var(--text);margin-top:3px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-    text-shadow:0 0 18px rgba(255,211,77,.35)}
+    text-shadow:0 0 18px rgba(var(--ul-c,255,211,77),.35)}
   .ul-desc{font-size:12px;color:var(--muted);margin-top:2px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .ul-pts{flex:0 0 auto;font-size:17px;font-weight:800;color:#ffd34d;font-variant-numeric:tabular-nums;
-    text-shadow:0 0 16px rgba(255,211,77,.75)}
+  .ul-pts{flex:0 0 auto;font-size:17px;font-weight:800;color:rgb(var(--ul-c,255,211,77));font-variant-numeric:tabular-nums;
+    text-shadow:0 0 16px rgba(var(--ul-c,255,211,77),.75)}
+  /* Three buzzes, keyed frame-for-frame to the [16,55,16,55,130] haptic pattern.
+     Total 272ms, so the card physically does what the phone is doing. */
+  .ul-shake{animation:ul-shake 272ms .38s cubic-bezier(.36,.07,.19,.97) both}
+  @keyframes ul-shake{
+    0%,100%{transform:translate3d(0,0,0)}
+    2.9%{transform:translate3d(-7px,0,0)}      /* buzz 1 — 16ms */
+    5.9%{transform:translate3d(5px,0,0)}
+    8.8%{transform:translate3d(0,0,0)}
+    26.1%{transform:translate3d(0,0,0)}
+    29.0%{transform:translate3d(7px,0,0)}      /* buzz 2 — 16ms, at 71ms */
+    32.0%{transform:translate3d(-5px,0,0)}
+    34.9%{transform:translate3d(0,0,0)}
+    52.2%{transform:translate3d(0,0,0)}
+    58.1%{transform:translate3d(-9px,0,0)}     /* buzz 3 — the long 130ms one, at 142ms */
+    64.0%{transform:translate3d(9px,0,0)}
+    70.0%{transform:translate3d(-7px,0,0)}
+    76.0%{transform:translate3d(6px,0,0)}
+    83.0%{transform:translate3d(-4px,0,0)}
+    91.0%{transform:translate3d(2px,0,0)}
+  }
+  @media (prefers-reduced-motion:reduce){ .ul-shake{animation:none} }
+  /* The "look up" figure: raises an arm to the sky as the card lands */
+  .ul-ic.ul-figure{font-size:0;background:rgba(var(--ul-c),.14)}
+  .ul-svg{width:40px;height:40px;overflow:visible;
+    stroke:rgb(var(--ul-c));fill:rgb(var(--ul-c));stroke-linejoin:round}
+  .lu-head{stroke:none}
+  .lu-arm{transform-origin:24px 26px;transform:rotate(52deg)}
+  #unlock.show .lu-arm{animation:lu-point 1.5s .3s cubic-bezier(.3,1.5,.4,1) both}
+  @keyframes lu-point{
+    0%{transform:rotate(52deg)} 34%{transform:rotate(-6deg)}
+    54%{transform:rotate(4deg)} 70%{transform:rotate(-3deg)} 100%{transform:rotate(0deg)} }
+  .lu-sparks{opacity:0;transform-origin:36px 13px}
+  #unlock.show .lu-sparks{animation:lu-spark 1.9s .85s ease-out infinite}
+  @keyframes lu-spark{0%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1)}
+    60%{opacity:.5;transform:scale(1.12)}100%{opacity:0;transform:scale(.7)}}
   @media (min-width:821px){ #unlock{left:auto;right:20px;width:400px;bottom:20px} }
   @media (prefers-reduced-motion:reduce){
     #unlock{transition:opacity .3s}
-    #unlock.show .ul-glow,#unlock.show .ul-ic,#unlock.show .ul-burst{animation:none}
+    #unlock.show .ul-glow,#unlock.show .ul-ic,#unlock.show .ul-burst,
+    #unlock.show .lu-arm,#unlock.show .lu-sparks{animation:none}
+    .lu-arm{transform:rotate(0deg)} .lu-sparks{opacity:1}
     .ul-burst{display:none}
   }
   .stg-off{opacity:.45}
@@ -2063,7 +2100,7 @@
 </script>
 
 <script>
-const BUILD = 'v104';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v107';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -2171,6 +2208,13 @@ const SFX = (function(){
     success(){ play(()=>{ blip(660,.1,'sine',.06,990); blip(990,.13,'sine',.05,1320,.09); }); },
     // CE5 session cues — long, soft, meditative (deliberately unlike the UI blips)
     chime(){   play(()=>{ blip(528,1.6,'sine',.05); blip(792,2.0,'sine',.028,null,.05); }); },
+    // "Look up!" — two rising calls then a glide skyward, like a whistle across a field.
+    lookup(){ play(()=>{
+      blip(660, .16, 'triangle', .07, 990);
+      blip(880, .16, 'triangle', .07, 1320, .17);
+      blip(1046, .55, 'sine', .05, 2093, .35);          // the glide up
+      blip(1568, .5, 'sine', .028, null, .5);
+    }); },
     // Award unlocked — a major arpeggio that lands on an octave, with a shimmer on top.
     fanfare(){ play(()=>{
       const n=[523.25, 659.25, 783.99, 1046.50];        // C5 E5 G5 C6
@@ -2210,7 +2254,8 @@ const Haptics = (function(){
     sighting() { fire([14,40,18,40,24,60,90], 0); },
     // Someone else logged one: a gentler double-tap, clearly not yours.
     reaction() { fire([12,70,12], 0); },
-    ping()     { fire([20,60,20,60,20], 0); },                  // a friend pinged you
+    // "Look up!" — two taps on the shoulder, then a long buzz pointing skyward.
+    ping()     { fire([16,55,16,55,130], 0); },
     // Award unlocked: a drum-roll build into one triumphant buzz.
     unlock()   { fire([12,50,12,50,12,50,18,40,26,40,140], 0); },
     force(p)   { if(HAPTIC_OK){ try{ navigator.vibrate(p); }catch(e){} } }
@@ -2793,8 +2838,10 @@ function initSatPoints(){
         'uniform float uPR; attribute float size; attribute vec3 color;'+
         'varying vec3 vColor; varying float vSize;'+
         'void main(){ vColor=color; vec4 mv=modelViewMatrix*vec4(position,1.0);'+
-        'float s=size*(300.0/max(-mv.z,1.0));'+
-        's=clamp(s, size*0.85, size*2.0);'+
+        // Steeper than linear falloff (^1.6) so dots shrink away properly when the
+        // camera pulls back, while the near end still tops out at the same 2x cap.
+        'float k=pow(300.0/max(-mv.z,1.0), 1.6);'+
+        'float s=size*clamp(k, 0.55, 2.0);'+
         'vSize=s*uPR; gl_PointSize=vSize;'+
         'gl_Position=projectionMatrix*mv; }',
       // One-pixel antialiased edge whatever the point size: in gl_PointCoord space a
@@ -5124,24 +5171,67 @@ function runUnlockQueue(){
   unlockBusy=true;
   celebrateUnlock(unlockQueue.shift(), ()=>{ unlockBusy=false; runUnlockQueue(); });
 }
-function celebrateUnlock(a, done){
-  const el=$('unlock'); if(!el){ done&&done(); return; }
-  $('ul-ic').textContent=a.ic;
-  $('ul-name').textContent=a.n;
-  $('ul-desc').textContent=a.d;
-  $('ul-pts').textContent='+'+a.p;
+// The card lands before it buzzes — shaking mid-flight reads as a glitch, not a buzz.
+const PING_SHAKE_DELAY=380;
+// One premium card, two occasions. `hue` re-tints the whole thing through a variable.
+function showPremiumCard(o){
+  const el=$('unlock'); if(!el){ o.done&&o.done(); return; }
+  el.style.setProperty('--ul-c', o.hue||'255,211,77');
+  const cardEl=el.querySelector('.ul-card');
+  cardEl.classList.remove('ul-shake');
+  if(o.shake){ void cardEl.offsetWidth; cardEl.classList.add('ul-shake'); }   // restart the animation
+  $('ul-ic').innerHTML=o.icon||'';
+  $('ul-ic').classList.toggle('ul-figure', !!o.figure);
+  el.querySelector('.ul-kicker').textContent=o.kicker||'';
+  $('ul-name').textContent=o.name||'';
+  $('ul-desc').textContent=o.desc||'';
+  $('ul-pts').textContent=o.pts||'';
+  $('ul-pts').style.display=o.pts?'':'none';
   el.classList.add('show');
-  SFX.fanfare();
-  Haptics.unlock();
-  fireConfetti();
-  let hideT=setTimeout(hide, 6200);
+  const card=el.querySelector('.ul-card');
+  let hideT=setTimeout(hide, o.ms||6200);
   function hide(){
     clearTimeout(hideT);
     el.classList.remove('show');
-    el.querySelector('.ul-card').onclick=null;
-    setTimeout(()=>{ done&&done(); }, 620);        // let it slide out before the next one
+    card.onclick=null;
+    setTimeout(()=>{ o.done&&o.done(); }, 620);     // let it slide out before the next one
   }
-  el.querySelector('.ul-card').onclick=()=>{ hide(); openBoard(); };
+  card.onclick=()=>{ hide(); o.onTap&&o.onTap(); };
+}
+function celebrateUnlock(a, done){
+  showPremiumCard({
+    hue:'255,211,77', icon:a.ic, kicker:'Award unlocked',
+    name:a.n, desc:a.d, pts:'+'+a.p, onTap:openBoard, done
+  });
+  SFX.fanfare();
+  Haptics.unlock();
+  fireConfetti();
+}
+// A friend wants you outside, now. Violet — the Friends colour.
+const LOOKUP_FIGURE =
+  '<svg viewBox="0 0 48 48" class="ul-svg" aria-hidden="true">'+
+    '<g class="lu-sparks">'+
+      '<path d="M36 9l1.2 3.2L40.4 13l-3.2 1.2L36 17.4 34.8 14.2 31.6 13l3.2-.8z"/>'+
+      '<circle cx="41" cy="19" r="1.3"/><circle cx="30.5" cy="6.5" r="1"/>'+
+    '</g>'+
+    '<g class="lu-arm"><path d="M24 26 L34 13" stroke-width="3.4" stroke-linecap="round" fill="none"/>'+
+      '<circle cx="34.6" cy="12.2" r="2.1" stroke="none"/></g>'+
+    '<circle cx="20" cy="13" r="4.4" class="lu-head"/>'+
+    '<path d="M20 18 L20 31" stroke-width="3.4" stroke-linecap="round" fill="none"/>'+
+    '<path d="M20 31 L15.5 41 M20 31 L24.5 41" stroke-width="3.2" stroke-linecap="round" fill="none"/>'+
+    '<path d="M20 22 L13.5 28" stroke-width="3" stroke-linecap="round" fill="none"/>'+
+  '</svg>';
+function showPingCard(fromName, text){
+  showPremiumCard({
+    hue:'197,140,255', icon:LOOKUP_FIGURE, figure:true,
+    kicker:'Look up!', name:'@'+(fromName||'friend'),
+    desc:text||'Something’s worth seeing right now', ms:8000,
+    shake:true,                                  // the card buzzes instead of throwing confetti
+    onTap:()=>{ if(isMobile()) openSheet('overhead'); else $('overhead').classList.add('open'); }
+  });
+  SFX.lookup();
+  // Sound and haptics fire together with the shake so all three land as one event.
+  setTimeout(()=>Haptics.ping(), PING_SHAKE_DELAY);
 }
 // Lightweight canvas confetti — no library, and it tears down as soon as it settles.
 function fireConfetti(){
@@ -6043,7 +6133,8 @@ async function pingFriend(uid, name){
         if(la.elevation*R2D>0) extra=' The ISS is over me right now!'; } } }catch(e){}
   try{ await addDoc(collection(db,'profiles',uid,'pings'),
       {fromId:currentUser.uid, fromName:(myProfile.username||'A friend'), text:'Look up! 🛰️'+extra, ts:Date.now()});
-    showToast('👋 Pinged @'+name+' to look up'); }
+    SFX.lookup(); Haptics.ping();
+    showToast('👋 Pinged @'+name+' to look up', true); }
   catch(e){ console.error(e); showErr('Could not ping: '+(e.code||e.message||e)); }
 }
 function startPings(uid){
@@ -6052,8 +6143,7 @@ function startPings(uid){
   unsubPings=onSnapshot(collection(db,'profiles',uid,'pings'), snap=>{
     snap.docChanges().forEach(ch=>{ if(ch.type!=='added') return; const p=ch.doc.data();
       if(Date.now()-(p.ts||0) > 3600000){ try{ deleteDoc(doc(db,'profiles',uid,'pings',ch.doc.id)); }catch(e){} return; }  // stale
-      showToast('👋 @'+(p.fromName||'friend')+': '+(p.text||'Look up!'), true);
-      SFX.sighting(); Haptics.ping();
+      showPingCard(p.fromName, p.text);
       try{ if('Notification' in window && Notification.permission==='granted') showNotif('👋 @'+(p.fromName||'friend'), {body:p.text||'Look up! 🛰️', tag:'ping-'+ch.doc.id, icon:'icon-192.png'}); }catch(e){}
       try{ deleteDoc(doc(db,'profiles',uid,'pings',ch.doc.id)); }catch(e){}
     });
