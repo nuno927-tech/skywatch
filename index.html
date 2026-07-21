@@ -1590,6 +1590,17 @@
   .dev-empty{font-size:12px;color:var(--muted);padding:6px 0}
   .dev-bar{height:4px;border-radius:3px;background:rgba(120,160,255,.14);overflow:hidden;margin-top:3px}
   .dev-bar i{display:block;height:100%;background:rgb(var(--neon-c))}
+  /* Feedback modal */
+  #fbmodal{position:fixed;inset:0;z-index:112;display:none;align-items:center;justify-content:center;padding:18px;
+    background:rgba(3,6,15,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  #fbmodal.show{display:flex}
+  #fb-close{position:absolute;top:12px;right:14px;width:30px;height:30px;display:flex;align-items:center;
+    justify-content:center;border-radius:50%;border:1px solid var(--border);background:rgba(120,160,255,.06);
+    color:var(--muted);cursor:pointer;font-size:14px;z-index:2}
+  #fb-msg{width:100%;min-height:110px;resize:vertical;margin-top:10px;padding:11px 12px;border-radius:12px;
+    border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--text);font:inherit;font-size:13.5px}
+  #fb-msg:focus{outline:none;border-color:rgba(var(--neon-c),.5)}
+  #fb-kind{margin-top:12px}
   /* Admin console */
   .adm-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 4px}
   .adm-nav button{font-size:12px;min-height:40px}
@@ -1621,6 +1632,8 @@
   #adm-user select,#adm-bc-title,#adm-bc-msg{width:100%;padding:10px 12px;border-radius:11px;
     border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--text);font:inherit;font-size:13px}
   #adm-bc-msg{min-height:70px;resize:vertical;margin-top:7px}
+  .dev-tap{cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .dev-tap:active{background:rgba(var(--neon-c),.1)}
   #stg-ver{cursor:pointer;-webkit-user-select:none;user-select:none}
   #stg-ver.dev-on{color:#57e08a;text-shadow:0 0 10px rgba(87,224,138,.6)}
   .stg-off{opacity:.45}
@@ -1983,6 +1996,9 @@
   <button id="sharebtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7 15.7 6.3M8.3 13.3l7.4 4.4"/></svg> Share this app</button>
   <button id="tourbtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.7-.9 1.4v.3"/><path d="M12 16.5h.01"/></svg> Take the tour</button>
   <button id="snapbtn"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg> Share a snapshot</button>
+  <div class="stg-sec">Feedback</div>
+  <div class="tip-note">Something broken, or an idea? This reaches the developer directly.</div>
+  <button id="fbbtn" class="idf-uap">✉️ Report a bug or request a feature</button>
   <div class="stg-sec">Support SkyWatch</div>
   <div class="tip-note">SkyWatch is free, ad-free and built by one person. If it's shown you
     something good in the sky, you can buy me a coffee.</div>
@@ -1993,9 +2009,6 @@
     <button data-amt="">✨<span>Other</span></button>
   </div>
   <button id="tipbtn" class="tip-go">Send with Venmo · @Nuno-Bernardino</button>
-  <div class="stg-sec">Feedback</div>
-  <div class="tip-note">Something broken, or an idea? This reaches the developer directly.</div>
-  <button id="fbbtn" class="idf-uap">✉️ Report a bug or request a feature</button>
   <div class="stg" id="tip-monthly-row">
     <div class="lbl">Remind me monthly<small>Venmo has no recurring payments — this just nudges you once a month</small></div>
     <div class="switch" id="sw-tipmonthly" role="switch"></div>
@@ -2256,7 +2269,7 @@
 </script>
 
 <script>
-const BUILD = 'v123';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v125';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -4867,8 +4880,11 @@ async function shareApp(){
    Developer mode — tap the build number ten times.
    Read-only diagnostics plus one destructive button, all local.
    ============================================================ */
-const DEV_KEY='skywatch_dev';
+const DEV_KEY='skywatch_dev', ADM_KEY='skywatch_adm';
 let devOn=false, devTaps=0, devTapAt=0, devTimer=null, devFpsRAF=null;
+// The admin tab stays hidden until it's unlocked on this device *and* the account
+// is actually an admin. Two independent gates: a gesture, and server-side identity.
+let admUnlocked=false, admTaps=0, admTapAt=0;
 
 /* ============================================================
    Admin
@@ -4896,19 +4912,8 @@ async function loadAdmins(){
     const snap=await getDocs(collection(db,'admins'));
     adminExtra=new Set(snap.docs.map(d=>d.id));
   }catch(e){ /* non-admins can't read it; that's fine */ }
-  const was=isAdminUser;
   computeAdmin();
   syncSettingsTabs();
-  if(isAdminUser && !was && !adminShown){
-    adminShown=true;
-    showPremiumCard({
-      hue:'255,107,53', icon:'🛡', kicker:'Admin console',
-      name:'Absolute power, minor responsibility',
-      desc:'You can now hand out medals you did not earn. History is watching.',
-      ms:7000, onTap:()=>{ openSheet('settings'); setStgTab('admin'); }
-    });
-    SFX.fanfare(); Haptics.unlock(); fireConfetti();
-  }
 }
 // Every privileged write goes through here, so there's always a trail.
 async function adminLog(action, target, detail){
@@ -4936,12 +4941,44 @@ function setStgTab(name){
   if(name==='dev') startDevRefresh();
   if(name==='admin') renderAdmin();
 }
+function admVisible(){ return isAdminUser && admUnlocked; }
 function syncSettingsTabs(){
   const d=$('stt-dev'), a=$('stt-admin');
   if(d) d.style.display = devOn ? '' : 'none';
-  if(a) a.style.display = isAdminUser ? '' : 'none';
+  if(a) a.style.display = admVisible() ? '' : 'none';
   if(!devOn && stgTab==='dev') setStgTab('main');
-  if(!isAdminUser && stgTab==='admin') setStgTab('main');
+  if(!admVisible() && stgTab==='admin') setStgTab('main');
+}
+function setAdmUnlocked(on){
+  admUnlocked=on;
+  try{ on ? localStorage.setItem(ADM_KEY,'1') : localStorage.removeItem(ADM_KEY); }catch(e){}
+  syncSettingsTabs();
+}
+/* Tapping the build number inside Developer — 25 times — reveals the admin tab.
+   It only reveals; the rules still decide whether anything works. */
+function admTapBuild(){
+  const now=Date.now();
+  if(now-admTapAt>1200) admTaps=0;
+  admTapAt=now; admTaps++;
+  const left=25-admTaps;
+  if(admTaps>=15 && left>0 && admTaps%5===0) showToast(left+' more…');
+  if(admTaps<25) return;
+  admTaps=0;
+  if(!isAdminUser){
+    showToast('Nothing to unlock on this account.');
+    Haptics.error();
+    return;
+  }
+  if(admUnlocked){ setStgTab('admin'); return; }
+  setAdmUnlocked(true);
+  setStgTab('admin');
+  showPremiumCard({
+    hue:'255,107,53', icon:'🛡', kicker:'Admin console',
+    name:'Absolute power, minor responsibility',
+    desc:'You can now hand out medals you did not earn. History is watching.',
+    ms:7000, onTap:()=>{ openSheet('settings'); setStgTab('admin'); }
+  });
+  SFX.fanfare(); Haptics.unlock(); fireConfetti();
 }
 function devEnabled(){ try{ return localStorage.getItem(DEV_KEY)==='1'; }catch(e){ return false; } }
 function setDev(on){
@@ -4952,6 +4989,7 @@ function setDev(on){
 }
 function initDevMode(){
   devOn=devEnabled();
+  try{ admUnlocked=localStorage.getItem(ADM_KEY)==='1'; }catch(e){}
   computeAdmin();
   const v=$('stg-ver');
   if(v){
@@ -4976,13 +5014,17 @@ function initDevMode(){
   }
   ['main','dev','admin'].forEach(t=>{ const b=$('stt-'+t); if(b) b.onclick=()=>setStgTab(t); });
   const off=$('dev-off');
-  if(off) off.onclick=()=>{ setDev(false); setStgTab('main'); showToast('Developer mode off'); };
+  if(off) off.onclick=()=>{ setDev(false); setAdmUnlocked(false); setStgTab('main'); showToast('Developer mode off'); };
   const nuke=$('dev-nuke'); if(nuke) nuke.onclick=devNuke;
   syncSettingsTabs();
 }
 function startDevRefresh(){
   renderDev();
-  clearInterval(devTimer); devTimer=setInterval(()=>{ if(stgTab==='dev') renderDev(); }, 1000);
+  clearInterval(devTimer); devTimer=setInterval(()=>{
+    if(stgTab!=='dev') return;
+    if(Date.now()-admTapAt < 1500) return;   // mid tap-sequence: don't rebuild under their finger
+    renderDev();
+  }, 1000);
   devPerf.frames=0; devPerf.fpsAt=performance.now();
   const loop=()=>{ devPerf.frames++;
     const dt=performance.now()-devPerf.fpsAt;
@@ -4995,6 +5037,7 @@ function devRow(k, v, cls){ return '<div class="dev-row"><span class="dev-k">'+k
   '<span class="dev-v'+(cls?(' '+cls):'')+'">'+v+'</span></div>'; }
 async function renderDev(){
   const el=$('dev-body'); if(!el) return;
+  const wasScroll=el.scrollTop;
   /* --- service worker --- */
   let swState='not registered', swCache='—';
   try{
@@ -5022,7 +5065,8 @@ async function renderDev(){
   /* --- compose --- */
   el.innerHTML=
     '<div class="dev-sec">Build</div>'+
-    devRow('App build', BUILD, 'ok')+
+    '<div class="dev-row dev-tap" id="dev-build"><span class="dev-k">App build</span>'+
+      '<span class="dev-v ok">'+BUILD+'</span></div>'+
     devRow('Service worker', swState, swState==='active'?'ok':swState==='update waiting'?'warn':'bad')+
     devRow('Caches', swCache)+
     devRow('Standalone', isStandalone()?'yes':'no')+
@@ -5071,6 +5115,8 @@ async function renderDev(){
           '<span>'+e.kind+(e.extra?(' · '+esc(e.extra)):'')+' · '+
           new Date(e.at).toLocaleTimeString()+'</span></div>').join('')
       : '<div class="dev-empty">Nothing has thrown. Suspicious, but good.</div>');
+  const bt=$('dev-build'); if(bt) bt.onclick=admTapBuild;
+  el.scrollTop=wasScroll;
 }
 /* ---------- Feedback (user side) ---------- */
 let fbKind='bug';
