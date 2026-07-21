@@ -106,12 +106,7 @@
   #overhead .head .sub{font-size:12px;color:var(--muted);margin-top:3px}
   #overhead .head .sub b{color:var(--accent)}
   #ohlist{overflow-y:auto;padding:6px}
-  .oh{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer}
-  .oh:hover{background:rgba(120,160,255,.09)}
   .oh .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 8px currentColor}
-  .oh .nm{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .oh .el{font-size:12px;color:var(--muted)}
-  .oh .el b{color:var(--text)}
   .empty{padding:22px 16px;color:var(--muted);font-size:13px;text-align:center;line-height:1.5}
 
   /* Controls bottom-left */
@@ -441,9 +436,6 @@
   .hero-note{font-size:12px;color:var(--muted);line-height:1.5;padding:7px 10px;margin-bottom:8px;
     background:rgba(120,160,255,.05);border:1px solid var(--border);border-radius:10px}
   .hero-note b{color:var(--text)}
-  .hs-click{cursor:pointer;transition:background .15s,border-color .15s}
-  .hs-click:hover{background:rgba(90,209,255,.14);border-color:rgba(90,209,255,.5)}
-  .hs-click span{color:var(--accent)}
   /* Rankings: sort chips, your standing, podium */
   .lb-sorts{display:flex;gap:5px;margin-bottom:10px}
   .lb-sort{flex:1;border:1px solid var(--border);background:rgba(120,160,255,.06);color:var(--muted);
@@ -543,12 +535,27 @@
   .fr-back{background:transparent;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;padding:4px 0 10px}
   .fr-tabs button{font-size:12px;padding:8px 4px}
   /* Feed */
-  .feed-row{padding:9px 4px;border-bottom:1px solid rgba(120,160,255,.07);font-size:13px;line-height:1.45;cursor:pointer}
-  .feed-row:last-child{border-bottom:none}
+  /* Feed entries share the Tonight card shape: icon, body, glow. */
+  .feed-row{display:flex;align-items:center;gap:12px;padding:12px 13px;margin-bottom:8px;
+    border-radius:13px;border:1px solid var(--border);background:rgba(120,160,255,.04);
+    box-shadow:var(--neon-rest);cursor:pointer;
+    transition:box-shadow .18s,background .18s,border-color .18s}
+  .feed-row:hover{background:rgba(var(--neon-c),.09);border-color:rgba(var(--neon-c),.5);
+    box-shadow:var(--neon-hot)}
+  .feed-row:active{transform:scale(.99)}
+  .feed-row.uap{border-color:rgba(197,140,255,.4)}
+  .feed-ic{flex:0 0 auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-size:16px;background:rgba(var(--neon-c),.14);
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.3),0 0 14px rgba(var(--neon-c),.2)}
+  .feed-row.uap .feed-ic{background:rgba(197,140,255,.16);
+    box-shadow:0 0 0 1px rgba(197,140,255,.4),0 0 14px rgba(197,140,255,.25)}
+  .feed-body{flex:1;min-width:0}
+  .feed-nm{display:block;font-size:14px;font-weight:600;color:var(--text);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .feed-row:hover{background:rgba(90,209,255,.06);border-radius:8px}
   .feed-u{color:var(--accent);font-weight:600}
   .feed-row b{color:var(--text)}
-  .feed-t{display:block;font-size:10.5px;color:var(--muted);margin-top:1px}
+  .feed-t{display:block;font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
   /* Ping button on a friend */
   .fr-ping{flex:0 0 auto;width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
     background:rgba(90,209,255,.1);color:var(--text);cursor:pointer;font-size:14px;line-height:1}
@@ -673,6 +680,9 @@
   .nt-rank.past .nt-num{background:rgba(120,160,255,.12);color:var(--muted);box-shadow:none}
   .nt-rank.past .nt-grade{opacity:.6}
   .nt-num{font-size:12px;font-variant-numeric:tabular-nums}
+  .oh-dot{background:transparent!important;box-shadow:none!important}
+  .oh-dot::before{content:'';width:12px;height:12px;border-radius:50%;background:currentColor;
+    box-shadow:0 0 9px currentColor,0 0 18px currentColor}
   @media (prefers-reduced-motion:reduce){ .nt-rank.now{animation:none} }
   /* CE5 explainer */
   #ce5-info{display:none;margin:10px 0 4px;padding:14px 15px;border-radius:14px;
@@ -900,6 +910,7 @@
     padding:6px 11px;font-size:12px;cursor:pointer;font-weight:600}
   .seen-toggle.on{background:rgba(87,224,138,.18);border-color:rgba(87,224,138,.5)}
   /* autocomplete */
+  .ctl-intro{font-size:12px;line-height:1.55;color:var(--muted);margin:-2px 0 12px}
   .search-wrap{position:relative}
   .ac{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:40;display:none;
     background:var(--panel-solid);border:1px solid var(--border);border-radius:12px;overflow:hidden;
@@ -1075,7 +1086,6 @@
     /* Bigger touch targets */
     #controls h2{margin-top:2px}
     .lg{padding:12px 8px} .lg .nm{font-size:15px}
-    .oh{padding:13px 10px} .oh .nm{font-size:15px}
     #installbtn{padding:14px;font-size:13px}
     #search{padding:12px 14px;font-size:16px}
     #detail .row{padding:8px 0;font-size:13px}
@@ -1364,7 +1374,20 @@
     transition:box-shadow .18s}
   .ach-stats b{text-shadow:0 0 14px rgba(var(--neon-c),.55)}
   .hero-stats b{color:var(--accent);text-shadow:0 0 14px rgba(var(--neon-c),.5)}
-  .hs-click{cursor:pointer}
+  /* All four cells glow; the two that drill in are bordered and pressable. */
+  .hero-stats .hs-stat,.hero-stats .hs-btn{
+    text-align:center;border-radius:13px;padding:11px 4px;min-height:58px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    background:rgba(120,160,255,.06);border:1px solid var(--border);
+    box-shadow:var(--neon-rest);transition:box-shadow .18s,background .18s,border-color .18s}
+  .hero-stats .hs-stat:hover{box-shadow:var(--neon-hot)}
+  .hero-stats .hs-btn{cursor:pointer;font:inherit;
+    border-color:rgba(var(--neon-c),.5);background:rgba(var(--neon-c),.12)}
+  .hero-stats .hs-btn:hover{background:rgba(var(--neon-c),.2);
+    border-color:rgba(var(--neon-c),.8);box-shadow:var(--neon-hot)}
+  .hero-stats .hs-btn:active{transform:scale(.97)}
+  .hero-stats .hs-btn span{color:rgb(var(--neon-c));font-weight:700;
+    text-shadow:0 0 10px rgba(var(--neon-c),.5)}
   /* --- Awards / achievement rows --- */
   .ach-item{min-height:56px;padding:12px 14px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.3);
     transition:box-shadow .18s,background .18s,opacity .18s}
@@ -1445,6 +1468,16 @@
   #achieve .fr-sub{margin:4px 0 2px}
   .fp-live{color:#57e08a;font-weight:700;text-shadow:0 0 10px rgba(87,224,138,.7)}
   #achieve .hero-stats{grid-template-columns:repeat(4,1fr);margin-bottom:12px}
+  .ach-stats .hs-stat,.ach-stats .hs-btn{
+    text-align:center;border-radius:13px;padding:11px 4px;min-height:58px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    background:rgba(120,160,255,.06);border:1px solid var(--border);
+    box-shadow:var(--neon-rest);transition:box-shadow .18s,background .18s,border-color .18s}
+  .ach-stats .hs-stat:hover{box-shadow:var(--neon-hot)}
+  .ach-stats .hs-btn{cursor:pointer;font:inherit;
+    border-color:rgba(var(--neon-c),.5);background:rgba(var(--neon-c),.12)}
+  .ach-stats .hs-btn:hover{background:rgba(var(--neon-c),.2);box-shadow:var(--neon-hot)}
+  .ach-stats .hs-btn span{color:rgb(var(--neon-c));font-weight:700}
   /* --- Small round utility buttons: feed refresh, icon picker --- */
   #fr-refresh{width:38px;height:38px;border:1px solid var(--border);border-radius:50%;
     background:rgba(120,160,255,.06);box-shadow:var(--neon-rest);
@@ -2334,6 +2367,8 @@
 <div id="controls" class="panel">
   <div class="sheet-handle"></div>
   <h2>Filter &amp; Search</h2>
+  <div class="ctl-intro">Choose what appears on the map — search for a specific object,
+    narrow by orbit, or toggle whole layers on and off.</div>
   <div class="search-wrap">
     <input id="search" placeholder="Search a satellite…" autocomplete="off" />
     <div id="ac" class="ac"></div>
@@ -2471,7 +2506,7 @@
 </script>
 
 <script>
-const BUILD = 'v141';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v146';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -3984,12 +4019,20 @@ function renderOverhead(active, count){
   if(!observer){ el.innerHTML='<div class="empty">Tap “Use my location” to list every satellite currently above your horizon.</div>'; return; }
   const up = active.filter(s=>s.elevation>prefs.cutoff).sort((a,b)=>b.elevation-a.elevation);
   if(!up.length){ el.innerHTML='<div class="empty">No tracked satellites above your horizon right now. They move fast — check back in a minute.</div>'; return; }
-  el.innerHTML = up.slice(0,40).map(s=>`
-    <div class="oh" data-id="${s.id}">
-      <div class="dot" style="color:${s.color}"></div>
-      <div class="nm">${s.name}</div>
-      <div class="el mono"><b>${s.elevation.toFixed(0)}°</b></div>
-    </div>`).join('');
+  el.innerHTML = '<div class="fr-total">'+up.length+' above your horizon</div>' +
+    up.slice(0,40).map(s=>{
+      const e=s.elevation, grade = e>=60 ? ['best','High'] : e>=30 ? ['good','Mid'] : ['','Low'];
+      const dir=(s.azimuth!=null) ? azCompass(s.azimuth) : '';
+      return '<button class="nt-rank oh" data-id="'+esc(s.id)+'">'+
+        '<span class="nt-num oh-dot" style="color:'+s.color+'"></span>'+
+        '<span class="nt-body">'+
+          '<span class="nt-nm">'+esc(s.name)+'</span>'+
+          '<span class="nt-when">'+e.toFixed(0)+'° up'+(dir?(' · '+dir):'')+
+            (s.altKm?(' · '+fmtDist(s.altKm)):'')+'</span>'+
+        '</span>'+
+        '<span class="nt-grade '+grade[0]+'">'+grade[1]+'</span>'+
+      '</button>';
+    }).join('');
   el.querySelectorAll('.oh').forEach(n=>n.onclick=()=>{
     const s=SATS.find(x=>x.id===n.dataset.id); if(s) selectSat(s); });
 }
@@ -5211,7 +5254,8 @@ let admUnlocked=false, admTaps=0, admTapAt=0;
    below only decides whether to draw a button.
    ============================================================ */
 const ADMIN_BOOTSTRAP=[
-  // Your UID. Find it in Developer → Account, or Firebase console → Authentication.
+  // Nuno's UID — baked in deliberately. Must stay identical to bootstrapAdmin()
+  // in firestore.rules, which is what actually enforces admin access.
   'b9vuRysatqQ3hs5yySXb64CEFSi1'
 ];
 let adminExtra=new Set();      // additional admins, loaded from the `admins` collection
@@ -5820,28 +5864,32 @@ async function admRenderFlags(pane){
 /* ---- 11: aggregate stats ---- */
 async function admRenderStats(pane){
   pane.innerHTML='<div class="fr-note">Counting…</div>';
-  try{
-    const {db, collection, getCountFromServer, query, where}=window.fb;
-    const now=Date.now();
-    const [users, feed, fb] = await Promise.all([
-      getCountFromServer(collection(db,'usernames')),
-      getCountFromServer(collection(db,'feed')),
-      getCountFromServer(collection(db,'feedback'))
-    ]);
-    const day=await getCountFromServer(query(collection(db,'presence'), where('ts','>', now-86400000)));
-    const week=await getCountFromServer(query(collection(db,'feed'), where('ts','>', now-7*86400000)));
-    pane.innerHTML=
-      '<div class="usr-stats">'+
-        '<div><b>'+users.data().count+'</b><span>accounts</span></div>'+
-        '<div><b>'+day.data().count+'</b><span>active 24h</span></div>'+
-        '<div><b>'+feed.data().count+'</b><span>feed posts</span></div>'+
-      '</div>'+
-      '<div class="usr-stats">'+
-        '<div><b>'+week.data().count+'</b><span>sightings 7d</span></div>'+
-        '<div><b>'+fb.data().count+'</b><span>reports</span></div>'+
-        '<div><b>'+(LAUNCHES||[]).length+'</b><span>launches</span></div>'+
-      '</div>';
-  }catch(e){ pane.innerHTML='<div class="fr-note">Counts unavailable: '+esc(e.code||e.message)+'</div>'; }
+  const {db, collection, getCountFromServer, query, where}=window.fb;
+  const now=Date.now();
+  // Each count is independent: one denied collection shouldn't blank the whole panel,
+  // and the error tells you exactly which rule is missing.
+  const ask=async (label, q)=>{
+    try{ const r=await getCountFromServer(q); return {label, n:r.data().count}; }
+    catch(e){ return {label, n:null, err:(e && (e.code||e.message))||'failed'}; }
+  };
+  const res=await Promise.all([
+    ask('accounts',       collection(db,'usernames')),
+    ask('active 24h',     query(collection(db,'presence'), where('ts','>', now-86400000))),
+    ask('feed posts',     collection(db,'feed')),
+    ask('sightings 7d',   query(collection(db,'feed'), where('ts','>', now-7*86400000))),
+    ask('reports',        collection(db,'feedback')),
+  ]);
+  const cell=r=> '<div><b>'+(r.n==null?'—':r.n.toLocaleString())+'</b><span>'+r.label+'</span></div>';
+  const failed=res.filter(r=>r.n==null);
+  pane.innerHTML=
+    '<div class="usr-stats">'+res.slice(0,3).map(cell).join('')+'</div>'+
+    '<div class="usr-stats">'+res.slice(3).map(cell).join('')+
+      '<div><b>'+((LAUNCHES||[]).length)+'</b><span>launches</span></div></div>'+
+    (failed.length
+      ? '<div class="fr-note">'+failed.map(r=>esc(r.label)+': '+esc(r.err)).join('<br>')+
+        '<br><br>A denied count almost always means the published Firestore rules don’t list your UID. '+
+        'Check <b>Developer → Your UID</b> against the <code>bootstrapAdmin()</code> line in your rules.</div>'
+      : '');
 }
 /* ---- adding more admins ---- */
 async function admRenderAdmins(pane){
@@ -6820,21 +6868,21 @@ function renderHero(){
     if(t) since=new Date(t).toLocaleDateString([], {month:'long', year:'numeric'}); }catch(e){}
   if(!since && sightLog.length) since=new Date(sightLog[0].ts).toLocaleDateString([], {month:'long', year:'numeric'});
   const first=sightLog.length ? sightLog.slice().sort((a,b)=>a.ts-b.ts)[0] : null;
-  const next=ACH.find(a=>!earnedSet.has(a.id));
   el.innerHTML=
     '<div class="hero-top"><div class="hero-av">'+ini+'</div>'+
       '<div class="hero-name">@'+uname+'</div>'+
       (since?'<div class="hero-since">Member since '+since+'</div>':'')+
       '<div class="hero-score">'+score+' <span>points</span></div></div>'+
     '<div class="hero-stats">'+
-      '<div class="hs-click" id="hs-objects"><b>'+st.badges+'</b><span>objects ›</span></div>'+
-      '<div class="hs-click" id="hs-sightings"><b>'+st.sightings+'</b><span>sightings ›</span></div>'+
-      '<div><b>'+st.maxStreak+'</b><span>best streak</span></div>'+
-      '<div><b>'+earned.length+'/'+ACH.length+'</b><span>awards</span></div>'+
+      '<button class="hs-btn" id="hs-objects" title="Objects seen">'+
+        '<b>'+st.badges+'</b><span>🛰 view ›</span></button>'+
+      '<button class="hs-btn" id="hs-sightings" title="All sightings">'+
+        '<b>'+st.sightings+'</b><span>👁 view ›</span></button>'+
+      '<div class="hs-stat"><b>'+st.maxStreak+'</b><span>🔥 streak</span></div>'+
+      '<div class="hs-stat"><b>'+earned.length+'/'+ACH.length+'</b><span>🏆 awards</span></div>'+
     '</div>'+
     (first?'<div class="hero-note">First sighting · <b>'+esc(first.name||'—')+'</b> on '+fmtSeen(first.ts)+'</div>':'')+
-    (next?'<div class="hero-note">Next award · <b>'+next.ic+' '+next.n+'</b> — '+next.d+'</div>'
-        :'<div class="hero-note">🎉 Every award unlocked. Legend.</div>')+
+    (earned.length===ACH.length?'<div class="hero-note">🎉 Every award unlocked. Legend.</div>':'')+
     '<div class="fr-sub">Your awards</div>'+
     '<div class="ach-grid ach-mine">'+ACH.map(a=>{ const on=earnedSet.has(a.id);
       return achItemHTML(a, on, st, true); }).join('')+'</div>';
@@ -7865,9 +7913,11 @@ function renderFeed(){
       return;
     }
     el.innerHTML=head+rows.map(x=>{ const uap=x.kind==='uap';
-        return '<div class="feed-row"><span class="feed-u">You</span> '+(uap?'logged':'spotted')+' <b>'+
-          (uap?'👁 ':x.kind==='launch'?'🚀 ':'🛰️ ')+esc(x.name||'—')+'</b>'+
-          '<span class="feed-t">'+fmtSeen(x.ts)+(x.how?(' · '+(x.how==='person'?'in person':'overhead')):'')+'</span></div>'; }).join('');
+        const icon = uap?'👁':x.kind==='launch'?'🚀':'🛰️';
+        return '<div class="feed-row'+(uap?' uap':'')+'"><span class="feed-ic">'+icon+'</span>'+
+          '<span class="feed-body"><span class="feed-nm">'+esc(x.name||'—')+'</span>'+
+          '<span class="feed-t"><span class="feed-u">You</span> '+(uap?'logged':'spotted')+' · '+
+          fmtSeen(x.ts)+(x.how?(' · '+(x.how==='person'?'in person':'overhead')):'')+'</span></span></div>'; }).join('');
     return;
   }
   if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in to see the feed.</div>'; return; }
@@ -7884,8 +7934,14 @@ function renderFeed(){
     : x.kind==='launch' ? (x.how==='person'?'saw a launch:':'watched a launch:') : 'spotted';
   el.innerHTML='<div class="fr-total">'+items.length+' sighting'+(items.length===1?'':'s')+
       (feedRange==='all'?'':' · '+lbl)+(feedScope==='friends'?' · you and your friends':' · everyone')+'</div>'+
-    items.map((x,i)=>'<div class="feed-row" data-i="'+i+'"><span class="feed-u">@'+esc(x.username||'user')+'</span> '+
-    esc(verb(x))+' <b>'+(x.kind==='uap'?'👁 ':'')+esc(x.name||'an object')+'</b><span class="feed-t">'+timeAgo(x.ts)+'</span></div>').join('');
+    items.map((x,i)=>{
+      const icon = x.kind==='uap'?'👁':x.kind==='launch'?'🚀':'🛰️';
+      return '<div class="feed-row'+(x.kind==='uap'?' uap':'')+'" data-i="'+i+'">'+
+        '<span class="feed-ic">'+icon+'</span>'+
+        '<span class="feed-body"><span class="feed-nm">'+esc(x.name||'an object')+'</span>'+
+        '<span class="feed-t"><span class="feed-u">@'+esc(x.username||'user')+'</span> '+
+        esc(verb(x)).replace(/:$/,'')+' · '+timeAgo(x.ts)+'</span></span></div>';
+    }).join('');
   el.querySelectorAll('.feed-row').forEach(r=>r.onclick=()=>{ const x=items[+r.dataset.i];
     if(x && x.id && x.kind!=='uap') openTarget({type:x.kind==='launch'?'launch':'sat', id:x.id}); });
 }
@@ -8218,10 +8274,11 @@ function renderFriendProfile(p, f){
         (since?(' · watching since '+since):'')+'</div>'+
       '<div class="hero-score">'+score+' <span>points</span></div></div>';
   $('ach-stats').innerHTML=
-    '<div class="hs-click" id="fp-objects"><b>'+st.badges+'</b><span>objects ›</span></div>'+
-    '<div><b>'+st.sightings+'</b><span>sightings</span></div>'+
-    '<div><b>'+st.maxStreak+'</b><span>best streak</span></div>'+
-    '<div><b>'+earned.length+'/'+ACH.length+'</b><span>awards</span></div>';
+    '<button class="hs-btn" id="fp-objects" title="Objects seen">'+
+      '<b>'+st.badges+'</b><span>🛰 view ›</span></button>'+
+    '<div class="hs-stat"><b>'+st.sightings+'</b><span>👁 sightings</span></div>'+
+    '<div class="hs-stat"><b>'+st.maxStreak+'</b><span>🔥 streak</span></div>'+
+    '<div class="hs-stat"><b>'+earned.length+'/'+ACH.length+'</b><span>🏆 awards</span></div>';
   $('ach-grid').classList.remove('ach-mine');
   $('ach-grid').innerHTML=
     (st.starlink||st.geo||st.launches
