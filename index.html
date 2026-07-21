@@ -1429,25 +1429,34 @@
   .stat span,.clock span{text-shadow:0 0 14px rgba(var(--neon-c),.45),0 2px 8px rgba(0,0,0,.9)}
   .stat b,.clock b{text-shadow:0 1px 6px rgba(0,0,0,.9)}
 
-  /* --- Bottom sheets: one height for every menu, nav bar docked to the top edge --- */
+  /* --- Static bottom bar; menus slide up behind it --- */
   @media (max-width:820px){
-    /* Clamped so the docked nav bar always clears the title bar, even in landscape */
-    :root{--sheet-h:min(74vh,620px,calc(100vh - 190px))}
+    :root{--sheet-h:min(74vh,620px,calc(100vh - 130px)); --bar-h:64px}
+    /* Anchored to the screen edge and never moves — the one fixed landmark in the UI */
+    #mbar{
+      left:0;right:0;bottom:0;transform:none;width:auto;max-width:none;
+      height:calc(var(--bar-h) + env(safe-area-inset-bottom));
+      padding:5px 8px calc(env(safe-area-inset-bottom) + 5px);
+      border-radius:20px 20px 0 0;border-bottom:none;
+      z-index:65;                              /* above the backdrop (55) and every sheet (60) */
+      box-shadow:0 -10px 34px rgba(0,0,0,.6),0 0 0 1px rgba(var(--neon-c),.14),
+                 0 0 34px rgba(var(--neon-c),.14),inset 0 1px 0 rgba(255,255,255,.07);
+    }
+    #mbar button{height:54px}
+    /* Sheets run to the bottom of the screen and clear the bar with padding, so their
+       last row is always reachable rather than hidden underneath it. */
     #controls,#overhead,#settings,#friends,#feed,#board{
-      height:var(--sheet-h);max-height:var(--sheet-h);
-      padding-top:0;                                   /* the handle provides the top spacing */
+      height:var(--sheet-h);max-height:var(--sheet-h);padding-top:0;
+      padding-bottom:calc(env(safe-area-inset-bottom) + var(--bar-h) + 14px);
       box-shadow:0 -18px 60px rgba(0,0,0,.7),0 0 0 1px rgba(var(--neon-c),.14),
                  0 0 44px rgba(var(--neon-c),.1);
     }
-    /* Above the backdrop (55) and the sheets (60) so it stays tappable while a menu is up */
-    #mbar{z-index:65;transition:bottom .34s cubic-bezier(.32,.72,0,1),box-shadow .3s}
-    body.menu-open #mbar{
-      bottom:calc(var(--sheet-h) + 6px);
-      box-shadow:0 0 0 1px rgba(var(--neon-c),.14),0 0 34px rgba(var(--neon-c),.2),
-                 0 10px 30px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.07);
-    }
-    /* The detail card keeps its own collapse behaviour — it isn't a menu */
-    #detail{max-height:var(--sheet-h)}
+    #detail{max-height:var(--sheet-h);
+      padding-bottom:calc(env(safe-area-inset-bottom) + var(--bar-h) + 14px)}
+    /* Floating controls sit above the bar too */
+    #gotome{bottom:calc(env(safe-area-inset-bottom) + var(--bar-h) + 14px)}
+    #err,#toast{bottom:calc(env(safe-area-inset-bottom) + var(--bar-h) + 18px)}
+    #installpop{bottom:calc(env(safe-area-inset-bottom) + var(--bar-h) + 12px)}
   }
   @media (prefers-reduced-motion:reduce){
     .idf-go,.idf-uap,.usr-btn,.lg,.nt-rank,#mbar button{transition:none}
@@ -1941,7 +1950,7 @@
 </script>
 
 <script>
-const BUILD = 'v93';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v94';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
