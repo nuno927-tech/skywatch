@@ -2100,7 +2100,7 @@
 </script>
 
 <script>
-const BUILD = 'v107';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v108';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -4873,7 +4873,7 @@ function stopSocial(){
   if(unsubFeedWatch){ unsubFeedWatch(); unsubFeedWatch=null; }
   Object.values(friendProfileUnsubs).forEach(u=>{ try{u();}catch(e){} }); friendProfileUnsubs={};
   friends=[]; myProfile=null; incomingReqs=[]; allUsers=[]; sentRequests=new Set(); pinnedFriends.clear();
-  achBaseline=null; unlockQueue=[];
+  unlockQueue=[]; unlockBusy=false;   // the celebrated-set is stored per account, not reset here
   rebuildSeenSet();   // clears the seen set on sign-out
   if(seenOnly){ seenOnly=false; const st=$('seen-toggle'); if(st) st.classList.remove('on'); }
   if(friendsTick){ clearInterval(friendsTick); friendsTick=null; }
@@ -5153,16 +5153,36 @@ function runUnlockQueueWith(a){
   unlockBusy=true;
   celebrateUnlock(a, ()=>{ unlockBusy=false; runUnlockQueue(); });
 }
-let achBaseline=null, unlockQueue=[], unlockBusy=false, confettiRAF=null;
-// Called on every profile update. The first call after sign-in only records what you
-// already had — otherwise loading an existing account would fire twelve celebrations.
+let unlockQueue=[], unlockBusy=false, confettiRAF=null;
+/* Which awards have already been celebrated, remembered on the device per account.
+   An in-memory baseline wasn't enough: Firestore can deliver a cached or partial
+   profile first, so the baseline got set from an empty `seen` array and the next
+   (complete) snapshot looked like you'd just earned everything at once. */
+const ACH_SEEN_KEY='skywatch_ach_seen';
+function achSeenKey(){ return ACH_SEEN_KEY+'_'+((currentUser&&currentUser.uid)||'anon'); }
+function loadAchSeen(){
+  try{ const a=JSON.parse(localStorage.getItem(achSeenKey())||'null');
+    return Array.isArray(a) ? new Set(a) : null; }catch(e){ return null; }
+}
+function saveAchSeen(set){
+  try{ localStorage.setItem(achSeenKey(), JSON.stringify([...set])); }catch(e){}
+}
 function checkNewAchievements(){
-  if(!myProfile) return;
-  const ids=new Set(achEarned(statsFromProfile(myProfile)).map(a=>a.id));
-  if(achBaseline===null){ achBaseline=ids; return; }
-  const fresh=ACH.filter(a=>ids.has(a.id) && !achBaseline.has(a.id));
-  achBaseline=ids;
+  if(!myProfile || !currentUser) return;
+  const st=statsFromProfile(myProfile);
+  const ids=new Set(achEarned(st).map(a=>a.id));
+  const known=loadAchSeen();
+  if(known===null){                    // first run on this device for this account
+    saveAchSeen(ids);                  // record silently — never celebrate history
+    return;
+  }
+  const fresh=ACH.filter(a=>ids.has(a.id) && !known.has(a.id));
   if(!fresh.length) return;
+  // A burst of "new" awards means the profile only just finished loading, not that
+  // you earned six things at once. Record those quietly instead of a parade.
+  if(fresh.length>2 && known.size===0){ saveAchSeen(ids); return; }
+  fresh.forEach(a=>known.add(a.id));
+  saveAchSeen(known);
   unlockQueue.push(...fresh);
   runUnlockQueue();
 }
