@@ -1,5 +1,5 @@
 /* SkyWatch service worker — app-shell caching + offline fallback */
-const VERSION = 'skywatch-v118';
+const VERSION = 'skywatch-v119';
 const SHELL = [
   './',
   './index.html',
@@ -22,9 +22,36 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+/* ---------- Web Push ----------
+   Fires with the app fully closed. Wearables (Wear OS, Apple Watch) mirror whatever
+   the phone shows, so there's no separate watch API — the job is to keep the payload
+   short and give it a title, body, icon and actions that render on a small screen. */
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) {
+    try { d = { title: 'SkyWatch', body: e.data.text() }; } catch (__) {}
+  }
+  const title = d.title || 'SkyWatch';
+  const opts = {
+    body: d.body || '',
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',          // monochrome silhouette used in the status bar + watch
+    tag: d.tag || 'skywatch',
+    renotify: !!d.renotify,
+    requireInteraction: false,      // a pass is time-critical; don't leave it stuck on screen
+    silent: false,
+    vibrate: d.vibrate || [16, 55, 16, 55, 130],
+    timestamp: d.at || Date.now(),
+    data: d.data || {},
+    actions: (d.actions || []).slice(0, 2)   // watches surface at most two
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
 // Focus (or open) the app when a pass-alert notification is clicked.
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  if (e.action === 'dismiss') return;                 // watch/notification action button
   const data = e.notification.data || {};
   const sel = (data.type && data.id) ? (data.type + ':' + data.id) : '';
   e.waitUntil((async () => {

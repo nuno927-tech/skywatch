@@ -1892,6 +1892,10 @@
     <div class="lbl">Alerts<small>Visible night passes &amp; rocket launches</small></div>
     <div class="switch" id="sw-notify" role="switch"></div>
   </div>
+  <div class="stg" id="stg-push">
+    <div class="lbl">Background alerts<small id="push-sub">Arrive with the app closed &mdash; and on your watch</small></div>
+    <div class="switch" id="sw-push" role="switch"></div>
+  </div>
   <div id="notify-groups">
     <div class="ng-h">Alert me for</div>
     <label class="ng"><span>🛰 ISS</span><span class="switch sm" id="nt-iss"></span></label>
@@ -2168,7 +2172,7 @@
 </script>
 
 <script>
-const BUILD = 'v118';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v119';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -2221,7 +2225,7 @@ const selMarker = {lat:null, lng:null, alt:0, _sel:true};   // pulsing highlight
 function simNow(){ return Date.now(); }
 // User preferences (synced to the signed-in account)
 const prefs = { units:'metric', time:'24', autorotate:true, issPath:true, cutoff:0, music:true,
-  notify:false, notifyGroups:{ iss:true, stations:false, visual:false, rocket:true }, favs:[], theme:'blue', borders:false, sounds:true, vibrate:true };
+  notify:false, notifyGroups:{ iss:true, stations:false, visual:false, rocket:true }, favs:[], theme:'blue', borders:false, sounds:true, vibrate:true, push:false };
 // Favorites (starred sats) + client-side filters (no network).
 let favs = new Set();
 let seenSet = new Set();  // ids of satellites you've marked "seen" (from your profile)
@@ -3207,6 +3211,132 @@ function firePassNotification(sat, p){
         tag:'satmap-'+sat.id+'-'+Math.round(p.start/60000), icon:'icon-192.png',
         badge:'icon-192.png', renotify:false, data:{type:'sat', id:sat.id} } }
   );
+}
+/* ============================================================
+   Background alerts (Web Push)
+   ------------------------------------------------------------
+   The device computes its own pass schedule and uploads only timestamps + text.
+   The server is a dumb timer: at time T, push this payload to this subscription.
+   Your location never leaves the device, and no orbital maths runs server-side.
+   ============================================================ */
+// Replace with your own VAPID public key (see PUSH-SETUP.md).
+const VAPID_PUBLIC_KEY='';
+const PUSH_HORIZON=48*3600000;   // schedule this far ahead
+const PUSH_MAX=20;               // and no more than this many alerts
+
+function pushSupported(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+// iOS only exposes PushManager to Home Screen web apps, so detect that case to explain it.
+function iosNeedsInstall(){
+  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  return ios && !isStandalone();
+}
+function urlB64ToUint8Array(base64){
+  const pad='='.repeat((4-base64.length%4)%4);
+  const raw=atob((base64+pad).replace(/-/g,'+').replace(/_/g,'/'));
+  const out=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
+  return out;
+}
+async function pushSubscription(){
+  if(!pushSupported()) return null;
+  try{ const reg=await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); }
+  catch(e){ return null; }
+}
+async function enablePush(){
+  if(!pushSupported()){ showErr('This browser doesn’t support background notifications.'); return false; }
+  if(iosNeedsInstall()){
+    showErr('On iPhone, add SkyWatch to your Home Screen first — Safari tabs can’t receive background alerts.');
+    return false;
+  }
+  if(!VAPID_PUBLIC_KEY){ showErr('Push isn’t configured yet — the server key is missing.'); return false; }
+  if(!currentUser){ showErr('Sign in first so alerts can reach this device.'); return false; }
+  if(!(await enableNotifications())) return false;          // permission prompt
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({
+      userVisibleOnly:true, applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC_KEY) });
+    await savePushSubscription(sub);
+    prefs.push=true; saveSettings(); applyPrefs();
+    await syncAlertSchedule(true);
+    showToast('🔔 Background alerts on — they’ll reach your watch too', true);
+    return true;
+  }catch(e){ console.error('push subscribe', e); showErr('Could not enable background alerts: '+(e.message||e)); return false; }
+}
+async function disablePush(){
+  prefs.push=false; saveSettings(); applyPrefs();
+  try{
+    const sub=await pushSubscription();
+    if(sub) await sub.unsubscribe();
+    if(currentUser && window.fb){
+      const {db, doc, setDoc}=window.fb;
+      await setDoc(doc(db,'users',currentUser.uid), {push:null, alertSchedule:[]}, {merge:true});
+    }
+  }catch(e){ console.warn('push disable', e); }
+  showToast('Background alerts off');
+}
+async function savePushSubscription(sub){
+  if(!currentUser || !window.fb || !sub) return;
+  const j=sub.toJSON();
+  const {db, doc, setDoc}=window.fb;
+  await setDoc(doc(db,'users',currentUser.uid), { push:{
+    endpoint:j.endpoint, p256dh:(j.keys&&j.keys.p256dh)||'', auth:(j.keys&&j.keys.auth)||'',
+    ua:navigator.userAgent.slice(0,180), updated:Date.now()
+  }}, {merge:true});
+}
+/* Build the next N visible passes as ready-to-send payloads. Runs in slices so it
+   never blocks a frame, exactly like scanAlerts. */
+function buildAlertSchedule(cb){
+  const out=[];
+  if(!observer || !prefs.notify){ cb(out); return; }
+  const objs=alertObjects();
+  const now=Date.now(), end=now+PUSH_HORIZON;
+  let i=0;
+  (function chunk(){
+    const t0=performance.now();
+    while(i<objs.length && performance.now()-t0<10){
+      const s=objs[i++];
+      let n=0;
+      for(const p of satVisiblePasses(s.satrec, now, end, 60000)){
+        if(!p.visible || p.start<=now+ALERT_LEAD_MS) continue;
+        const mins=Math.max(1,Math.round((p.end-p.start)/60000));
+        out.push({
+          t: p.start-ALERT_LEAD_MS,                       // fire ~6 min before it rises
+          title:'🛰 '+s.name,
+          body:'Visible pass in ~'+Math.round(ALERT_LEAD_MS/60000)+' min · look '+
+               azCompass(p.startAz)+', up to '+Math.round(p.peakEl)+'° · '+mins+' min',
+          tag:'pass-'+s.id+'-'+Math.round(p.start/60000),
+          data:{type:'sat', id:s.id}
+        });
+        if(++n>=2) break;                                  // a couple per object is plenty
+      }
+    }
+    if(i<objs.length) return setTimeout(chunk,30);
+    out.sort((a,b)=>a.t-b.t);
+    cb(out.slice(0,PUSH_MAX));
+  })();
+}
+let schedTimer=null, schedLast=0;
+function syncAlertSchedule(force){
+  return new Promise(resolve=>{
+    if(!currentUser || !window.fb || !prefs.push){ resolve(false); return; }
+    if(!force && Date.now()-schedLast < 30*60000){ resolve(false); return; }   // twice an hour is plenty
+    clearTimeout(schedTimer);
+    schedTimer=setTimeout(()=>{
+      buildAlertSchedule(async list=>{
+        schedLast=Date.now();
+        try{
+          const {db, doc, setDoc}=window.fb;
+          await setDoc(doc(db,'users',currentUser.uid),
+            { alertSchedule:list, alertSchedUpdated:Date.now() }, {merge:true});
+          resolve(true);
+        }catch(e){ console.warn('schedule sync', e); resolve(false); }
+      });
+    }, force?0:1500);
+  });
 }
 function alertObjects(){
   const g=prefs.notifyGroups||{};
@@ -4381,7 +4511,7 @@ async function boot(){
   scheduleTick();           // start the propagation/render loop (worker- or main-thread-driven)
   setInterval(tickClock, 1000); tickClock();
   setInterval(updateIssOrbit, 30000);  // refresh ISS track periodically
-  setInterval(()=>{ scanAlerts(); scanLaunchAlerts(); }, 120000); scanAlerts();  // visible passes + launch alerts
+  setInterval(()=>{ scanAlerts(); scanLaunchAlerts(); syncAlertSchedule(); }, 120000); scanAlerts();  // visible passes + launch alerts
   setTimeout(loadMoreStarlink, 4000);  // then pull the rest of Starlink in the background
   if(enabled['rocket']) setTimeout(loadLaunches, 2500);   // fetch upcoming launches in the background
   setInterval(()=>{ if(enabled['rocket']) loadLaunches(); }, 18e5);  // refresh launches every 30 min
@@ -4533,6 +4663,17 @@ function applyPrefs(){
   if($('sw-borders')) $('sw-borders').classList.toggle('on', prefs.borders);
   if($('sw-sounds')) $('sw-sounds').classList.toggle('on', prefs.sounds);
   if($('sw-vibrate')) $('sw-vibrate').classList.toggle('on', prefs.vibrate && HAPTIC_OK);
+  const pw=$('sw-push'), prow=$('stg-push'), psub=$('push-sub');
+  if(pw){
+    pw.classList.toggle('on', !!prefs.push);
+    let why='';
+    if(!pushSupported()) why='Not supported by this browser';
+    else if(iosNeedsInstall()) why='Add SkyWatch to your Home Screen to enable';
+    else if(!VAPID_PUBLIC_KEY) why='Server key not configured yet';
+    else if(!currentUser) why='Sign in to receive alerts on this device';
+    if(prow) prow.classList.toggle('stg-off', !!why);
+    if(psub) psub.textContent = why || 'Arrive with the app closed — and on your watch';
+  }
   const vrow=$('stg-vibrate');
   if(vrow && !HAPTIC_OK){   // iOS Safari has no Vibration API — say so rather than offer a dead switch
     vrow.classList.add('stg-off');
@@ -4558,6 +4699,11 @@ function initSettingsUI(){
   $('sw-isspath').onclick=()=>{ prefs.issPath=!prefs.issPath; sfxToggle(prefs.issPath); applyPrefs(); saveSettings(); };
   if($('sw-borders')) $('sw-borders').onclick=()=>{ prefs.borders=!prefs.borders; sfxToggle(prefs.borders); applyPrefs(); saveSettings(); applyBorders(); };
   // Sound switch plays its own confirmation either way (bypassing the mute flag when turning off).
+  if($('sw-push')) $('sw-push').onclick=async ()=>{
+    if(prefs.push){ await disablePush(); sfxToggle(false); return; }
+    const ok=await enablePush();
+    sfxToggle(ok);
+  };
   if($('sw-vibrate')) $('sw-vibrate').onclick=()=>{
     if(!HAPTIC_OK){ showErr('This browser doesn’t support vibration.'); return; }
     prefs.vibrate=!prefs.vibrate;
@@ -4726,7 +4872,7 @@ function collectSettings(){
   let zoom=null; try{ zoom=world.pointOfView().altitude; }catch(e){}
   return { groups, lat: observer?observer.lat:null, lng: observer?observer.lng:null, zoom,
     units: prefs.units, time: prefs.time, autorotate: prefs.autorotate, issPath: prefs.issPath, cutoff: prefs.cutoff, music: prefs.music,
-    notify: prefs.notify, notifyGroups: prefs.notifyGroups, favs: prefs.favs, theme: prefs.theme, borders: prefs.borders, sounds: prefs.sounds, vibrate: prefs.vibrate,
+    notify: prefs.notify, notifyGroups: prefs.notifyGroups, favs: prefs.favs, theme: prefs.theme, borders: prefs.borders, sounds: prefs.sounds, vibrate: prefs.vibrate, push: prefs.push,
     sightLog: sightLog.slice(-SLOG_MAX),   // private: users/{uid} is owner-only
     updatedAt: Date.now() };
 }
@@ -4747,6 +4893,7 @@ function applySettings(s){
     if(typeof s.borders==='boolean') prefs.borders=s.borders;
     if(typeof s.sounds==='boolean') prefs.sounds=s.sounds;
     if(typeof s.vibrate==='boolean') prefs.vibrate=s.vibrate;
+    if(typeof s.push==='boolean') prefs.push=s.push;
     mergeSightLog(s.sightLog);   // union device + account sighting history
     if(s.time==='12'||s.time==='24') prefs.time=s.time;
     if(typeof s.music==='boolean') prefs.music=s.music;
