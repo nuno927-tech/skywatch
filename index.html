@@ -1418,7 +1418,8 @@
                0 0 62px rgba(var(--neon-c),.2),0 6px 22px rgba(0,0,0,.55)}
   .tip-amts button{min-height:60px}
   /* Long-press an earned award to replay its unlock */
-  .ach-mine .ach-item.on{cursor:pointer;-webkit-touch-callout:none}
+  .ach-mine .ach-item.on{cursor:pointer;-webkit-touch-callout:none;
+    touch-action:pan-y;-webkit-user-select:none;user-select:none}
   .ach-mine .ach-item.on::after{content:'hold to replay';position:absolute;right:12px;bottom:5px;
     font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);opacity:.45}
   .ach-mine .ach-item.on{position:relative;padding-bottom:16px}
@@ -1467,45 +1468,62 @@
     text-shadow:0 0 16px rgba(var(--ul-c,255,211,77),.75)}
   /* Three buzzes, keyed frame-for-frame to the [16,55,16,55,130] haptic pattern.
      Total 272ms, so the card physically does what the phone is doing. */
-  .ul-shake{animation:ul-shake 272ms .38s cubic-bezier(.36,.07,.19,.97) both}
+  .ul-shake{animation:ul-shake 500ms .38s cubic-bezier(.36,.07,.19,.97) var(--ul-shakes,1) both}
   @keyframes ul-shake{
     0%,100%{transform:translate3d(0,0,0)}
-    2.9%{transform:translate3d(-7px,0,0)}      /* buzz 1 — 16ms */
-    5.9%{transform:translate3d(5px,0,0)}
-    8.8%{transform:translate3d(0,0,0)}
-    26.1%{transform:translate3d(0,0,0)}
-    29.0%{transform:translate3d(7px,0,0)}      /* buzz 2 — 16ms, at 71ms */
-    32.0%{transform:translate3d(-5px,0,0)}
-    34.9%{transform:translate3d(0,0,0)}
-    52.2%{transform:translate3d(0,0,0)}
-    58.1%{transform:translate3d(-9px,0,0)}     /* buzz 3 — the long 130ms one, at 142ms */
-    64.0%{transform:translate3d(9px,0,0)}
-    70.0%{transform:translate3d(-7px,0,0)}
-    76.0%{transform:translate3d(6px,0,0)}
-    83.0%{transform:translate3d(-4px,0,0)}
-    91.0%{transform:translate3d(2px,0,0)}
+    1.6%{transform:translate3d(-7px,0,0)}       /* buzz 1 */
+    3.2%{transform:translate3d(5px,0,0)}
+    4.8%{transform:translate3d(0,0,0)}
+    14.2%{transform:translate3d(0,0,0)}
+    15.8%{transform:translate3d(7px,0,0)}       /* buzz 2 — at 71ms */
+    17.4%{transform:translate3d(-5px,0,0)}
+    19.0%{transform:translate3d(0,0,0)}
+    28.4%{transform:translate3d(0,0,0)}
+    31.6%{transform:translate3d(-9px,0,0)}      /* buzz 3 — the long one, at 142ms */
+    34.8%{transform:translate3d(9px,0,0)}
+    38.1%{transform:translate3d(-7px,0,0)}
+    41.4%{transform:translate3d(6px,0,0)}
+    45.2%{transform:translate3d(-4px,0,0)}
+    49.5%{transform:translate3d(2px,0,0)}
+    54.4%,100%{transform:translate3d(0,0,0)}    /* rest before the next cycle */
   }
   @media (prefers-reduced-motion:reduce){ .ul-shake{animation:none} }
+  /* Arrows on both flanks, bobbing skyward */
+  .ul-arrow{display:block;font-size:22px;line-height:1;color:rgb(var(--ul-c));
+    text-shadow:0 0 14px rgba(var(--ul-c),.85),0 0 30px rgba(var(--ul-c),.4);
+    animation:ul-bob 1.15s ease-in-out infinite}
+  .ul-ic.ul-figure{background:rgba(var(--ul-c),.14)}
+  .ul-pts.ul-side{display:flex;align-items:center;justify-content:center;width:44px;height:44px;
+    border-radius:50%;background:rgba(var(--ul-c),.14);
+    box-shadow:0 0 0 1px rgba(var(--ul-c),.4),0 0 18px rgba(var(--ul-c),.32)}
+  .ul-pts.ul-side .ul-arrow{animation-delay:.14s}   /* the pair chase each other */
+  @keyframes ul-bob{
+    0%,100%{transform:translateY(4px);opacity:.55}
+    45%{transform:translateY(-5px);opacity:1}
+    70%{transform:translateY(-1px);opacity:.85}
+  }
+  @media (prefers-reduced-motion:reduce){ .ul-arrow{animation:none;opacity:1;transform:none} }
   /* The "look up" figure: raises an arm to the sky as the card lands */
   .ul-ic.ul-figure{font-size:0;background:rgba(var(--ul-c),.14)}
-  .ul-svg{width:40px;height:40px;overflow:visible;
-    stroke:rgb(var(--ul-c));fill:rgb(var(--ul-c));stroke-linejoin:round}
-  .lu-head{stroke:none}
-  .lu-arm{transform-origin:24px 26px;transform:rotate(52deg)}
-  #unlock.show .lu-arm{animation:lu-point 1.5s .3s cubic-bezier(.3,1.5,.4,1) both}
-  @keyframes lu-point{
-    0%{transform:rotate(52deg)} 34%{transform:rotate(-6deg)}
-    54%{transform:rotate(4deg)} 70%{transform:rotate(-3deg)} 100%{transform:rotate(0deg)} }
-  .lu-sparks{opacity:0;transform-origin:36px 13px}
-  #unlock.show .lu-sparks{animation:lu-spark 1.9s .85s ease-out infinite}
-  @keyframes lu-spark{0%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1)}
-    60%{opacity:.5;transform:scale(1.12)}100%{opacity:0;transform:scale(.7)}}
+  /* Arrows on both flanks, bobbing skyward */
+  .ul-arrow{display:block;font-size:22px;line-height:1;color:rgb(var(--ul-c));
+    text-shadow:0 0 14px rgba(var(--ul-c),.85),0 0 30px rgba(var(--ul-c),.4);
+    animation:ul-bob 1.15s ease-in-out infinite}
+  .ul-ic.ul-figure{background:rgba(var(--ul-c),.14)}
+  .ul-pts.ul-side{display:flex;align-items:center;justify-content:center;width:44px;height:44px;
+    border-radius:50%;background:rgba(var(--ul-c),.14);
+    box-shadow:0 0 0 1px rgba(var(--ul-c),.4),0 0 18px rgba(var(--ul-c),.32)}
+  .ul-pts.ul-side .ul-arrow{animation-delay:.14s}   /* the pair chase each other */
+  @keyframes ul-bob{
+    0%,100%{transform:translateY(4px);opacity:.55}
+    45%{transform:translateY(-5px);opacity:1}
+    70%{transform:translateY(-1px);opacity:.85}
+  }
+  @media (prefers-reduced-motion:reduce){ .ul-arrow{animation:none;opacity:1;transform:none} }
   @media (min-width:821px){ #unlock{left:auto;right:20px;width:400px;bottom:20px} }
   @media (prefers-reduced-motion:reduce){
     #unlock{transition:opacity .3s}
-    #unlock.show .ul-glow,#unlock.show .ul-ic,#unlock.show .ul-burst,
-    #unlock.show .lu-arm,#unlock.show .lu-sparks{animation:none}
-    .lu-arm{transform:rotate(0deg)} .lu-sparks{opacity:1}
+    #unlock.show .ul-glow,#unlock.show .ul-ic{animation:none}
     .ul-burst{display:none}
   }
   .stg-off{opacity:.45}
@@ -2100,7 +2118,7 @@
 </script>
 
 <script>
-const BUILD = 'v109';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v110';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -5127,30 +5145,45 @@ function renderHero(){
 /* ---------- Award unlock celebration ---------- */
 // Long-press one of your earned awards to watch it land again.
 function initAchReplay(){
-  let timer=null, node=null, sx=0, sy=0;
+  let timer=null, node=null, sx=0, sy=0, fired=false;
+  const SEL='.ach-mine .ach-item.on[data-ach]';
   const cancel=()=>{ clearTimeout(timer); timer=null;
     if(node){ node.classList.remove('holding'); node=null; } };
-  document.addEventListener('pointerdown', e=>{
-    const it=e.target.closest && e.target.closest('.ach-mine .ach-item.on[data-ach]');
+  function replay(it){
     if(!it) return;
-    node=it; sx=e.clientX; sy=e.clientY;
+    const a=ACH.find(x=>x.id===it.dataset.ach);
+    cancel();
+    if(a){ fired=true; unlockQueue.length=0; unlockBusy=false; runUnlockQueueWith(a);
+      setTimeout(()=>{ fired=false; }, 700); }
+  }
+  const start=e=>{
+    const t=e.target; if(!t || !t.closest) return;
+    const it=t.closest(SEL); if(!it) return;
+    node=it; sx=(e.touches?e.touches[0]:e).clientX; sy=(e.touches?e.touches[0]:e).clientY;
     it.classList.add('holding');
-    timer=setTimeout(()=>{
-      const a=ACH.find(x=>x.id===it.dataset.ach);
-      it.classList.remove('holding');
-      timer=null; node=null;
-      if(a){ unlockQueue.length=0; unlockBusy=false; runUnlockQueueWith(a); }
-    }, 480);
-  }, true);
-  document.addEventListener('pointermove', e=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>replay(it), 480);
+  };
+  const move=e=>{
     if(!timer) return;
-    if(Math.abs(e.clientX-sx)>8 || Math.abs(e.clientY-sy)>8) cancel();   // it was a scroll
-  }, true);
-  // NOT pointerleave: capture-phase listeners on document also see leave events fired
-  // at child nodes, so moving between the icon and the label killed the hold instantly.
-  ['pointerup','pointercancel'].forEach(ev=>
-    document.addEventListener(ev, cancel, true));
+    const p=e.touches?e.touches[0]:e;
+    if(Math.abs(p.clientX-sx)>10 || Math.abs(p.clientY-sy)>10) cancel();   // it was a scroll
+  };
+  // Touch and pointer both, because mobile browsers fire pointercancel the moment they
+  // decide a touch belongs to the scroller — which used to kill the hold before 480ms.
+  document.addEventListener('pointerdown', start, true);
+  document.addEventListener('touchstart', start, {capture:true, passive:true});
+  document.addEventListener('pointermove', move, true);
+  document.addEventListener('touchmove', move, {capture:true, passive:true});
+  ['pointerup','touchend'].forEach(ev=>document.addEventListener(ev, cancel, true));
   window.addEventListener('blur', cancel);
+  // A long press also raises contextmenu on mobile — the most reliable signal there is.
+  document.addEventListener('contextmenu', e=>{
+    const it=e.target && e.target.closest && e.target.closest(SEL);
+    if(!it) return;
+    e.preventDefault();
+    if(!fired) replay(it);
+  });
 }
 function runUnlockQueueWith(a){
   unlockBusy=true;
@@ -5195,21 +5228,28 @@ function runUnlockQueue(){
   celebrateUnlock(unlockQueue.shift(), ()=>{ unlockBusy=false; runUnlockQueue(); });
 }
 // The card lands before it buzzes — shaking mid-flight reads as a glitch, not a buzz.
-const PING_SHAKE_DELAY=380;
+const PING_SHAKE_DELAY=380, PING_SHAKE_CYCLE=500;
+// One buzz per shake cycle so the phone and the card stay locked together.
+function pulsePing(times){
+  for(let i=0;i<(times||1);i++) setTimeout(()=>Haptics.ping(), PING_SHAKE_DELAY + i*PING_SHAKE_CYCLE);
+}
 // One premium card, two occasions. `hue` re-tints the whole thing through a variable.
 function showPremiumCard(o){
   const el=$('unlock'); if(!el){ o.done&&o.done(); return; }
   el.style.setProperty('--ul-c', o.hue||'255,211,77');
   const cardEl=el.querySelector('.ul-card');
   cardEl.classList.remove('ul-shake');
-  if(o.shake){ void cardEl.offsetWidth; cardEl.classList.add('ul-shake'); }   // restart the animation
+  cardEl.style.removeProperty('--ul-shakes');
+  if(o.shake){ cardEl.style.setProperty('--ul-shakes', o.shake===true?1:o.shake);
+    void cardEl.offsetWidth; cardEl.classList.add('ul-shake'); }   // restart the animation
   $('ul-ic').innerHTML=o.icon||'';
   $('ul-ic').classList.toggle('ul-figure', !!o.figure);
   el.querySelector('.ul-kicker').textContent=o.kicker||'';
   $('ul-name').textContent=o.name||'';
   $('ul-desc').textContent=o.desc||'';
-  $('ul-pts').textContent=o.pts||'';
-  $('ul-pts').style.display=o.pts?'':'none';
+  const pts=$('ul-pts');
+  if(o.right){ pts.innerHTML=o.right; pts.className='ul-pts ul-side'; pts.style.display=''; }
+  else { pts.className='ul-pts'; pts.textContent=o.pts||''; pts.style.display=o.pts?'':'none'; }
   el.classList.add('show');
   const card=el.querySelector('.ul-card');
   let hideT=setTimeout(hide, o.ms||6200);
@@ -5231,41 +5271,27 @@ function celebrateUnlock(a, done){
   fireConfetti();
 }
 // A friend wants you outside, now. Violet — the Friends colour.
-const LOOKUP_FIGURE =
-  '<svg viewBox="0 0 48 48" class="ul-svg" aria-hidden="true">'+
-    '<g class="lu-sparks">'+
-      '<path d="M36 9l1.2 3.2L40.4 13l-3.2 1.2L36 17.4 34.8 14.2 31.6 13l3.2-.8z"/>'+
-      '<circle cx="41" cy="19" r="1.3"/><circle cx="30.5" cy="6.5" r="1"/>'+
-    '</g>'+
-    '<g class="lu-arm"><path d="M24 26 L34 13" stroke-width="3.4" stroke-linecap="round" fill="none"/>'+
-      '<circle cx="34.6" cy="12.2" r="2.1" stroke="none"/></g>'+
-    '<circle cx="20" cy="13" r="4.4" class="lu-head"/>'+
-    '<path d="M20 18 L20 31" stroke-width="3.4" stroke-linecap="round" fill="none"/>'+
-    '<path d="M20 31 L15.5 41 M20 31 L24.5 41" stroke-width="3.2" stroke-linecap="round" fill="none"/>'+
-    '<path d="M20 22 L13.5 28" stroke-width="3" stroke-linecap="round" fill="none"/>'+
-  '</svg>';
-// Confirmation for the sender — same card, phrased from your side.
+const LOOKUP_ARROWS = '<span class="ul-arrow">&#9650;</span>';
 function showPingSentCard(name, extra){
   showPremiumCard({
-    hue:'197,140,255', icon:LOOKUP_FIGURE, figure:true,
+    hue:'197,140,255', icon:LOOKUP_ARROWS, figure:true, right:LOOKUP_ARROWS,
     kicker:'Ping sent', name:'@'+(name||'friend'),
-    desc:(extra&&extra.trim()) ? extra.trim() : 'Told them to look up',
-    ms:5000, shake:true
+    desc:(extra&&extra.trim()) ? extra.trim() : 'Look up, you might see something interesting!',
+    ms:6000, shake:3
   });
   SFX.lookup();
-  setTimeout(()=>Haptics.ping(), PING_SHAKE_DELAY);
+  pulsePing(3);
 }
 function showPingCard(fromName, text){
   showPremiumCard({
-    hue:'197,140,255', icon:LOOKUP_FIGURE, figure:true,
+    hue:'197,140,255', icon:LOOKUP_ARROWS, figure:true, right:LOOKUP_ARROWS,
     kicker:'Look up!', name:'@'+(fromName||'friend'),
-    desc:text||'Something’s worth seeing right now', ms:8000,
-    shake:true,                                  // the card buzzes instead of throwing confetti
+    desc:'Look up, you might see something interesting!', ms:8000,
+    shake:3,                                     // buzzes three times instead of confetti
     onTap:()=>{ if(isMobile()) openSheet('overhead'); else $('overhead').classList.add('open'); }
   });
   SFX.lookup();
-  // Sound and haptics fire together with the shake so all three land as one event.
-  setTimeout(()=>Haptics.ping(), PING_SHAKE_DELAY);
+  pulsePing(3);
 }
 // Lightweight canvas confetti — no library, and it tears down as soon as it settles.
 function fireConfetti(){
