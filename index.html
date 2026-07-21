@@ -678,6 +678,7 @@
     background:rgba(120,160,255,.08);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;min-height:52px}
   .idf-uap:hover{border-color:var(--accent);color:var(--accent)}
   .idf-uap:active{transform:scale(.985)}
+  .idf-uap:disabled{opacity:.5;cursor:default;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   /* Nudge to set a location: pulsing ring + label on the ⌖ button */
   #gotome.hint{border-color:var(--accent);color:var(--accent);animation:locpulse 2s ease-out infinite}
   @keyframes locpulse{
@@ -1302,6 +1303,58 @@
   /* --- Switches --- */
   .switch{box-shadow:0 2px 8px rgba(0,0,0,.35);transition:background .2s,box-shadow .2s}
   .switch.on{box-shadow:0 0 0 1px rgba(var(--neon-c),.5),0 0 18px rgba(var(--neon-c),.5)}
+  /* ============================================================
+     Section theming. Every glow recipe is built from --neon-c, and custom
+     properties resolve against the element using them — so redefining
+     --neon-c on a panel re-tints every control inside it automatically.
+     ============================================================ */
+  #controls   {--neon-c:255,96,180;  --neon-w:255,96,180}    /* Layers   — magenta */
+  #overhead   {--neon-c:90,209,255;  --neon-w:90,209,255}    /* Sky      — cyan    */
+  #friends    {--neon-c:197,140,255; --neon-w:197,140,255}   /* Friends  — violet  */
+  #feed       {--neon-c:87,224,138;  --neon-w:87,224,138}    /* Feed     — green   */
+  #board      {--neon-c:255,211,77;  --neon-w:255,211,77}    /* Awards   — gold    */
+  #settings   {--neon-c:255,122,92;  --neon-w:255,122,92}    /* Settings — coral   */
+  #accountmenu,#usermodal{--neon-c:90,209,255; --neon-w:90,209,255}
+  /* Text and icons follow the section hue too, not just the glow */
+  #controls .idf-uap,#overhead .idf-uap,#friends .idf-uap,#feed .idf-uap,#board .idf-uap,#settings .idf-uap,
+  #tourbtn,#sharebtn,#snapbtn,#d-ar{color:rgb(var(--neon-c))}
+  .idf-go,.fr-addbtn{color:rgb(var(--neon-w));border:1px solid rgba(var(--neon-w),.5);
+    background:linear-gradient(180deg,rgba(var(--neon-w),.22),rgba(var(--neon-w),.1));
+    text-shadow:0 0 14px rgba(var(--neon-w),.55);box-shadow:var(--neon-warm)}
+  .idf-go:hover,.fr-addbtn:hover{color:rgb(var(--neon-w));
+    background:linear-gradient(180deg,rgba(var(--neon-w),.34),rgba(var(--neon-w),.16));
+    border-color:rgba(var(--neon-w),.85)}
+  .idf-uap:hover,#tourbtn:hover,#sharebtn:hover,#snapbtn:hover{color:rgb(var(--neon-c))}
+  .idf-chips button.on,.fr-tabs button.on,.lb-sort.on,.seg button.sel{color:rgb(var(--neon-c))}
+  .seg button.sel{background:rgb(var(--neon-c));color:#04121f}
+  .fseg button.sel{background:rgba(var(--neon-c),.2);color:rgb(var(--neon-c))}
+  .stg-sec,.fr-sub,.hero-name,.fr-prof-name,.hero-score,.ach-stats b,.fr-prof-stats b,
+  .hero-stats b,.feed-u,.lb-ct,#ach-name{color:rgb(var(--neon-c))}
+  .switch.on{background:rgb(var(--neon-c))}
+  .lg:hover .nm{color:rgb(var(--neon-c))}
+  .fr-add,.fr-acc{background:rgb(var(--neon-c));color:#04121f;
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.5),0 0 18px rgba(var(--neon-c),.45)}
+  /* --- Account menu: User / Sign out get the full treatment --- */
+  #accountmenu .act{
+    min-height:var(--ctl-h);border-radius:var(--ctl-r);font-size:14px;font-weight:700;
+    border:1px solid rgba(var(--neon-c),.5);
+    background:linear-gradient(180deg,rgba(var(--neon-c),.22),rgba(var(--neon-c),.1));
+    color:rgb(var(--neon-c));
+    text-shadow:0 0 14px rgba(var(--neon-c),.55);
+    box-shadow:var(--neon-warm);
+  }
+  #accountmenu .act:hover{
+    background:linear-gradient(180deg,rgba(var(--neon-c),.32),rgba(var(--neon-c),.15));
+    border-color:rgba(var(--neon-c),.85);
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.8),0 0 30px rgba(var(--neon-c),.55),
+               0 0 62px rgba(var(--neon-c),.2),0 6px 22px rgba(0,0,0,.55);
+  }
+  #accountmenu .act.g{background:#fff;color:#3c4043;border-color:#dadce0;text-shadow:none;
+    box-shadow:0 0 0 1px rgba(255,255,255,.5),0 0 26px rgba(255,255,255,.28),0 6px 20px rgba(0,0,0,.5)}
+  #accountmenu .act.g:hover{background:#f5f5f5;box-shadow:0 0 0 1px #fff,0 0 34px rgba(255,255,255,.45)}
+  #accountmenu .act.danger{border-color:rgba(255,90,77,.5);color:var(--iss);
+    background:linear-gradient(180deg,rgba(255,90,77,.18),rgba(255,90,77,.08));
+    text-shadow:0 0 14px rgba(255,90,77,.5)}
   /* --- Panels lift off the globe a little more --- */
   .panel{box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(var(--neon-c),.05)}
   /* --- Title bar: deep scrim so the brand and counters read over any terrain --- */
@@ -1582,9 +1635,9 @@
   </div>
   <div id="sky-pane-now"><div id="ohlist"></div></div>
   <div id="sky-pane-night">
-    <div class="idf-note">Everything worth stepping outside for tonight, ranked — brightest and highest first.</div>
+    <div class="idf-note">Everything worth stepping outside for tonight, in the order it happens.</div>
     <div id="night-out"></div>
-    <button id="night-go" class="idf-go">🌙 Plan tonight</button>
+    <button id="night-go" class="idf-uap">↻ Rescan the sky</button>
   </div>
   <div id="sky-pane-id">
     <div class="idf-note">Saw something? Check what was actually above you at that moment.</div>
@@ -1807,7 +1860,7 @@
 </script>
 
 <script>
-const BUILD = 'v86';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v88';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -4667,7 +4720,11 @@ function initSky(){
   if(idt) idt.onclick=()=>tab('id');
   if(c5) c5.onclick=()=>tab('ce5');
   if(nt) nt.onclick=()=>tab('night');
-  const ng=$('night-go'); if(ng) ng.onclick=planTonight;
+  const ng=$('night-go'); if(ng) ng.onclick=()=>{
+    ng.textContent='↻ Rescanning…'; ng.disabled=true;
+    planTonight();
+    setTimeout(()=>{ ng.textContent='↻ Rescan the sky'; ng.disabled=false; }, 900);
+  };
   const chips=(wrap, fn)=>{ const el=$(wrap); if(!el) return;
     el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
       el.querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b)); fn(b); }); };
