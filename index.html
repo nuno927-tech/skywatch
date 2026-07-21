@@ -49,8 +49,11 @@
     background:linear-gradient(180deg,rgba(3,6,15,.85),rgba(3,6,15,0));}
   #brand{display:flex;align-items:baseline;gap:10px;pointer-events:auto}
   #brand h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.5px}
-  #brand h1 span{color:var(--accent);text-shadow:var(--glow)}
-  #brand .tag{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  #brand h1 span{color:#7fe7ff;
+    text-shadow:0 0 1px #eafaff, 0 0 8px rgba(160,235,255,.9), 0 0 20px rgba(90,209,255,.85),
+      0 0 40px rgba(90,209,255,.45), 0 2px 8px rgba(0,0,0,.85)}
+  #brand .tag{font-size:10px;color:var(--muted);letter-spacing:2.4px;text-transform:uppercase;
+    text-shadow:0 1px 5px rgba(0,0,0,.9)}
   /* Compass — device heading, so you can orient yourself against a pass bearing */
   #compass{pointer-events:auto;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
     gap:1px;margin-left:auto;padding:0;border:none;background:transparent;cursor:pointer;
@@ -72,8 +75,19 @@
     #compass #cmp-lbl{font-size:10px}
   }
   #stat{display:flex;gap:18px;pointer-events:auto}
-  .stat b{display:block;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
-  .stat span{font-size:16px;color:var(--accent)}
+  .stat{position:relative;padding-left:9px}
+  .stat::before{content:'';position:absolute;left:0;top:3px;bottom:3px;width:2px;border-radius:2px;
+    background:rgba(var(--neon-c),.5);box-shadow:0 0 8px rgba(var(--neon-c),.7)}
+  .stat.ov::before{background:rgba(255,255,255,.65);box-shadow:0 0 8px rgba(255,255,255,.8)}
+  .stat b{display:block;font-size:9px;color:var(--muted);letter-spacing:1.6px;text-transform:uppercase;
+    font-weight:700}
+  .stat span{display:block;font-size:17px;font-weight:800;line-height:1.15;color:#dff4ff;
+    font-variant-numeric:tabular-nums;
+    text-shadow:0 0 1px #fff, 0 0 9px rgba(160,235,255,.9), 0 0 20px rgba(var(--neon-c),.7),
+      0 0 42px rgba(var(--neon-c),.35), 0 2px 8px rgba(0,0,0,.9)}
+  .stat.ov span{color:#ffffff;
+    text-shadow:0 0 1px #fff, 0 0 10px rgba(255,255,255,.95), 0 0 24px rgba(200,235,255,.6),
+      0 0 46px rgba(var(--neon-c),.3), 0 2px 8px rgba(0,0,0,.9)}
   .on-ct{color:#2ecc71;font-size:13px}
 
   /* Panels */
@@ -1357,6 +1371,25 @@
     background:rgba(var(--neon-c),.14);box-shadow:var(--neon-hot)}
   .fr-del:hover{color:var(--iss);border-color:rgba(255,90,77,.55);background:rgba(255,90,77,.12);
     box-shadow:0 0 0 1px rgba(255,90,77,.5),0 0 18px rgba(255,90,77,.35)}
+  /* Friend pin: a teardrop with their icon, no radiating rings */
+  .frpin{position:relative;width:0;height:0;pointer-events:auto;cursor:pointer;z-index:6}
+  .frpin-body{position:absolute;left:-15px;top:-38px;width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;
+    background:var(--panel-solid);border:2px solid rgba(197,140,255,.9);
+    box-shadow:0 0 12px rgba(197,140,255,.5),0 3px 8px rgba(0,0,0,.6)}
+  .frpin-tail{position:absolute;left:-5px;top:-12px;width:0;height:0;
+    border-left:5px solid transparent;border-right:5px solid transparent;
+    border-top:9px solid rgba(197,140,255,.9)}
+  .frpin.on .frpin-body{border-color:rgba(87,224,138,.95);box-shadow:0 0 12px rgba(87,224,138,.55),0 3px 8px rgba(0,0,0,.6)}
+  .frpin.on .frpin-tail{border-top-color:rgba(87,224,138,.95)}
+  .frpin-name{position:absolute;left:50%;top:-58px;transform:translateX(-50%);white-space:nowrap;
+    font-size:10.5px;font-weight:700;color:#e8eefc;padding:2px 7px;border-radius:7px;
+    background:rgba(6,10,20,.85);border:1px solid rgba(120,160,255,.25);
+    text-shadow:0 1px 4px rgba(0,0,0,.9)}
+  /* Your own row, same shape as a friend's */
+  .fr-item.me{border-color:rgba(var(--neon-c),.45);background:rgba(var(--neon-c),.08)}
+  .fr-you{color:rgb(var(--neon-c));font-weight:700;font-size:10px;text-transform:uppercase;
+    letter-spacing:.8px;margin-left:4px}
   /* Friend profile hero inside the awards modal */
   #achieve .hero-top{text-align:center;padding:2px 0 14px}
   #achieve .hero-av{width:66px;height:66px;margin:0 auto 10px;font-size:30px;overflow:hidden}
@@ -1692,7 +1725,6 @@
     background:linear-gradient(90deg,transparent,rgba(var(--neon-c),.22),transparent);pointer-events:none}
   #brand h1{text-shadow:0 2px 12px rgba(0,0,0,.95)}
   #brand h1 span{text-shadow:0 0 20px rgba(var(--neon-c),.7),0 2px 10px rgba(0,0,0,.9)}
-  .stat span{text-shadow:0 0 14px rgba(var(--neon-c),.45),0 2px 8px rgba(0,0,0,.9)}
   .stat b{text-shadow:0 1px 6px rgba(0,0,0,.9)}
 
   /* --- Static bottom bar; menus slide up behind it --- */
@@ -1737,9 +1769,9 @@
     <div class="tag">live orbital tracker</div>
   </div>
   <div id="stat" class="mono">
-    <div class="stat"><b>Tracking</b><span id="s-total">—</span></div>
-    <div class="stat ov"><b>Overhead</b><span id="s-over">—</span></div>
-    <div class="stat"><b>Online</b><span id="s-users">—</span></div>
+    <div class="stat"><b>In orbit</b><span id="s-total">—</span></div>
+    <div class="stat ov"><b>Above you</b><span id="s-over">—</span></div>
+    <div class="stat"><b>Watching</b><span id="s-users">—</span></div>
   </div>
   <button id="compass" class="mono" title="Device heading — tap to enable" aria-label="Compass heading">
     <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true">
@@ -2182,6 +2214,7 @@
   <div id="fr-pane-friends">
     <div id="fr-requests"></div>
     <div class="fr-sub" id="fr-friends-h">Your friends</div>
+    <button id="fr-showall" class="idf-uap">🗺 Show everyone on the map</button>
     <div id="fr-list"></div>
     <button id="fr-add" class="fr-addbtn"><span>🔍</span> Add friends</button>
   </div>
@@ -2275,7 +2308,7 @@
 </script>
 
 <script>
-const BUILD = 'v129';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v130';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -2804,6 +2837,16 @@ function initGlobe(){
         w.innerHTML='<div class="sel-core"></div><div class="sel-ring"></div><div class="sel-ring d2"></div>';
         return w;
       }
+      if(d._friend){                                   // friend pin: teardrop + their icon
+        const el=document.createElement('div');
+        el.className='frpin'+(d.online?' on':'');
+        el.innerHTML='<span class="frpin-body">'+d.icon+'</span>'+
+                     '<span class="frpin-tail"></span>'+
+                     '<span class="frpin-name">@'+esc(d.username)+'</span>';
+        el.title='@'+d.username+(d.online?' · online':'');
+        el.onclick=(ev)=>{ ev.stopPropagation(); flyTo(d.lat, d.lng, 1.5, 900); };
+        return el;
+      }
       if(d._launch){                                   // launch-pad pin
         const el=document.createElement('div');
         el.className='launchpin';
@@ -2991,6 +3034,7 @@ function renderFrame(){
   // (orbit band, favorites, or seen).
   const pinsOk = enabled['rocket'] && !favOnly && !seenOnly && altFilter==='all';
   const extra = pinsOk ? launchPins.filter(p=>p.lat!=null) : [];
+  if(pinnedFriends.size || friends.some(f=>f._showUntil)) extra.push(...friendPinData());
   if(selected && selected.lat!=null){
     selMarker.lat=selected.lat; selMarker.lng=selected.lng; selMarker.alt=selected.alt; extra.push(selMarker);
   }
@@ -7725,26 +7769,31 @@ async function removeFriend(uid, uname){
     await deleteDoc(doc(db,'profiles',uid,'friends',currentUser.uid)); showToast('Removed @'+uname);
   }catch(e){ console.error(e); showErr('Could not remove: '+(e.code||e.message||e)); }
 }
+/* You are the first card in the list, in the same shape as everyone else —
+   one visual language instead of a bespoke header with stat chips. */
 function renderMe(){
   const el=$('fr-profile'); if(!el) return;
   if(!currentUser){ el.innerHTML='<div class="fr-note">Sign in (account icon, top-right) to use friends.</div>'; return; }
-  if(myProfile && myProfile.username){
-    const st=statsFromProfile(myProfile), score=scoreOf(st, achEarned(st));
-    el.innerHTML=
-      '<div class="fr-prof">'+
-        '<div class="fr-avatar">'+avatarHTML(myProfile, myProfile&&myProfile.username)+'</div>'+
-        '<div class="fr-prof-id"><div class="fr-prof-name">@'+myProfile.username+'</div></div>'+
-      '</div>'+
-      '<div class="fr-prof-stats">'+
-        '<div><b>'+st.badges+'</b><span>badges</span></div>'+
-        '<div><b>'+st.maxStreak+'</b><span>streak</span></div>'+
-        '<div><b>'+score+'</b><span>score</span></div>'+
-      '</div>';
-  } else {
+  if(!(myProfile && myProfile.username)){
     el.innerHTML='<div class="fr-note">Pick a username so friends can find you.</div>'+
       '<button class="fr-addbtn" id="fr-setuser">👤 Open User settings</button>';
-    const s=$('fr-setuser'); if(s) s.onclick=openUserPanel;
+    const su=$('fr-setuser'); if(su) su.onclick=openUserPanel;
+    return;
   }
+  const st=statsFromProfile(myProfile);
+  el.innerHTML=
+    '<div class="fr-item me" id="fr-me-card">'+
+      '<span class="fr-av on">'+avatarHTML(myProfile, myProfile.username)+
+        '<span class="fr-status on"></span></span>'+
+      '<div class="fr-nm">@'+esc(myProfile.username)+' <small class="fr-you">you</small>'+
+        '<small class="fr-sub-ln">🏅 '+st.badges+' badges · '+st.sightings+' sightings'+
+        (observer?'':' · no location')+'</small></div>'+
+      '<button class="fr-locate" id="fr-me-loc" title="Centre on me">📍</button>'+
+    '</div>';
+  const card=$('fr-me-card');
+  if(card) card.onclick=()=>{ openSheet('board'); renderHero(); renderLeaderboard(); };
+  const loc=$('fr-me-loc');
+  if(loc) loc.onclick=e=>{ e.stopPropagation(); if(isMobile()) closeSheets(); flyToMe(); };
 }
 function renderFriends(){
   const el=$('fr-list'); if(!el) return;
@@ -7844,15 +7893,37 @@ function showFriendObjects(uname, seen){
     '<div class="lm-m">'+fmtSeen(e.last||e.ts||0)+'</div></div>').join(''));
 }
 const PIN_SHOW_MS = 9000;   // how long a friend's pin flashes on the map after a status change
-function updateFriendPins(){
-  if(typeof world==='undefined'||!world) return;
+// Which friends currently have a pin: flashed by a status change, or explicitly shown.
+function friendPinData(){
   const now=Date.now();
-  // Draw a pin if: a recent status change flashed it, OR you clicked to locate that friend.
-  const pins = friends
+  return friends
     .filter(f=> typeof f.lat==='number' && typeof f.lng==='number' &&
       ((f._showUntil && now < f._showUntil) || pinnedFriends.has(f.uid)))
-    .map(f=>({ lat:f.lat, lng:f.lng, username:f.username, online:(now-(f.lastSeen||0)<150000) }));
-  world.labelsData(prefs.borders ? pins.concat(countryLabels) : pins);   // + country names when enabled
+    .map(f=>({ _friend:true, lat:f.lat, lng:f.lng, alt:0.01, username:f.username,
+      icon:avatarGlyph(f, f.username), online:(now-(f.lastSeen||0)<150000) }));
+}
+function updateFriendPins(){
+  if(typeof world==='undefined'||!world) return;
+  world.labelsData(prefs.borders ? countryLabels : []);   // labels are country names only now
+  renderFrame();                                          // pins live on the HTML layer
+}
+// Put every friend who has shared a location on the map at once.
+function showAllFriends(){
+  const have=friends.filter(f=> typeof f.lat==='number' && typeof f.lng==='number');
+  if(!have.length){ showToast('No friends have shared a location yet'); return; }
+  have.forEach(f=>pinnedFriends.add(f.uid));
+  updateFriendPins();
+  if(isMobile()) closeSheets();
+  // Frame them: centre on the average position and pull back a little for spread.
+  let x=0,y=0,z=0;
+  for(const f of have){ const la=f.lat*D2R, lo=f.lng*D2R;
+    x+=Math.cos(la)*Math.cos(lo); y+=Math.cos(la)*Math.sin(lo); z+=Math.sin(la); }
+  x/=have.length; y/=have.length; z/=have.length;
+  const lat=Math.atan2(z, Math.hypot(x,y))*R2D, lng=Math.atan2(y,x)*R2D;
+  let spread=0;
+  for(const f of have) spread=Math.max(spread, angSep(0,f.lat,0,lat), Math.abs(f.lng-lng));
+  flyTo(lat, lng, spread>60?2.6:spread>25?1.9:1.4, 900);
+  showToast('📍 '+have.length+' friend'+(have.length===1?'':'s')+' on the map — move to clear', true);
 }
 // Show a friend's pin on the map and fly to them; the pin stays until the map is moved.
 function locateFriend(uid){
@@ -7888,6 +7959,7 @@ function initFriendsUI(){
   const acc=$('rp-accept'), den=$('rp-deny');
   if(acc) acc.onclick=()=>{ const pop=$('reqpop'), r=pop&&pop._req; hideReqPop(); if(r) acceptRequest(r); };
   if(den) den.onclick=()=>{ const pop=$('reqpop'), r=pop&&pop._req; hideReqPop(); if(r) denyRequest(r.uid, r.username); };
+  if($('fr-showall')) $('fr-showall').onclick=showAllFriends;
   const rf=$('fr-refresh');
   if(rf) rf.onclick=async ()=>{ if(!currentUser){ showErr('Sign in to load users.'); return; }
     rf.classList.add('spin'); await loadAllUsers(); rf.classList.remove('spin'); showToast('User list refreshed'); };
