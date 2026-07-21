@@ -597,6 +597,8 @@
     padding:4px 9px;border-radius:8px;background:rgba(120,160,255,.14);color:var(--muted)}
   .nt-grade.best{background:rgba(87,224,138,.18);color:#57e08a}
   .nt-grade.good{background:rgba(90,209,255,.18);color:var(--accent)}
+  .nt-filter{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0 4px}
+  .nt-filter button{font-size:12.5px}
   /* Where you are in tonight's schedule */
   .nt-rank.now{border-color:rgba(87,224,138,.65);background:rgba(87,224,138,.13);
     box-shadow:0 0 0 1px rgba(87,224,138,.5),0 0 26px rgba(87,224,138,.4),0 6px 20px rgba(0,0,0,.5);
@@ -1332,9 +1334,11 @@
   .fr-del:hover{color:var(--iss);border-color:rgba(255,90,77,.55);background:rgba(255,90,77,.12);
     box-shadow:0 0 0 1px rgba(255,90,77,.5),0 0 18px rgba(255,90,77,.35)}
   /* Friend profile hero inside the awards modal */
-  .fp-hero{text-align:center;padding:2px 0 14px}
-  .fp-hero .hero-av{width:66px;height:66px;margin:0 auto 10px;font-size:30px;overflow:hidden}
-  .fp-hero .hero-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  #achieve .hero-top{text-align:center;padding:2px 0 14px}
+  #achieve .hero-av{width:66px;height:66px;margin:0 auto 10px;font-size:30px;overflow:hidden}
+  #achieve .hero-av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+  #achieve .hero-note{margin-bottom:10px}
+  #achieve .fr-sub{margin:4px 0 2px}
   .fp-live{color:#57e08a;font-weight:700;text-shadow:0 0 10px rgba(87,224,138,.7)}
   #achieve .hero-stats{grid-template-columns:repeat(4,1fr);margin-bottom:12px}
   /* --- Small round utility buttons: feed refresh, icon picker --- */
@@ -1385,7 +1389,36 @@
     border-color:rgba(var(--neon-w),.85)}
   .idf-uap:hover,#tourbtn:hover,#sharebtn:hover,#snapbtn:hover{color:rgb(var(--neon-c))}
   .idf-chips button.on,.fr-tabs button.on,.lb-sort.on,.seg button.sel{color:rgb(var(--neon-c))}
-  .seg button.sel{background:rgb(var(--neon-c));color:#04121f}
+  /* --- Settings: every control on one language --- */
+  .seg{background:rgba(0,0,0,.28);border:1px solid var(--border);border-radius:13px;padding:3px;gap:3px;
+    box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .seg button{min-height:40px;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;
+    transition:background .16s,color .16s,box-shadow .16s}
+  .seg button:hover{color:var(--text);background:rgba(var(--neon-c),.08)}
+  /* Was a solid accent block — now the same translucent tint + glow as every other chip */
+  .seg button.sel{background:rgba(var(--neon-c),.2);color:rgb(var(--neon-c));
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.55),0 0 18px rgba(var(--neon-c),.4);
+    text-shadow:0 0 12px rgba(var(--neon-c),.7)}
+  #installbtn{min-height:var(--ctl-h);border-radius:var(--ctl-r);padding:13px 16px;font-size:14px;font-weight:700;
+    border:1px solid var(--border);background:rgba(120,160,255,.08);color:rgb(var(--neon-c));
+    box-shadow:var(--neon-rest);transition:box-shadow .18s,background .18s,border-color .18s}
+  #installbtn:hover{background:rgba(var(--neon-c),.14);border-color:rgba(var(--neon-c),.55);box-shadow:var(--neon-hot)}
+  #installbtn:active{transform:scale(.985)}
+  /* Tip jar: was Venmo blue, which fought everything around it */
+  .tip-go{color:rgb(var(--neon-c));border:1px solid rgba(var(--neon-c),.5);
+    background:linear-gradient(180deg,rgba(var(--neon-c),.22),rgba(var(--neon-c),.1));
+    text-shadow:0 0 14px rgba(var(--neon-c),.55);box-shadow:var(--neon-warm)}
+  .tip-go:hover{background:linear-gradient(180deg,rgba(var(--neon-c),.34),rgba(var(--neon-c),.16));
+    border-color:rgba(var(--neon-c),.85);
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.8),0 0 30px rgba(var(--neon-c),.55),
+               0 0 62px rgba(var(--neon-c),.2),0 6px 22px rgba(0,0,0,.55)}
+  .tip-amts button{min-height:60px}
+  /* Notification group rows read as controls, not plain text */
+  #notify-groups{border-bottom:none;padding:4px 0 2px}
+  .ng{min-height:44px;padding:9px 12px;margin-bottom:6px;border-radius:12px;
+    border:1px solid var(--border);background:rgba(120,160,255,.04);
+    box-shadow:0 2px 8px rgba(0,0,0,.25);transition:box-shadow .16s,background .16s}
+  .ng:hover{background:rgba(var(--neon-c),.09);box-shadow:var(--neon-rest)}
   .fseg button.sel{background:rgba(var(--neon-c),.2);color:rgb(var(--neon-c))}
   .stg-sec,.fr-sub,.hero-name,.fr-prof-name,.hero-score,.ach-stats b,.fr-prof-stats b,
   .hero-stats b,.feed-u,.lb-ct,#ach-name{color:rgb(var(--neon-c))}
@@ -1527,6 +1560,7 @@
   <div class="ach-card">
     <div id="ach-close" aria-label="Close">✕</div>
     <div id="ach-name">—</div>
+    <div id="ach-hero"></div>
     <div id="ach-stats" class="ach-stats"></div>
     <div id="ach-grid" class="ach-grid"></div>
     <div id="ach-log"></div>
@@ -1950,7 +1984,7 @@
 </script>
 
 <script>
-const BUILD = 'v94';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v98';           // shown in Settings and on the loader so you can confirm what's deployed
 // Stamp the loader immediately — it's the first thing on screen and the fastest way
 // to tell whether a deploy actually landed.
 (function(){ const v=document.getElementById('ld-ver'); if(v) v.textContent='SkyWatch '+BUILD; })();
@@ -2690,6 +2724,23 @@ function orbitMinutes(sat){
     if(isFinite(rpd) && rpd>0.5) return Math.min(1600, Math.max(45, 1440/rpd)); }catch(e){}
   return 100;
 }
+// Paths only — cheap enough to run on every selection.
+function updateOrbitPaths(){
+  if(typeof world==='undefined' || !world) return;
+  const paths=[];
+  const iss=SATS.find(s=>s.id==='25544');
+  if(iss && enabled['iss'] && prefs.issPath)
+    paths.push({ points: issTrackPoints(0,100,null), color:['rgba(255,90,77,.85)','rgba(255,90,77,0)'] });
+  if(selected && selected.satrec && selected.id!=='25544' && prefs.issPath){
+    const per=orbitMinutes(selected), step=per>240?4:1;
+    const g=GROUPS.find(x=>x.id===selected.group), c=(g&&g.color)||'#5ad1ff';
+    const pts=satTrackPoints(selected, 0, Math.round(per), null, step);
+    if(pts.length>1) paths.push({ points:pts, color:[hexA(c,.9), hexA(c,0)] });
+  }
+  const term=terminatorPath();
+  if(term.length>1) paths.push({ points: term, color:['rgba(130,190,255,.5)','rgba(130,190,255,.5)'] });
+  world.pathsData(paths);
+}
 function updateIssOrbit(){
   if(typeof world==='undefined' || !world) return;
   const paths=[];
@@ -2813,10 +2864,28 @@ function satVisiblePasses(satrec, start, end, step){
   return passes;
 }
 function computeIssPasses(){ return computeSatPasses(SATS.find(s=>s.id==='25544')); }
+// Two-stage: a coarse sweep finds the windows where the object is anywhere near up,
+// then only those windows get the fine pass. Roughly 6× cheaper than scanning at 30s
+// throughout, which matters because this runs on tap.
 function computeSatPasses(sat){
   if(!sat||!observer) return [];
-  const now=Date.now();
-  return satVisiblePasses(sat.satrec, now-2*86400000, now+6*86400000, 30000);
+  const now=Date.now(), start=now-2*86400000, end=now+6*86400000;
+  const coarse=[];
+  let open=null;
+  for(let t=start;t<=end;t+=180000){                 // 3-minute reconnaissance
+    let el=-90;
+    try{
+      const d=new Date(t), pv=satellite.propagate(sat.satrec,d);
+      if(pv&&pv.position) el=satellite.ecfToLookAngles(observer.gd,
+        satellite.eciToEcf(pv.position, satellite.gstime(d))).elevation*R2D;
+    }catch(e){}
+    if(el>0){ if(!open) open={a:t-180000}; open.b=t+180000; }     // pad either side
+    else if(open){ coarse.push(open); open=null; }
+  }
+  if(open) coarse.push(open);
+  const out=[];
+  for(const w of coarse) out.push(...satVisiblePasses(sat.satrec, w.a, w.b, 30000));
+  return out;
 }
 
 /* ---------- Pass alert notifications ---------- */
@@ -2889,15 +2958,30 @@ function fmtPassTime(t){
   return day+' '+d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit', hour12: prefs.time==='12'});
 }
 // Visible passes for whichever satellite is selected (not just the ISS).
+// Computing a pass table is thousands of SGP4 solves, so it never runs as part of
+// selecting an object — tapping a satellite has to stay instant.
 function renderPasses(sat){
   const el=$('d-passes'); if(!el) return;
   const s = sat || selected; if(!s || !s.satrec){ el.innerHTML=''; return; }
   const nm = s.id==='25544' ? 'the ISS' : 'this satellite';
   if(!observer){ el.innerHTML='<div class="pass-note">📍 Enable your location to see when '+nm+' is visible overhead.</div>'; return; }
-  el.innerHTML='<div class="pass-h">👁 Visible passes over you</div><div class="pass-note">Working out the next passes…</div>';
-  const id=s.id;
-  setTimeout(()=>{                       // let the placeholder paint before the SGP4 sweep
-    if(!selected || selected.id!==id) return;          // selection moved on
+  const key=s.id+'@'+observer.lat.toFixed(2)+','+observer.lng.toFixed(2);
+  const cached=passCache.get(key);
+  if(!cached || (Date.now()-cached.at >= 600000)){
+    el.innerHTML='<div class="pass-h">👁 Visible passes over you</div>'+
+      '<button class="idf-uap" id="d-passgo">🔭 Find the next visible passes</button>';
+    const go=$('d-passgo');
+    if(go) go.onclick=()=>{
+      go.textContent='Working it out…'; go.disabled=true;
+      setTimeout(()=>{ getSatPasses(s); paintPasses(s); }, 30);
+    };
+    return;
+  }
+  paintPasses(s);
+}
+function paintPasses(s){
+  const el=$('d-passes'); if(!el) return;
+  {
     const now=Date.now();
     const vis=getSatPasses(s).filter(p=>p.visible);
     const upcoming=vis.filter(p=>p.end>=now).slice(0,6);
@@ -2916,7 +3000,7 @@ function renderPasses(sat){
       if(recent.length){ html+='<div class="pass-sub">Recent</div>'+recent.map(row).join(''); }
     }
     el.innerHTML=html;
-  }, 30);
+  }
 }
 
 /* ---------- "Was that a satellite?" identifier ----------
@@ -3137,13 +3221,13 @@ function selectSat(s){
   const dt=$('d-seen-dt');   // seed the picker once per selection (recorded time, or now)
   if(dt){ const e=seenEntry(s.id); dt.max = tsToLocalInput(Date.now()); dt.value = tsToLocalInput(e?e.ts:Date.now()); }
   enrichDetail(s);   // fetch launch/owner/type/decay + photo (cached, on-demand)
-  renderPasses(s);        // visible passes for whatever is selected
-  updateIssOrbit();       // draw this satellite's ground track
+  renderPasses(s);        // offers the pass lookup; never computes it inline
+  updateOrbitPaths();     // draw this satellite's ground track (paths only — no polygon rebuild)
   if(isMobile()) openSheet('detail');
   else $('detail').style.display='block';
 }
 // Drop the current satellite/launch selection and its map highlight (the pulsing ring).
-function deselectSat(){ if(!selected && !selectedLaunch) return; selected=null; selectedLaunch=null; renderFrame(); updateIssOrbit(); }
+function deselectSat(){ if(!selected && !selectedLaunch) return; selected=null; selectedLaunch=null; renderFrame(); updateOrbitPaths(); }
 function clearSelection(){
   deselectSat();
   if(isMobile()) closeSheets();
@@ -4753,6 +4837,7 @@ function openAchievements(u){
 }
 function renderAchievements(s){
   $('ach-name').textContent='@'+s.username;
+  const hz=$('ach-hero'); if(hz) hz.innerHTML='';   // leaderboard view has no hero block
   $('ach-stats').innerHTML='<div><b>'+s.badges+'</b><span>badges</span></div>'+
     '<div><b>'+s.sightings+'</b><span>sightings</span></div>'+
     '<div><b>'+s.streak+'</b><span>best streak</span></div>'+
@@ -4981,56 +5066,80 @@ function planTonight(){
     // Best pass per object, then rank by peak elevation (the usable proxy for brightness).
     const best=new Map();
     for(const r of rows){ const b=best.get(r.sat.id); if(!b || r.p.peakEl>b.p.peakEl) best.set(r.sat.id, r); }
-    // Pick the ten worth going outside for by quality, then run them in the order
-    // they'll actually happen — this is a schedule, not a leaderboard.
-    const ranked=[...best.values()].sort((a,b)=>b.p.peakEl-a.p.peakEl).slice(0,10)
-      .sort((a,b)=>a.p.start-b.p.start);
+    // Everything that qualifies, in the order it happens — the quality filter
+    // narrows this view without needing another sky sweep.
+    const all=[...best.values()].sort((a,b)=>a.p.start-b.p.start);
     // Strictly inside tonight's dark window — a 6-hour grace used to drag in
     // launches happening the next morning, which aren't "tonight" by any reading.
     const launches=(LAUNCHES||[]).filter(l=>{
       const t=(l.net&&l.net.getTime)?l.net.getTime():0;
       return t>=now && t<=win.end;
     }).sort((a,b)=>a.net-b.net).slice(0,3);
-    const mo=moonInfo(win.start);
-    const dur=Math.round((win.end-win.start)/3600000);
-    let h='<div class="nt-hero"><div class="nt-win">🌙 '+fmtPassTime(win.start)+' → '+
-      new Date(win.end).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</div>'+
-      '<div class="nt-sub">About '+dur+' hours of usable darkness. Moon '+Math.round(mo.illum*100)+'% lit'+
-      (mo.el!=null && mo.el<0 ? ', below the horizon at dusk' : '')+
-      (mo.illum>.6 && mo.el!=null && mo.el>10 ? ' — bright enough to wash out faint passes' : '')+'.</div></div>';
-    if(!ranked.length){
-      h+='<div class="fr-note">No naked-eye passes above 20° tonight. That happens — the good ones cluster into a few days each month. Try the Identify tab if you spot something anyway.</div>';
-    } else {
-      h+='<div class="idf-lbl">Tonight’s running order</div>';
-      ntRows=ranked.map(r=>({id:r.sat.id, start:r.p.start, end:r.p.end}));
-      ranked.forEach(r=>{
-        const mins=Math.max(1,Math.round((r.p.end-r.p.start)/60000));
-        const grade = r.p.peakEl>=70 ? ['best','Superb'] : r.p.peakEl>=45 ? ['good','Good'] : ['','Fair'];
-        h+='<button class="nt-rank" data-id="'+esc(r.sat.id)+'" data-start="'+r.p.start+'" data-end="'+r.p.end+'">'+
-          '<span class="nt-num"></span><span class="nt-body">'+
-          '<span class="nt-nm">'+esc(r.sat.name)+'</span>'+
-          '<span class="nt-when">'+fmtPassTime(r.p.start)+' · max '+Math.round(r.p.peakEl)+'° · '+
-          azCompass(r.p.startAz)+'→'+azCompass(r.p.endAz)+' · '+mins+' min</span></span>'+
-          '<span class="nt-grade '+grade[0]+'">'+grade[1]+'</span></button>';
-      });
-    }
-    if(launches.length){
-      h+='<div class="idf-lbl">Launches during tonight’s window</div>';
-      for(const l of launches){
-        h+='<button class="nt-rank" data-launch="'+esc(l.id)+'"><span class="nt-num">🚀</span>'+
-          '<span class="nt-body"><span class="nt-nm">'+esc(l.name||'Launch')+'</span>'+
-          '<span class="nt-when">'+(l.net?fmtPassTime(l.net.getTime()):'time TBD')+
-          (l.padName?(' · '+esc(l.padName)):'')+'</span></span></button>';
-      }
-    }
-    out.innerHTML=h;
-    out.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{
-      const s=SATS.find(x=>x.id===b.dataset.id); if(s) selectSat(s); });
-    out.querySelectorAll('[data-launch]').forEach(b=>b.onclick=()=>{
-      const l=(LAUNCHES||[]).find(x=>String(x.id)===b.dataset.launch); if(l) selectLaunch(l); });
+    ntData={ win, mo:moonInfo(win.start), all, launches };
+    renderNightList();
     markTonightProgress();
     startTonightTicker();
   }, 40);
+}
+/* Render the schedule from the last sweep. Switching quality just re-renders —
+   the expensive propagation already happened. */
+let ntData=null, ntQuality='all';
+const NT_CAP=25;
+function ntGrade(el){ return el>=70 ? ['best','Superb'] : el>=45 ? ['good','Good'] : ['','Fair']; }
+function renderNightList(){
+  const out=$('night-out'); if(!out || !ntData) return;
+  const {win, mo, launches}=ntData;
+  const superbOnly = ntQuality==='best';
+  const list=(superbOnly ? ntData.all.filter(r=>r.p.peakEl>=70) : ntData.all).slice(0, NT_CAP);
+  const dur=Math.round((win.end-win.start)/3600000);
+  let h='<div class="nt-hero"><div class="nt-win">🌙 '+fmtPassTime(win.start)+' → '+
+    new Date(win.end).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+'</div>'+
+    '<div class="nt-sub">About '+dur+' hours of usable darkness. Moon '+Math.round(mo.illum*100)+'% lit'+
+    (mo.el!=null && mo.el<0 ? ', below the horizon at dusk' : '')+
+    (mo.illum>.6 && mo.el!=null && mo.el>10 ? ' — bright enough to wash out faint passes' : '')+'.</div></div>';
+  const superbCount=ntData.all.filter(r=>r.p.peakEl>=70).length;
+  h+='<div class="idf-chips nt-filter" id="night-filter">'+
+      '<button data-q="all"'+(superbOnly?'':' class="on"')+'>All passes · '+ntData.all.length+'</button>'+
+      '<button data-q="best"'+(superbOnly?' class="on"':'')+'>⭐ Superb only · '+superbCount+'</button>'+
+    '</div>';
+  if(!list.length){
+    h+='<div class="fr-note">'+(superbOnly
+      ? 'Nothing above 70° tonight. Switch to “All passes” — a 45° pass is still an easy naked-eye sighting.'
+      : 'No naked-eye passes above 20° tonight. That happens — the good ones cluster into a few days each month.')+'</div>';
+    ntRows=[];
+  } else {
+    h+='<div class="idf-lbl">Tonight’s running order</div>';
+    ntRows=list.map(r=>({id:r.sat.id, start:r.p.start, end:r.p.end}));
+    list.forEach(r=>{
+      const mins=Math.max(1,Math.round((r.p.end-r.p.start)/60000));
+      const grade=ntGrade(r.p.peakEl);
+      h+='<button class="nt-rank" data-id="'+esc(r.sat.id)+'" data-start="'+r.p.start+'" data-end="'+r.p.end+'">'+
+        '<span class="nt-num"></span><span class="nt-body">'+
+        '<span class="nt-nm">'+esc(r.sat.name)+'</span>'+
+        '<span class="nt-when">'+fmtPassTime(r.p.start)+' · max '+Math.round(r.p.peakEl)+'° · '+
+        azCompass(r.p.startAz)+'→'+azCompass(r.p.endAz)+' · '+mins+' min</span></span>'+
+        '<span class="nt-grade '+grade[0]+'">'+grade[1]+'</span></button>';
+    });
+    if(!superbOnly && ntData.all.length>NT_CAP)
+      h+='<div class="fr-note">Showing the first '+NT_CAP+' of '+ntData.all.length+' — try “Superb only” to cut to the best.</div>';
+  }
+  if(launches.length){
+    h+='<div class="idf-lbl">Launches during tonight’s window</div>';
+    for(const l of launches){
+      h+='<button class="nt-rank" data-launch="'+esc(l.id)+'"><span class="nt-num">🚀</span>'+
+        '<span class="nt-body"><span class="nt-nm">'+esc(l.name||'Launch')+'</span>'+
+        '<span class="nt-when">'+(l.net?fmtPassTime(l.net.getTime()):'time TBD')+
+        (l.padName?(' · '+esc(l.padName)):'')+'</span></span></button>';
+    }
+  }
+  out.innerHTML=h;
+  const f=$('night-filter');
+  if(f) f.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    ntQuality=b.dataset.q; renderNightList(); markTonightProgress(); });
+  out.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{
+    const s=SATS.find(x=>x.id===b.dataset.id); if(s) selectSat(s); });
+  out.querySelectorAll('[data-launch]').forEach(b=>b.onclick=()=>{
+    const l=(LAUNCHES||[]).find(x=>String(x.id)===b.dataset.launch); if(l) selectLaunch(l); });
 }
 /* Walk the schedule as the night goes: what's overhead now, what's up next,
    what's already gone. Cheap enough to re-run on a timer — it only touches classes. */
@@ -5858,7 +5967,8 @@ function renderFriends(){
 async function openFriendProfile(f){
   const modal=$('achieve'); if(!modal) return;
   $('ach-name').textContent='@'+f.username;
-  $('ach-stats').innerHTML='<div class="fr-note">Loading their journey…</div>';
+  $('ach-hero').innerHTML='';
+  $('ach-stats').innerHTML='<div class="fr-note" style="grid-column:1/-1">Loading their journey…</div>';
   $('ach-grid').innerHTML='';
   const lg=$('ach-log'); if(lg){ lg.innerHTML=''; lg.style.display='none'; }
   modal.classList.add('show');
@@ -5885,27 +5995,28 @@ function renderFriendProfile(p, f){
     const t=first.ts||first.last;
     if(t) since=new Date(t).toLocaleDateString([], {month:'long', year:'numeric'});
   }
-  $('ach-name').innerHTML='';
-  $('ach-stats').innerHTML=
-    '<div class="fp-hero"><div class="hero-av">'+av+'</div>'+
+  // Same structure as the Awards page: hero block, then the 4-up stat grid, then awards.
+  $('ach-name').textContent='';
+  $('ach-hero').innerHTML=
+    '<div class="hero-top"><div class="hero-av">'+av+'</div>'+
       '<div class="hero-name">@'+esc(uname)+'</div>'+
       '<div class="hero-since">'+(online?'<span class="fp-live">● online now</span>':'offline')+
         (since?(' · watching since '+since):'')+'</div>'+
-      '<div class="hero-score">'+score+' <span>points</span></div></div>'+
-    '<div class="hero-stats">'+
-      '<div class="hs-click" id="fp-objects"><b>'+st.badges+'</b><span>objects ›</span></div>'+
-      '<div><b>'+st.sightings+'</b><span>sightings</span></div>'+
-      '<div><b>'+st.maxStreak+'</b><span>best streak</span></div>'+
-      '<div><b>'+earned.length+'/'+ACH.length+'</b><span>awards</span></div>'+
-    '</div>'+
+      '<div class="hero-score">'+score+' <span>points</span></div></div>';
+  $('ach-stats').innerHTML=
+    '<div class="hs-click" id="fp-objects"><b>'+st.badges+'</b><span>objects ›</span></div>'+
+    '<div><b>'+st.sightings+'</b><span>sightings</span></div>'+
+    '<div><b>'+st.maxStreak+'</b><span>best streak</span></div>'+
+    '<div><b>'+earned.length+'/'+ACH.length+'</b><span>awards</span></div>';
+  $('ach-grid').innerHTML=
     (st.starlink||st.geo||st.launches
       ? '<div class="hero-note">'+
           (st.starlink?('<b>'+st.starlink+'</b> Starlink'):'')+
           (st.geo?((st.starlink?' · ':'')+'<b>'+st.geo+'</b> geostationary'):'')+
           (st.launches?(((st.starlink||st.geo)?' · ':'')+'<b>'+st.launches+'</b> launches'):'')+
         '</div>' : '')+
-    '<div class="fr-sub">Their awards · '+earned.length+' of '+ACH.length+'</div>';
-  $('ach-grid').innerHTML=ACH.map(a=>{ const on=earnedSet.has(a.id);
+    '<div class="fr-sub">Their awards · '+earned.length+' of '+ACH.length+'</div>'+
+    ACH.map(a=>{ const on=earnedSet.has(a.id);
     return '<div class="ach-item'+(on?' on':'')+'"><div class="ach-ic">'+a.ic+'</div>'+
       '<div class="ach-txt"><b>'+a.n+'</b><span>'+a.d+'</span></div>'+
       (on?'<span class="ach-pts">+'+a.p+'</span>':'<span class="ach-lock">🔒</span>')+'</div>'; }).join('');
