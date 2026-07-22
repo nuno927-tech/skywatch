@@ -407,7 +407,9 @@
   /* Friends sub-tabs */
   .fr-tabs{display:flex;gap:6px;margin:6px 0 12px;background:rgba(120,160,255,.06);border:1px solid var(--border);border-radius:12px;padding:4px}
   .fr-tabs button{flex:1;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:8px;border-radius:9px;cursor:pointer}
-  .fr-tabs button.on{background:rgba(90,209,255,.16);color:var(--accent)}
+  .fr-tabs button.on{background:rgba(var(--neon-c),.16);color:rgb(var(--neon-c));
+    box-shadow:0 0 0 1px rgba(var(--neon-c),.55),0 0 20px rgba(var(--neon-c),.4);
+    text-shadow:0 0 12px rgba(var(--neon-c),.7)}
   #fr-pane-add{display:none}
   #fr-tabs button{font-size:13px;padding:9px 6px}
   #frt-friends.on{color:#c58cff;background:rgba(197,140,255,.16);
@@ -757,9 +759,10 @@
   .idf-chips button{border:1px solid var(--border);background:rgba(120,160,255,.06);color:var(--muted);
     border-radius:12px;padding:13px 12px;font-size:13.5px;font-weight:600;cursor:pointer;
     min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;
-    line-height:1.2;transition:background .12s,border-color .12s,color .12s}
-  .idf-chips button.on{background:rgba(90,209,255,.2);color:var(--accent);border-color:rgba(90,209,255,.55);
-    box-shadow:0 0 0 1px rgba(90,209,255,.25) inset}
+    line-height:1.2;box-shadow:var(--neon-rest);transition:background .12s,border-color .12s,color .12s,box-shadow .12s}
+  .idf-chips button:hover{border-color:rgba(var(--neon-c),.5);box-shadow:var(--neon-hot)}
+  .idf-chips button.on{background:rgba(var(--neon-c),.2);color:rgb(var(--neon-c));border-color:rgba(var(--neon-c),.6);
+    box-shadow:var(--neon-hot);text-shadow:0 0 10px rgba(var(--neon-c),.6)}
   .idf-chips button:active{transform:scale(.97)}
   /* Identify: full-width grids so every target is big and thumb-reachable */
   #idf-quick,#idf-alts{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
@@ -771,9 +774,10 @@
   }
   /* UAP form chips: same generous sizing, auto-fitting columns */
   .uap-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:7px}
-  .idf-go{width:100%;margin-top:20px;padding:17px;border-radius:14px;border:1px solid rgba(90,209,255,.55);
-    background:rgba(90,209,255,.16);color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;min-height:54px}
-  .idf-go:hover{background:rgba(90,209,255,.26)}
+  .idf-go{width:100%;margin-top:20px;padding:17px;border-radius:14px;border:1px solid rgba(var(--neon-c),.55);
+    background:rgba(var(--neon-c),.16);color:rgb(var(--neon-c));font-size:15px;font-weight:700;cursor:pointer;min-height:54px;
+    box-shadow:var(--neon-hot);text-shadow:0 0 12px rgba(var(--neon-c),.6);transition:background .15s,box-shadow .15s}
+  .idf-go:hover{background:rgba(var(--neon-c),.26);box-shadow:var(--neon-hot)}
   .idf-go:active{transform:scale(.985)}
   .idf-when-hd{margin:18px 0 10px;font-size:12.5px;color:var(--muted);line-height:1.5}
   .idf-row{border:1px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;
@@ -785,9 +789,10 @@
   .idf-v{font-size:11px;color:var(--muted);flex:0 0 auto;text-transform:uppercase;letter-spacing:.4px}
   .idf-v.ok{color:#57e08a}
   .idf-m{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.45}
-  .idf-uap{width:100%;margin-top:12px;padding:16px;border-radius:14px;border:1px solid var(--border);
-    background:rgba(120,160,255,.08);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;min-height:52px}
-  .idf-uap:hover{border-color:var(--accent);color:var(--accent)}
+  .idf-uap{width:100%;margin-top:12px;padding:16px;border-radius:14px;border:1px solid rgba(var(--neon-c),.3);
+    background:rgba(120,160,255,.08);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;min-height:52px;
+    box-shadow:var(--neon-rest);transition:box-shadow .15s,border-color .15s,color .15s}
+  .idf-uap:hover{border-color:rgba(var(--neon-c),.55);color:rgb(var(--neon-c));box-shadow:var(--neon-hot)}
   .idf-uap:active{transform:scale(.985)}
   .idf-uap:disabled{opacity:.5;cursor:default;box-shadow:0 2px 8px rgba(0,0,0,.3)}
   /* Nudge to set a location: pulsing ring + label on the ⌖ button */
@@ -1844,14 +1849,14 @@
   /* --- Static bottom bar; menus slide up behind it --- */
   @media (max-width:820px){
     :root{--sheet-h:min(74vh,620px,calc(100vh - 130px)); --bar-h:64px}
-    /* Anchored to the screen edge and never moves — the one fixed landmark in the UI */
+    /* Floating pill lifted off the bottom edge so its glowing border shows all the way around */
     #mbar{
-      left:0;right:0;bottom:0;transform:none;width:auto;max-width:none;
-      height:calc(var(--bar-h) + env(safe-area-inset-bottom));
-      padding:5px 8px calc(env(safe-area-inset-bottom) + 5px);
-      border-radius:20px 20px 0 0;border-bottom:none;
+      left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100vw - 20px);
+      bottom:calc(env(safe-area-inset-bottom) + 10px);
+      height:auto;padding:5px 8px;
+      border-radius:22px;
       z-index:65;                              /* above the backdrop (55) and every sheet (60) */
-      box-shadow:0 -10px 34px rgba(0,0,0,.6),0 0 0 1px rgba(var(--neon-c),.14),
+      box-shadow:0 10px 34px rgba(0,0,0,.6),0 0 0 1px rgba(var(--neon-c),.16),
                  0 0 34px rgba(var(--neon-c),.14),inset 0 1px 0 rgba(255,255,255,.07);
     }
     #mbar button{height:54px}
@@ -2577,7 +2582,7 @@
 </script>
 
 <script>
-const BUILD = 'v163';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v165';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -6849,10 +6854,9 @@ function initAccountUI(){
   document.addEventListener('click', e=>{
     const m=$('accountmenu');
     if(m.classList.contains('open') && !m.contains(e.target) && !$('account').contains(e.target)) m.classList.remove('open');
-    const st=$('settings');   // desktop settings panel closes on outside click (mobile uses the backdrop)
-    if(!isMobile() && st.classList.contains('open') && !st.contains(e.target)
-       && !$('settingsbtn').contains(e.target) && !$('mbar').contains(e.target))   // not when opening it from the nav bar
-      st.classList.remove('open');
+    // Settings is a docked panel now (with its own ✕), like Feed/Awards — it stays open until you
+    // close it, so it is NOT dismissed on outside clicks. (That old dropdown behaviour was what
+    // slammed it shut on the very click from the nav bar that opened it.)
   });
 }
 // Called by the module once the Firebase SDK is initialised (window.fb is ready).
