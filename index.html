@@ -591,7 +591,7 @@
     background:rgba(87,224,138,.12);color:var(--text);cursor:pointer;font-size:14px;line-height:1}
   .fr-msg:hover{background:rgba(87,224,138,.24);border-color:rgba(87,224,138,.55)}
   /* Compose-a-message overlay — only reachable for online friends */
-  #fmsg{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  #fmsg{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;
     background:rgba(4,7,14,.6);backdrop-filter:blur(3px);padding:18px}
   #fmsg.show{display:flex}
   .fmsg-card{width:min(420px,100%);background:var(--panel,#0d1420);border:1px solid rgba(87,224,138,.4);
@@ -2683,7 +2683,7 @@
 </script>
 
 <script>
-const BUILD = 'v174';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v175';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
