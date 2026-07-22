@@ -591,8 +591,9 @@
     background:rgba(87,224,138,.12);color:var(--text);cursor:pointer;font-size:14px;line-height:1}
   .fr-msg:hover{background:rgba(87,224,138,.24);border-color:rgba(87,224,138,.55)}
   /* Compose-a-message overlay — only reachable for online friends */
-  #fmsg{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;
-    background:rgba(4,7,14,.6);backdrop-filter:blur(3px);padding:18px}
+  #fmsg{position:fixed;inset:0;z-index:400;display:none;align-items:flex-start;justify-content:center;
+    padding:max(6vh,48px) 18px 18px;   /* top-aligned so the keyboard doesn't cover the compose box */
+    background:rgba(4,7,14,.6);backdrop-filter:blur(3px)}
   #fmsg.show{display:flex}
   .fmsg-card{width:min(420px,100%);background:var(--panel,#0d1420);border:1px solid rgba(87,224,138,.4);
     border-radius:16px;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 22px rgba(87,224,138,.18)}
@@ -853,7 +854,9 @@
   @media (max-width:820px){ #loc-hint{right:70px;bottom:calc(env(safe-area-inset-bottom) + 118px)} }
   @media (prefers-reduced-motion:reduce){ #gotome.hint{animation:none} }
   /* Postal-code location picker */
-  #locmodal{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:18px;
+  /* Top-aligned (not centered) so the on-screen keyboard doesn't cover the input. */
+  #locmodal{position:fixed;inset:0;z-index:110;display:none;align-items:flex-start;justify-content:center;
+    padding:max(6vh,48px) 18px 18px;
     background:rgba(3,6,15,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
   #locmodal.show{display:flex}
   #loc-close{position:absolute;top:12px;right:14px;width:30px;height:30px;display:flex;align-items:center;
@@ -2683,7 +2686,7 @@
 </script>
 
 <script>
-const BUILD = 'v178';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v179';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
