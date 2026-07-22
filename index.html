@@ -252,7 +252,8 @@
     display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0}
   #account:hover{border-color:var(--accent);color:var(--accent)}
   #account img{width:100%;height:100%;object-fit:cover;display:block}
-  #accountmenu{position:fixed;top:60px;right:16px;width:260px;padding:16px;z-index:80;display:none}
+  #accountmenu{position:fixed;top:60px;right:16px;width:260px;padding:16px;z-index:80;display:none;
+    max-height:calc(100vh - 76px);overflow-y:auto}
   #accountmenu.open{display:block}
   #accountmenu .who{display:flex;gap:11px;align-items:center;margin-bottom:14px}
   #accountmenu .who img{width:42px;height:42px;border-radius:50%;flex:0 0 auto}
@@ -268,6 +269,23 @@
   #accountmenu .note{font-size:11.5px;color:var(--muted);line-height:1.45}
   #accountmenu .note.top{margin:0 0 12px}
   #accountmenu .note.bot{margin:12px 0 0}
+  /* Email sign-in form */
+  #accountmenu .acct-or{display:flex;align-items:center;gap:9px;margin:13px 0 11px;
+    color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1.2px}
+  #accountmenu .acct-or::before,#accountmenu .acct-or::after{content:'';flex:1;height:1px;background:var(--border)}
+  #accountmenu .acct-in{width:100%;box-sizing:border-box;padding:10px 12px;margin-bottom:8px;border-radius:10px;
+    border:1px solid var(--border);background:rgba(0,0,0,.34);color:var(--text);font-size:13px;font-family:inherit;
+    outline:none;color-scheme:dark}
+  #accountmenu .acct-in::placeholder{color:var(--muted)}
+  #accountmenu .acct-in:focus{border-color:rgba(var(--neon-c),.6);box-shadow:0 0 0 1px rgba(var(--neon-c),.3)}
+  #accountmenu .acct-emrow{display:flex;gap:8px;margin-top:2px}
+  #accountmenu .acct-emrow .act{flex:1;width:auto;margin-bottom:0}
+  #accountmenu .acct-forgot{text-align:center;margin-top:11px;font-size:11.5px}
+  #accountmenu .acct-forgot .lnk{color:var(--accent);cursor:pointer}
+  #accountmenu .acct-emmsg{margin-top:9px;font-size:11.5px;line-height:1.45;text-align:center}
+  #accountmenu .acct-emmsg:empty{margin-top:0}
+  #accountmenu .acct-emmsg.err{color:#ff8a6b}
+  #accountmenu .acct-emmsg.ok{color:#57e08a}
   @media (max-width:820px){
     #accountmenu{top:calc(env(safe-area-inset-top) + 52px);right:10px;width:min(280px,86vw)}
     #account{width:34px;height:34px}
@@ -1603,6 +1621,9 @@
     opacity:0;transform:translateY(150%) scale(.96);
     transition:opacity .38s cubic-bezier(.2,.9,.3,1),transform .52s cubic-bezier(.2,1.2,.3,1)}
   #unlock.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+  /* Top variant (sign-in greeting): docks just below the header and swipes in/out from the top */
+  #unlock.ul-top{top:calc(env(safe-area-inset-top) + 66px);bottom:auto;transform:translateY(-165%) scale(.96)}
+  #unlock.ul-top.show{transform:translateY(0) scale(1)}
   .ul-card{position:relative;display:flex;align-items:center;gap:14px;overflow:hidden;
     min-height:104px;padding:18px;border-radius:20px;cursor:pointer;
     background:linear-gradient(135deg,rgba(22,30,54,.97),rgba(12,18,34,.97));
@@ -2621,7 +2642,7 @@
 </script>
 
 <script>
-const BUILD = 'v169';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v171';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -6867,9 +6888,63 @@ function updateAccountUI(user){
     btn.innerHTML = USER_ICON;
     menu.innerHTML = `
       <div class="note top">Sign in to save your location and filters, and sync them across all your devices.</div>
-      <button class="act g" id="signin">${GOOGLE_G} Sign in with Google</button>`;
+      <button class="act g" id="signin">${GOOGLE_G} Sign in with Google</button>
+      <div class="acct-or"><span>or use email</span></div>
+      <input class="acct-in" id="acct-email" type="email" autocomplete="email" placeholder="Email" spellcheck="false" />
+      <input class="acct-in" id="acct-pw" type="password" autocomplete="current-password" placeholder="Password" />
+      <div class="acct-emrow">
+        <button class="act" id="acct-emsignin">Sign in</button>
+        <button class="act" id="acct-emsignup">Create account</button>
+      </div>
+      <div class="acct-forgot"><span class="lnk" id="acct-forgot">Forgot password?</span></div>
+      <div class="acct-emmsg" id="acct-emmsg"></div>`;
     const si=$('signin'); if(si) si.onclick=()=>{ menu.classList.remove('open'); signInGoogle(); };
+    const ei=$('acct-emsignin'); if(ei) ei.onclick=()=>emailAuth('in');
+    const eu=$('acct-emsignup'); if(eu) eu.onclick=()=>emailAuth('up');
+    const fp=$('acct-forgot');   if(fp) fp.onclick=resetPassword;
+    const pw=$('acct-pw'); if(pw) pw.addEventListener('keydown', e=>{ if(e.key==='Enter') emailAuth('in'); });
   }
+}
+// Shared email sign-in / create-account. mode = 'in' | 'up'.
+function emailAuth(mode){
+  if(!window.fb){ acctMsg('Sign-in is still loading — try again in a moment.', true); return; }
+  const em=(($('acct-email')||{}).value||'').trim();
+  const pw=(($('acct-pw')||{}).value||'');
+  if(!em){ acctMsg('Enter your email.', true); return; }
+  if(!pw){ acctMsg('Enter your password.', true); return; }
+  if(mode==='up' && pw.length<6){ acctMsg('Password must be at least 6 characters.', true); return; }
+  acctMsg('Working…', false);
+  const {auth, signInWithEmailAndPassword, createUserWithEmailAndPassword}=window.fb;
+  const p = mode==='up' ? createUserWithEmailAndPassword(auth, em, pw)
+                        : signInWithEmailAndPassword(auth, em, pw);
+  p.then(()=>{ $('accountmenu').classList.remove('open'); })   // onAuthStateChanged re-renders the signed-in view
+   .catch(e=>acctMsg(mapAuthErr(e, mode), true));
+}
+function resetPassword(){
+  if(!window.fb){ acctMsg('Sign-in is still loading — try again in a moment.', true); return; }
+  const em=(($('acct-email')||{}).value||'').trim();
+  if(!em){ acctMsg('Type your email above first, then tap “Forgot password”.', true); return; }
+  window.fb.sendPasswordResetEmail(window.fb.auth, em)
+    .then(()=>acctMsg('Password-reset email sent — check your inbox.', false))
+    .catch(e=>acctMsg(mapAuthErr(e,'in'), true));
+}
+function acctMsg(text, isErr){ const el=$('acct-emmsg'); if(!el) return;
+  el.textContent=text; el.classList.toggle('err', !!isErr); el.classList.toggle('ok', !isErr); }
+function mapAuthErr(e, mode){
+  const c=(e&&e.code)||'';
+  const m={
+    'auth/invalid-email':'That doesn’t look like a valid email address.',
+    'auth/missing-password':'Enter your password.',
+    'auth/user-not-found':'No account with that email — tap “Create account”.',
+    'auth/wrong-password':'Incorrect password.',
+    'auth/invalid-credential':'Email or password is incorrect.',
+    'auth/email-already-in-use':'That email already has an account — tap “Sign in”.',
+    'auth/weak-password':'Password must be at least 6 characters.',
+    'auth/too-many-requests':'Too many attempts — wait a moment and try again.',
+    'auth/network-request-failed':'Network error — check your connection.',
+    'auth/operation-not-allowed':'Email sign-in isn’t enabled for this app yet.'
+  };
+  return m[c] || ((mode==='up'?'Could not create account: ':'Sign-in failed: ')+(c||(e&&e.message)||'unknown error'));
 }
 function signInGoogle(){
   if(!window.fb){ showErr('Sign-in is still loading — try again in a moment.'); return; }
@@ -7580,6 +7655,7 @@ function pulsePing(times){
 function showPremiumCard(o){
   const el=$('unlock'); if(!el){ o.done&&o.done(); return; }
   el.style.setProperty('--ul-c', o.hue||'255,211,77');
+  el.classList.toggle('ul-top', !!o.top);   // dock at the top (sign-in greeting) vs the default bottom
   const cardEl=el.querySelector('.ul-card');
   cardEl.classList.remove('ul-shake');
   cardEl.style.removeProperty('--ul-shakes');
@@ -7596,6 +7672,7 @@ function showPremiumCard(o){
   // A new card supersedes whatever is on screen — but the old one's callback still
   // runs, so queues (award unlocks) can't stall behind a passing toast.
   if(pcHide){ const prev=pcHide; pcHide=null; prev(true); }
+  if(!el.classList.contains('show')) void el.offsetWidth;   // commit the off-screen start so it swipes from the correct edge
   el.classList.add('show');
   const card=el.querySelector('.ul-card');
   card.classList.toggle('ul-sticky', !!o.sticky);
@@ -7633,6 +7710,7 @@ function showSignInCard(user){
     hue:'90,209,255', icon, figure:!!user.photoURL,
     kicker:'Welcome back', name,
     desc:'Your sightings and settings are synced', ms:4600,
+    top:true,                                   // greeting drops in from the top, below the header
     onTap:openBoardPanel
   });
   SFX.success();
@@ -9116,6 +9194,9 @@ initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); 
         getRedirectResult: authMod.getRedirectResult,
         signOut: authMod.signOut,
         onAuthStateChanged: authMod.onAuthStateChanged,
+        createUserWithEmailAndPassword: authMod.createUserWithEmailAndPassword,
+        signInWithEmailAndPassword: authMod.signInWithEmailAndPassword,
+        sendPasswordResetEmail: authMod.sendPasswordResetEmail,
         doc: fsMod.doc, setDoc: fsMod.setDoc, onSnapshot: fsMod.onSnapshot,
         getDoc: fsMod.getDoc, collection: fsMod.collection, deleteDoc: fsMod.deleteDoc,
         getCountFromServer: fsMod.getCountFromServer, query: fsMod.query, where: fsMod.where,
