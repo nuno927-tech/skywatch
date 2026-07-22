@@ -2536,7 +2536,7 @@
 </script>
 
 <script>
-const BUILD = 'v154';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v156';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -3159,22 +3159,11 @@ function initGlobe(){
    the poles on the night side, and a separate cloud shell drifts overhead. All of it is a
    theme ("Photoreal"); the flat maps still work when selected. Falls back gracefully to a plain
    day image if three.js never loaded. */
-let PHOTO = { on:false, mat:null, origMat:null, matShader:null, raf:0, t0:0, tex:{} };
-
-// Load a texture from the repo, falling back to a CDN copy so the globe never breaks.
-function loadEarthTex(spec, cb){
-  if(!window.THREE){ cb(null); return; }
-  const L=new THREE.TextureLoader(); L.setCrossOrigin('anonymous');
-  const prep=t=>{ if(!t){ cb(null); return; }
-    try{ t.colorSpace = THREE.SRGBColorSpace; }catch(e){}
-    try{ t.anisotropy = 4; }catch(e){}
-    t.needsUpdate = true; cb(t); };
-  L.load(spec.local, prep, undefined, ()=> L.load(spec.cdn, prep, undefined, ()=>cb(null)));
-}
+let PHOTO = { on:false, gm:null, matShader:null, origOBC:undefined, origColor:null, raf:0, t0:0 };
 
 // Day/night is computed from the texture's own UV coordinates vs the geographic subsolar
-// point (both in lat/lng). This is immune to however globe.gl orients or rotates the globe
-// mesh — the terminator always lands on the correct geography because the texture defines it.
+// point (both in lat/lng). This is immune to however globe.gl orients the globe mesh — the
+// terminator always lands on the correct geography because the texture defines it.
 function subsolarNow(){ return subsolarPoint(simNow()); }   // { lat, lng } in radians
 
 const AUR_GLSL = `
@@ -3188,79 +3177,107 @@ float auroraF(vec2 uv, float t){
   return clamp(pow(n,1.6)*(0.35+0.65*n2), 0.0, 1.0); }
 `;
 
-// Globe material: day map on the lit side, city lights on the dark side, warm dusk at the
-// terminator, aurora near the poles, and drifting clouds — all composited in ONE material on
-// globe.gl's own globe mesh. (A separate cloud mesh can't be added: globe.gl bundles its own
-// three.js, and a mesh built from the app's window.THREE trips determinantAffine and kills the
-// render loop. Folding clouds into this shader sidesteps that entirely.)
-function buildEarthMat(dayTex, nightTex, cloudTex, hasCloud){
+/* CRITICAL: globe.gl bundles its OWN three.js (currently r185), separate from the app's
+   window.THREE (r160). Any material or texture built with window.THREE renders black (or throws
+   determinantAffine) inside globe.gl's renderer. So photoreal must use globe.gl's OWN objects:
+   we MUTATE globe.gl's existing globe material in place (never swap it) and build textures from
+   its own Texture class (grabbed off the live globe map). */
+
+// HTMLImage with repo→CDN fallback (no three.js involved). localOnly = only try the repo file.
+function loadImg(spec, cb, localOnly){
+  const im=new Image(); im.crossOrigin='anonymous';
+  im.onload=()=>cb(im);
+  im.onerror=()=>{ if(!localOnly && im.src.indexOf(spec.cdn)<0){ im.src=spec.cdn; } else cb(null); };
+  im.src=spec.local;
+}
+// Build a globe.gl-instance texture from an image, using globe.gl's own Texture class.
+function mkGLTex(GLTex, img, colorSpace, repeat){
+  const t=new GLTex(img);
+  try{ t.colorSpace=colorSpace; }catch(e){}
+  if(repeat){ try{ t.wrapS=1000; }catch(e){} }   // 1000 = THREE.RepeatWrapping (stable constant)
+  t.needsUpdate=true; return t;
+}
+
+// Inject the day/night/cloud/aurora shader into globe.gl's own Phong material. We override the
+// final colour just before the colour-space conversion so it re-encodes correctly, and bypass
+// Phong lighting entirely (our blend is the only shading).
+function applyEarthShader(gm, nightTex, cloudTex){
   const s0=subsolarNow();
-  const m=new THREE.MeshBasicMaterial({ color:0xffffff, map:dayTex });
-  m.onBeforeCompile = (sh)=>{
-    sh.uniforms.nightTex={value:nightTex};
-    sh.uniforms.cloudTex={value:cloudTex};
+  const hasCloud = !!cloudTex;
+  const cloudUse = cloudTex || gm.map;             // placeholder avoids a null sampler
+  if(gm.color && gm.color.setHex) gm.color.setHex(0xffffff);
+  gm.onBeforeCompile = (sh)=>{
+    sh.uniforms.nightTex ={value:nightTex};
+    sh.uniforms.cloudTex ={value:cloudUse};
     sh.uniforms.uHasCloud={value:hasCloud?1.0:0.0};
     sh.uniforms.uCloudOff={value:0.0};
-    sh.uniforms.uSunLat ={value:s0.lat};
-    sh.uniforms.uSunLng ={value:s0.lng};
-    sh.uniforms.uTime   ={value:0};
+    sh.uniforms.uSunLat  ={value:s0.lat};
+    sh.uniforms.uSunLng  ={value:s0.lng};
+    sh.uniforms.uTime    ={value:0};
     sh.vertexShader = 'varying vec2 vGeo;\n' + sh.vertexShader.replace(
-      '#include <begin_vertex>',
-      '#include <begin_vertex>\n  vGeo = uv;');
+      '#include <begin_vertex>', '#include <begin_vertex>\n  vGeo = uv;');
     sh.fragmentShader =
-      'uniform sampler2D nightTex;\nuniform sampler2D cloudTex;\nuniform float uHasCloud;\nuniform float uCloudOff;\nuniform float uSunLat;\nuniform float uSunLng;\nuniform float uTime;\nvarying vec2 vGeo;\n'
-      + AUR_GLSL
-      + sh.fragmentShader.replace('#include <map_fragment>',
-      `#include <map_fragment>
-       {
-         float lng = (vGeo.x - 0.5) * 2.0 * PI;
-         float lat = (vGeo.y - 0.5) * PI;
-         float cosC = sin(lat)*sin(uSunLat) + cos(lat)*cos(uSunLat)*cos(lng - uSunLng);
-         float day = smoothstep(-0.10, 0.13, cosC);
-         vec3 nite = texture2D(nightTex, vMapUv).rgb;
-         nite = pow(nite, vec3(2.2)) * vec3(1.15,1.02,0.72) * 2.1;    // warm, linearized city glow
-         vec3 col = mix(nite, diffuseColor.rgb, day);
-         float dusk = (1.0 - smoothstep(0.0, 0.28, abs(cosC))) * (1.0 - day);
-         col += vec3(0.20,0.09,0.03) * dusk;                          // sunset rim on the night edge
-         float latA = abs(vGeo.y - 0.5) * 2.0;                        // 0 at equator, 1 at pole
-         float band = smoothstep(0.72,0.80,latA) * (1.0 - smoothstep(0.92,0.99,latA));
-         float a = auroraF(vGeo, uTime) * band * (1.0 - day);
-         col += vec3(0.16,1.0,0.55) * a * 0.9;                        // polar aurora
-         float cl = texture2D(cloudTex, vec2(vGeo.x + uCloudOff, vGeo.y)).r * uHasCloud;
-         col = mix(col, vec3(1.0) * mix(0.12, 1.0, day), cl * 0.55);  // drifting clouds, dim at night
-         diffuseColor.rgb = col;
-       }`);
+      'uniform sampler2D nightTex;\nuniform sampler2D cloudTex;\nuniform float uHasCloud;\nuniform float uCloudOff;\nuniform float uSunLat;\nuniform float uSunLng;\nuniform float uTime;\nvarying vec2 vGeo;\nvec3 gEarthCol;\n'
+      + AUR_GLSL + '\n'                          // trailing newline: keeps the next line's #define at column 0
+      + sh.fragmentShader
+        .replace('#include <map_fragment>',
+        `#include <map_fragment>
+         {
+           float lng = (vGeo.x - 0.5) * 2.0 * PI;
+           float lat = (vGeo.y - 0.5) * PI;
+           float cosC = sin(lat)*sin(uSunLat) + cos(lat)*cos(uSunLat)*cos(lng - uSunLng);
+           float day = smoothstep(-0.10, 0.13, cosC);
+           vec3 nite = pow(texture2D(nightTex, vGeo).rgb, vec3(2.2)) * vec3(1.15,1.02,0.72) * 2.1;
+           vec3 col = mix(nite, diffuseColor.rgb, day);
+           float dusk = (1.0 - smoothstep(0.0, 0.28, abs(cosC))) * (1.0 - day);
+           col += vec3(0.20,0.09,0.03) * dusk;                          // sunset rim
+           float latA = abs(vGeo.y - 0.5) * 2.0;                        // 0 at equator, 1 at pole
+           float band = smoothstep(0.72,0.80,latA) * (1.0 - smoothstep(0.92,0.99,latA));
+           col += vec3(0.16,1.0,0.55) * auroraF(vGeo, uTime) * band * (1.0 - day) * 0.9;
+           float cl = texture2D(cloudTex, vec2(vGeo.x + uCloudOff, vGeo.y)).r * uHasCloud;
+           col = mix(col, vec3(1.0) * mix(0.12, 1.0, day), cl * 0.55); // drifting clouds, dim at night
+           gEarthCol = col;
+         }`)
+        .replace('#include <colorspace_fragment>', 'gl_FragColor = vec4(gEarthCol, 1.0);\n#include <colorspace_fragment>');
     PHOTO.matShader = sh;
   };
-  return m;
+  gm.needsUpdate = true;
 }
 
 function isPhotoreal(){ return prefs.theme==='real'; }
 
 function enablePhotoreal(){
   if(typeof world==='undefined' || !world) return;
-  if(!window.THREE){ world.globeImageUrl(TEX.day.cdn); return; }   // no 3D engine → plain day map
   if(PHOTO.on) return;
   try{
     PHOTO.on=true; PHOTO.t0=performance.now();
-    if(!PHOTO.origMat){ try{ PHOTO.origMat = world.globeMaterial(); }catch(e){} }
-    loadEarthTex(TEX.day, dayTex=>{
-      if(!PHOTO.on || !dayTex) return;
-      PHOTO.tex.day=dayTex;
-      loadEarthTex(TEX.night, nightTex=>{
+    const gm0 = world.globeMaterial();               // globe.gl's own material (correct three instance)
+    PHOTO.gm = gm0;
+    if(PHOTO.origOBC===undefined) PHOTO.origOBC = gm0.onBeforeCompile;
+    if(PHOTO.origColor==null && gm0.color && gm0.color.getHex) PHOTO.origColor = gm0.color.getHex();
+    world.globeImageUrl(TEX.day.cdn);                // let globe.gl load a day map in its own instance
+    let tries=0;
+    const waitMap=()=>{
+      if(!PHOTO.on) return;
+      const gm = world.globeMaterial();
+      if(!gm || !gm.map){ if(tries++<80) setTimeout(waitMap,100); return; }
+      PHOTO.gm = gm;
+      const GLTex = gm.map.constructor, cs = gm.map.colorSpace;
+      // upgrade the day map to the local 4K file if it exists (else keep globe.gl's CDN map)
+      loadImg(TEX.day, img=>{ if(img && PHOTO.on){ gm.map=mkGLTex(GLTex,img,cs,false); gm.needsUpdate=true; } }, true);
+      // night lights (required) then clouds (optional) — build the shader once resolved
+      loadImg(TEX.night, nimg=>{
         if(!PHOTO.on) return;
-        PHOTO.tex.night = nightTex || dayTex;
-        loadEarthTex(TEX.cloud, cloudTex=>{        // clouds are optional; build the material either way
+        const nightTex = nimg ? mkGLTex(GLTex,nimg,cs,false) : gm.map;
+        loadImg(TEX.cloud, cimg=>{
           if(!PHOTO.on) return;
-          try{
-            if(cloudTex){ cloudTex.wrapS=THREE.RepeatWrapping; PHOTO.tex.cloud=cloudTex; }
-            PHOTO.mat = buildEarthMat(dayTex, PHOTO.tex.night, cloudTex||dayTex, cloudTex?1:0);
-            world.globeMaterial(PHOTO.mat);
-            startPhotoTick();
-          }catch(err){ console.warn('photoreal material failed', err); prefs.theme='blue'; disablePhotoreal(); world.globeImageUrl(THEMES.blue.img); }
-        });
-      });
-    });
+          const cloudTex = cimg ? mkGLTex(GLTex,cimg,cs,true) : null;
+          applyEarthShader(gm, nightTex, cloudTex);
+          startPhotoTick();
+        }, false);
+      }, false);
+    };
+    waitMap();
     updateIssOrbit();   // drop the flat night veil the shader now replaces
   }catch(err){
     console.warn('photoreal disabled, falling back', err);
@@ -3273,8 +3290,13 @@ function disablePhotoreal(){
   if(!PHOTO.on) return;
   PHOTO.on=false;
   if(PHOTO.raf){ cancelAnimationFrame(PHOTO.raf); PHOTO.raf=0; }
-  if(PHOTO.origMat){ try{ world.globeMaterial(PHOTO.origMat); }catch(e){} }
-  PHOTO.mat=null; PHOTO.matShader=null; PHOTO.tex={};
+  const gm=PHOTO.gm;
+  if(gm){
+    try{ gm.onBeforeCompile = PHOTO.origOBC || function(){}; }catch(e){}
+    try{ if(PHOTO.origColor!=null && gm.color && gm.color.setHex) gm.color.setHex(PHOTO.origColor); }catch(e){}
+    try{ gm.needsUpdate=true; }catch(e){}   // recompile back to a plain map; applyTheme sets the flat image
+  }
+  PHOTO.matShader=null;
 }
 
 // One light rAF while photoreal is on: track the sun, advance the aurora, drift the clouds.
