@@ -2577,7 +2577,7 @@
 </script>
 
 <script>
-const BUILD = 'v159';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v160';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -3268,11 +3268,9 @@ function applyEarthShader(gm, nightTex, cloudTex){
            float lng = (vGeo.x - 0.5) * 2.0 * PI;
            float lat = (vGeo.y - 0.5) * PI;
            float cosC = sin(lat)*sin(uSunLat) + cos(lat)*cos(uSunLat)*cos(lng - uSunLng);
-           float day = smoothstep(-0.10, 0.13, cosC);
+           float day = smoothstep(-0.22, 0.22, cosC);                  // wide, symmetric twilight → gentle black-to-light fade
            vec3 nite = pow(texture2D(nightTex, vGeo).rgb, vec3(2.2)) * vec3(1.15,1.02,0.72) * 2.1;
            vec3 col = mix(nite, diffuseColor.rgb, day);
-           float dusk = (1.0 - smoothstep(0.0, 0.28, abs(cosC))) * (1.0 - day);
-           col += vec3(0.20,0.09,0.03) * dusk;                          // sunset rim
            float latA = abs(vGeo.y - 0.5) * 2.0;                        // 0 at equator, 1 at pole
            float band = smoothstep(0.72,0.80,latA) * (1.0 - smoothstep(0.92,0.99,latA));
            col += vec3(0.16,1.0,0.55) * auroraF(vGeo, uTime) * band * (1.0 - day) * 0.9;
