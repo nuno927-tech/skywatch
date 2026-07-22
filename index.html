@@ -172,9 +172,10 @@
     box-shadow:0 0 22px rgba(90,209,255,.12) inset}
   #ld-spin{position:absolute;inset:0;animation:ld-orbit 7s linear infinite;transform-origin:50% 50%;
     will-change:transform}
-  #ld-sat{position:absolute;left:50%;top:0;width:34px;height:34px;margin:-17px 0 0 -17px;
+  #ld-sat{position:absolute;left:50%;top:0;width:56px;height:31px;margin:-15.5px 0 0 -28px;
     transform:scaleY(2.94);display:flex;align-items:center;justify-content:center;
-    font-size:24px;line-height:1;filter:drop-shadow(0 0 10px rgba(90,209,255,.8))}
+    filter:drop-shadow(0 0 9px rgba(90,209,255,.7)) drop-shadow(0 2px 5px rgba(0,0,0,.65))}
+  #ld-sat svg{width:100%;height:100%;display:block}
   @keyframes ld-orbit{to{transform:rotate(360deg)}}
   /* Neon tube lettering: a white-hot core inside widening halos of the tube colour,
      plus a dark drop so the sign sits against the sky instead of floating on it. */
@@ -2555,7 +2556,44 @@
   <div id="ld-art">
     <div id="ld-orbit">
       <div id="ld-ring"></div>
-      <div id="ld-spin"><div id="ld-sat">🛰️</div></div>
+      <div id="ld-spin"><div id="ld-sat"><svg viewBox="0 0 80 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="lsPanel" x1="0" y1="0" x2="0.15" y2="1">
+          <stop offset="0" stop-color="#3568ad"/><stop offset=".5" stop-color="#1c447f"/><stop offset="1" stop-color="#0c264c"/>
+        </linearGradient>
+        <linearGradient id="lsSheen" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#cdeaff" stop-opacity="0"/><stop offset=".5" stop-color="#cdeaff" stop-opacity=".45"/><stop offset="1" stop-color="#cdeaff" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="lsFoil" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffe9ad"/><stop offset=".4" stop-color="#e6ad52"/><stop offset="1" stop-color="#7f531d"/>
+        </linearGradient>
+        <radialGradient id="lsDish" cx=".38" cy=".3" r=".8">
+          <stop offset="0" stop-color="#f2f5fa"/><stop offset=".6" stop-color="#c3ccd9"/><stop offset="1" stop-color="#8b95a6"/>
+        </radialGradient>
+      </defs>
+      <!-- solar wings -->
+      <g stroke="#0a1f42" stroke-width=".7">
+        <rect x="2" y="15.5" width="24" height="13" rx="1.4" fill="url(#lsPanel)"/>
+        <rect x="54" y="15.5" width="24" height="13" rx="1.4" fill="url(#lsPanel)"/>
+      </g>
+      <g stroke="#4a7cc0" stroke-width=".45" opacity=".7">
+        <path d="M8 15.5v13M14 15.5v13M20 15.5v13M2 22h24"/>
+        <path d="M60 15.5v13M66 15.5v13M72 15.5v13M54 22h24"/>
+      </g>
+      <rect x="2" y="15.5" width="24" height="13" rx="1.4" fill="url(#lsSheen)"/>
+      <rect x="54" y="15.5" width="24" height="13" rx="1.4" fill="url(#lsSheen)"/>
+      <!-- struts -->
+      <path d="M26 22h5.5M48.5 22h5.5" stroke="#c2a463" stroke-width="1.5"/>
+      <!-- dish -->
+      <line x1="40" y1="7" x2="40" y2="14" stroke="#9aa2b0" stroke-width="1.1"/>
+      <ellipse cx="40" cy="6.4" rx="6.2" ry="3.1" fill="url(#lsDish)" stroke="#79808f" stroke-width=".6"/>
+      <ellipse cx="40" cy="6.4" rx="2.6" ry="1.3" fill="#9099a8"/>
+      <!-- foil body -->
+      <rect x="31" y="12.5" width="18" height="19" rx="2.6" fill="url(#lsFoil)" stroke="#5f3f13" stroke-width=".9"/>
+      <rect x="32.6" y="14.2" width="5" height="15.5" rx="1.4" fill="#fff6da" opacity=".38"/>
+      <path d="M40 12.5v19M31 20.5h18M31 25.5h18" stroke="#835420" stroke-width=".4" opacity=".55"/>
+      <rect x="31" y="12.5" width="18" height="19" rx="2.6" fill="none" stroke="#8fe3ff" stroke-width=".5" opacity=".5"/>
+    </svg></div></div>
     </div>
     <h1 id="ld-word"><span class="sky">Sky</span><span class="wm">W<span id="ld-a">a</span>tch</span></h1>
   </div>
@@ -2583,7 +2621,7 @@
 </script>
 
 <script>
-const BUILD = 'v166';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v167';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -4245,6 +4283,7 @@ function idfVerdict(r, wantAz){
 
 /* ---------- Location ---------- */
 const ME_ZOOM = 1.15;   // how tightly the camera centres on your location
+const EARTH_ZOOM = 2.5; // pulled back far enough to frame the whole planet
 
 // globe.gl's built-in animated pointOfView transition does not progress in this
 // build, so we animate the camera ourselves frame-by-frame (instant moves work).
@@ -4298,13 +4337,18 @@ function setObserver(lat,lng,recenter,source,accM){
   scanAlerts();
   shareLocation();
 }
-// Bottom-right location button: get your location if needed, then centre on it.
+// Bottom-right location button: get your location if needed, then toggle between focusing on
+// it and pulling back to view the whole Earth.
 function flyToMe(){
-  if(observer){
-    flyTo(observer.lat, observer.lng, ME_ZOOM, 900);
-  } else {
-    requestLocation();      // fetches an exact fix, then centres via setObserver
-  }
+  if(!observer){ requestLocation(); return; }   // fetches an exact fix, then centres via setObserver
+  let focused=false;
+  try{
+    const p=world.pointOfView();
+    const dLng=Math.abs(((p.lng-observer.lng+540)%360)-180);   // shortest angular distance
+    focused = p.altitude < (ME_ZOOM+EARTH_ZOOM)/2 && Math.abs(p.lat-observer.lat)<6 && dLng<6;
+  }catch(e){}
+  // Already zoomed in on you → pull back to the whole planet; otherwise → focus on you.
+  flyTo(observer.lat, observer.lng, focused ? EARTH_ZOOM : ME_ZOOM, 900);
 }
 function requestLocation(){
   if(!navigator.geolocation){ showErr('Geolocation is not available in this browser.'); return; }
