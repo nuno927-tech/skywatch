@@ -612,6 +612,30 @@
   .fmsg-btn.go{background:rgba(87,224,138,.16);border-color:rgba(87,224,138,.5);color:rgb(150,240,185)}
   .fmsg-btn.go:hover{background:rgba(87,224,138,.28)}
   .fmsg-btn.go:disabled{opacity:.4;cursor:default}
+  /* Admin · Stats dashboard */
+  .ast-h{margin:18px 0 6px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgb(var(--neon-c));opacity:.92}
+  .ast-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));gap:8px;margin:6px 0}
+  .ast-kpi{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;padding:9px 8px;text-align:center}
+  .ast-kpi b{display:block;font-size:19px;font-weight:800;color:var(--text);line-height:1.1}
+  .ast-kpi span{font-size:10px;color:var(--muted);letter-spacing:.02em}
+  .ast-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:11px 12px;margin:8px 0}
+  .ast-cap{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px}
+  .ast-svg{width:100%;display:block;overflow:visible}
+  .ast-note{font-size:11px;color:var(--muted);margin:6px 2px 2px;line-height:1.4}
+  .ast-donut{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ast-donut-c{fill:var(--text);font-size:20px;font-weight:800}
+  .ast-leg{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--text);min-width:0}
+  .ast-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle}
+  .ast-bars{display:flex;flex-direction:column;gap:7px}
+  .ast-bar{display:grid;grid-template-columns:minmax(60px,32%) 1fr auto;align-items:center;gap:8px;font-size:12px}
+  .ast-bl{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ast-bt{height:9px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
+  .ast-bf{display:block;height:100%;border-radius:6px}
+  .ast-bv{color:var(--muted);font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+  .ast-map{width:100%;display:block;border-radius:8px;margin-bottom:8px}
+  .ast-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+  .ast-asof{font-size:11px;color:var(--muted);margin-right:auto}
+  .ast-tbtn{width:auto;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:8px 12px}
   #snapbtn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px;width:100%;
     padding:11px;border-radius:11px;border:1px solid var(--border);background:rgba(120,160,255,.08);
     color:var(--text);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
@@ -2686,7 +2710,7 @@
 </script>
 
 <script>
-const BUILD = 'v179';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v180';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -6404,34 +6428,176 @@ async function admRenderFlags(pane){
   });
 }
 /* ---- 11: aggregate stats ---- */
+/* ================= Admin · Stats dashboard =================
+   Hand-rolled inline-SVG charts (no chart library, so it works offline via the SW).
+   Reads are bounded and admin-only; this panel is opened rarely, so a few thousand
+   reads per open is acceptable. Change the range chips to widen/narrow the window. */
+const AST_RANGES=[['7d',7*86400000,'7 days'],['30d',30*86400000,'30 days'],['90d',90*86400000,'90 days'],['all',null,'All time']];
+const AST_KIND={ sat:{c:'#5ad1ff',l:'Satellites'}, launch:{c:'#ffd34d',l:'Launches'}, uap:{c:'#c58cff',l:'UAP'} };
+let admStatsRange='30d';
+
+// ---- tiny SVG chart helpers ----
+function astLine(vals){
+  const w=320,h=84,pad=4,n=vals.length;
+  if(!n) return '<div class="ast-note">No data in range.</div>';
+  const max=Math.max(1,...vals), iw=w-pad*2, ih=h-pad*2;
+  const X=i=> pad+(n===1?iw/2:(i/(n-1))*iw), Y=v=> pad+ih-(v/max)*ih;
+  const pts=vals.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1));
+  const line='M'+pts.join(' L');
+  const area=line+' L'+X(n-1).toFixed(1)+','+(pad+ih)+' L'+X(0).toFixed(1)+','+(pad+ih)+' Z';
+  return '<svg class="ast-svg" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" height="'+h+'">'+
+    '<path d="'+area+'" fill="rgb(var(--neon-c))" opacity="0.13"/>'+
+    '<path d="'+line+'" fill="none" stroke="rgb(var(--neon-c))" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+function astDonut(segs){
+  segs=segs.filter(s=>s.v>0);
+  const total=segs.reduce((s,x)=>s+x.v,0);
+  if(!total) return '<div class="ast-note">No data in range.</div>';
+  const rr=42,sw=16,circ=2*Math.PI*rr; let off=0;
+  const arcs=segs.map(s=>{ const dash=(s.v/total)*circ;
+    const el='<circle cx="60" cy="60" r="'+rr+'" fill="none" stroke="'+s.c+'" stroke-width="'+sw+'"'+
+      ' stroke-dasharray="'+dash.toFixed(2)+' '+(circ-dash).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'"/>';
+    off+=dash; return el; }).join('');
+  const legend='<div class="ast-leg">'+segs.map(s=>'<span><i style="background:'+s.c+'"></i>'+
+    esc(s.l)+' · '+s.v.toLocaleString()+' ('+Math.round(s.v/total*100)+'%)</span>').join('')+'</div>';
+  return '<div class="ast-donut"><svg viewBox="0 0 120 120" width="120" height="120">'+
+    '<g transform="rotate(-90 60 60)">'+arcs+'</g>'+
+    '<text x="60" y="60" text-anchor="middle" dominant-baseline="central" class="ast-donut-c">'+total.toLocaleString()+'</text>'+
+    '</svg>'+legend+'</div>';
+}
+function astBars(items,color){
+  if(!items.length) return '<div class="ast-note">No data in range.</div>';
+  const max=Math.max(...items.map(i=>i.v)); color=color||'rgb(var(--neon-c))';
+  return '<div class="ast-bars">'+items.map(i=>
+    '<div class="ast-bar"><span class="ast-bl">'+esc(i.label)+'</span>'+
+    '<span class="ast-bt"><span class="ast-bf" style="width:'+Math.max(3,i.v/max*100).toFixed(1)+'%;background:'+color+'"></span></span>'+
+    '<span class="ast-bv">'+i.v.toLocaleString()+'</span></div>').join('')+'</div>';
+}
+function astMap(points){
+  const w=320,h=160;
+  if(!points.length) return '<div class="ast-note">No location-sharing users yet.</div>';
+  const dots=points.map(p=>{ const x=((p.lng+180)/360)*w, y=((90-p.lat)/180)*h;
+    return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.4" fill="rgb(var(--neon-c))" opacity="0.8"/>'; }).join('');
+  return '<svg class="ast-map" viewBox="0 0 '+w+' '+h+'" height="'+h+'">'+
+    '<rect width="'+w+'" height="'+h+'" rx="8" fill="rgba(90,140,220,.06)"/>'+
+    '<line x1="0" y1="'+(h/2)+'" x2="'+w+'" y2="'+(h/2)+'" stroke="rgba(255,255,255,.12)"/>'+
+    '<line x1="'+(w/2)+'" y1="0" x2="'+(w/2)+'" y2="'+h+'" stroke="rgba(255,255,255,.12)"/>'+dots+'</svg>';
+}
+// Very rough continent bucketing from lat/lng — enough for a tally, not a border-accurate map.
+function astContinent(lat,lng){
+  if(lat<-56) return 'Antarctica';
+  if(lng>=-170&&lng<=-50&&lat>=13) return 'N. America';
+  if(lng>=-90&&lng<=-33&&lat<13) return 'S. America';
+  if(lng>=-25&&lng<=45&&lat>=35) return 'Europe';
+  if(lng>=-20&&lng<=52&&lat<35) return 'Africa';
+  if(lng>=110&&lng<=180&&lat<=0) return 'Oceania';
+  if(lng>=45&&lat>=0) return 'Asia';
+  return 'Other';
+}
+function astExportCSV(rows){
+  const q=v=>{ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const cols=['ts','date_iso','username','kind','name','id','sid','how','n'];
+  const lines=[cols.join(',')].concat(rows.map(r=>[r.ts||'', r.ts?new Date(r.ts).toISOString():'',
+    r.username||'', r.kind||'', r.name||'', r.id||'', r.sid||'', r.how||'', r.n||''].map(q).join(',')));
+  const blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download='skywatch-sightings-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function astGroupTop(rows, keyFn, labelFn, n){
+  const m=new Map();
+  for(const r of rows){ const k=keyFn(r); if(k==null||k==='') continue; const e=m.get(k)||{label:labelFn(r),v:0}; e.v++; m.set(k,e); }
+  return [...m.values()].sort((a,b)=>b.v-a.v).slice(0,n||10);
+}
+
 async function admRenderStats(pane){
-  pane.innerHTML='<div class="fr-note">Counting…</div>';
-  const {db, collection, getCountFromServer, query, where}=window.fb;
-  const now=Date.now();
-  // Each count is independent: one denied collection shouldn't blank the whole panel,
-  // and the error tells you exactly which rule is missing.
-  const ask=async (label, q)=>{
-    try{ const r=await getCountFromServer(q); return {label, n:r.data().count}; }
-    catch(e){ return {label, n:null, err:(e && (e.code||e.message))||'failed'}; }
-  };
-  const res=await Promise.all([
-    ask('accounts',       collection(db,'usernames')),
-    ask('active 24h',     query(collection(db,'presence'), where('ts','>', now-86400000))),
-    ask('feed posts',     collection(db,'feed')),
-    ask('sightings 7d',   query(collection(db,'feed'), where('ts','>', now-7*86400000))),
-    ask('reports',        collection(db,'feedback')),
+  if(!window.fb){ pane.innerHTML='<div class="fr-note">Sign-in still loading.</div>'; return; }
+  const {db, collection, getCountFromServer, query, where, orderBy, limit, getDocs}=window.fb;
+  const now=Date.now(), range=AST_RANGES.find(r=>r[0]===admStatsRange)||AST_RANGES[1], rangeMs=range[1];
+  const chips='<div class="idf-chips ast-range">'+AST_RANGES.map(r=>
+    '<button data-r="'+r[0]+'"'+(admStatsRange===r[0]?' class="on"':'')+'>'+r[2]+'</button>').join('')+'</div>';
+  pane.innerHTML=chips+'<div class="fr-note">Crunching the numbers…</div>';
+  pane.querySelectorAll('.ast-range button').forEach(b=>b.onclick=()=>{ admStatsRange=b.dataset.r; admRenderStats(pane); });
+
+  const ask=async(q)=>{ try{ return (await getCountFromServer(q)).data().count; }catch(e){ return null; } };
+  const errs=[];
+  const load=async(what,p)=>{ try{ return await p; }catch(e){ errs.push(what+': '+(e.code||e.message||'failed')); return null; } };
+  const feedQ = rangeMs ? query(collection(db,'feed'), where('ts','>', now-rangeMs), orderBy('ts','desc'), limit(4000))
+                        : query(collection(db,'feed'), orderBy('ts','desc'), limit(4000));
+  const [accounts, active24h, reports, feedSnap, usersSnap, profSnap] = await Promise.all([
+    ask(collection(db,'usernames')),
+    ask(query(collection(db,'presence'), where('ts','>', now-86400000))),
+    ask(collection(db,'feedback')),
+    load('feed', getDocs(feedQ)),
+    load('users', getDocs(query(collection(db,'users'), limit(8000)))),
+    load('profiles', getDocs(query(collection(db,'profiles'), limit(8000)))),
   ]);
-  const cell=r=> '<div><b>'+(r.n==null?'—':r.n.toLocaleString())+'</b><span>'+r.label+'</span></div>';
-  const failed=res.filter(r=>r.n==null);
-  pane.innerHTML=
-    '<div class="usr-stats">'+res.slice(0,3).map(cell).join('')+'</div>'+
-    '<div class="usr-stats">'+res.slice(3).map(cell).join('')+
-      '<div><b>'+((LAUNCHES||[]).length)+'</b><span>launches</span></div></div>'+
-    (failed.length
-      ? '<div class="fr-note">'+failed.map(r=>esc(r.label)+': '+esc(r.err)).join('<br>')+
-        '<br><br>A denied count almost always means the published Firestore rules don’t list your UID. '+
-        'Check <b>Developer → Your UID</b> against the <code>bootstrapAdmin()</code> line in your rules.</div>'
-      : '');
+  const feed = feedSnap ? feedSnap.docs.map(d=>d.data()) : [];
+  const users = usersSnap ? usersSnap.docs.map(d=>d.data()) : [];
+  const profs = profSnap ? profSnap.docs.map(d=>d.data()) : [];
+
+  // ---- headline KPIs ----
+  const kpi=(v,l)=> '<div class="ast-kpi"><b>'+(v==null?'—':v.toLocaleString())+'</b><span>'+l+'</span></div>';
+  const kpis='<div class="ast-kpis">'+
+    kpi(accounts,'accounts')+kpi(active24h,'active · 24h')+kpi(feed.length,'sightings · '+range[2].toLowerCase())+
+    kpi(reports,'reports')+kpi((LAUNCHES||[]).length,'launches tracked')+'</div>';
+
+  // ---- sightings analytics ----
+  const spanMs = rangeMs || Math.max(86400000, now-(feed.reduce((m,f)=>Math.min(m,f.ts||now),now)));
+  let bucketMs=86400000; if(spanMs/86400000>120) bucketMs=7*86400000;
+  const start=now-spanMs, nB=Math.max(1,Math.ceil(spanMs/bucketMs)), trend=new Array(nB).fill(0);
+  for(const f of feed){ if(!f.ts||f.ts<start) continue; trend[Math.min(nB-1,Math.floor((f.ts-start)/bucketMs))]++; }
+  const kindSegs=Object.keys(AST_KIND).map(k=>({v:feed.filter(f=>f.kind===k).length, c:AST_KIND[k].c, l:AST_KIND[k].l}));
+  const topObjects=astGroupTop(feed, f=>f.name, f=>f.name, 8);
+  const topObservers=astGroupTop(feed, f=>f.uid||f.username, f=>'@'+(f.username||'user'), 8);
+  const sightings='<div class="ast-h">🛰 Sightings analytics</div>'+
+    '<div class="ast-card"><div class="ast-cap">Sightings over time · per '+(bucketMs>86400000?'week':'day')+'</div>'+astLine(trend)+'</div>'+
+    '<div class="ast-card"><div class="ast-cap">By type</div>'+astDonut(kindSegs)+'</div>'+
+    '<div class="ast-card"><div class="ast-cap">Most-watched objects</div>'+astBars(topObjects,'#5ad1ff')+'</div>'+
+    '<div class="ast-card"><div class="ast-cap">Top observers</div>'+astBars(topObservers,'rgb(var(--neon-c))')+'</div>';
+
+  // ---- push & cost ----
+  const pushOn=users.filter(u=>u&&u.push).length, uTot=users.length||0;
+  const queued=users.reduce((s,u)=>s+((u&&Array.isArray(u.alertSchedule))?u.alertSchedule.length:0),0);
+  const awaiting=users.filter(u=>u&&u.nextAlert).length;
+  const HORIZON_DAYS=(typeof PUSH_HORIZON==='number'?PUSH_HORIZON:172800000)/86400000;
+  const monthlyReads=Math.round(queued*(30/Math.max(0.5,HORIZON_DAYS)));   // optimized model: ~1 read per fired alert
+  const billable=Math.max(0, monthlyReads-1500000), estCost=billable*0.0000006;
+  const adoptSeg=[{v:pushOn,c:'#57e08a',l:'Push on'},{v:Math.max(0,uTot-pushOn),c:'rgba(255,255,255,.14)',l:'Push off'}];
+  const pushSec='<div class="ast-h">🔔 Push &amp; cost</div>'+
+    '<div class="ast-card"><div class="ast-cap">Adoption · '+pushOn.toLocaleString()+' of '+uTot.toLocaleString()+
+      ' users ('+(uTot?Math.round(pushOn/uTot*100):0)+'%)</div>'+astDonut(adoptSeg)+'</div>'+
+    '<div class="ast-kpis">'+kpi(queued,'alerts queued (≤48h)')+kpi(awaiting,'users awaiting')+
+      '<div class="ast-kpi"><b>'+(estCost<0.01?'~$0':('$'+estCost.toFixed(2)))+'</b><span>est. push reads /mo</span></div></div>'+
+    '<div class="ast-note">Cost is the optimized <code>nextAlert</code> model (reads ≈ alerts fired, not users×minutes). '+monthlyReads.toLocaleString()+' est. reads/mo vs 1.5M free.</div>';
+
+  // ---- users & geography ----
+  const pts=profs.filter(p=>p&&typeof p.lat==='number'&&typeof p.lng==='number'&&isFinite(p.lat)&&isFinite(p.lng))
+                 .map(p=>({lat:p.lat,lng:p.lng}));
+  const cont=new Map(); for(const p of pts){ const c=astContinent(p.lat,p.lng); cont.set(c,(cont.get(c)||0)+1); }
+  const contBars=[...cont.entries()].map(([label,v])=>({label,v})).sort((a,b)=>b.v-a.v);
+  const perUser=new Map(); for(const f of feed){ const k=f.uid||f.username; if(k) perUser.set(k,(perUser.get(k)||0)+1); }
+  const dist=[['1',0],['2–5',0],['6–20',0],['21+',0]];
+  for(const c of perUser.values()){ dist[c>=21?3:c>=6?2:c>=2?1:0][1]++; }
+  const geoSec='<div class="ast-h">🌍 Users &amp; geography</div>'+
+    '<div class="ast-card"><div class="ast-cap">Where location-sharing users are · '+pts.length.toLocaleString()+' pins</div>'+
+      astMap(pts)+(contBars.length?astBars(contBars,'#57e08a'):'')+'</div>'+
+    '<div class="ast-card"><div class="ast-cap">Sightings per user (engagement shape)</div>'+
+      astBars(dist.map(([label,v])=>({label,v})),'#c58cff')+'</div>'+
+    '<div class="ast-note">Locations are the fuzzed coordinates users chose to share; only opted-in users appear.</div>';
+
+  // ---- tools row ----
+  const tools='<div class="ast-tools"><span class="ast-asof">as of '+new Date(now).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+
+    ' · '+feed.length.toLocaleString()+' sightings loaded</span>'+
+    '<button class="idf-uap ast-tbtn" id="ast-refresh">↻ Refresh</button>'+
+    '<button class="idf-uap ast-tbtn" id="ast-csv">📦 Export sightings CSV</button></div>';
+
+  pane.innerHTML=chips+kpis+sightings+pushSec+geoSec+tools+
+    (errs.length?'<div class="fr-note">Some data couldn’t load: '+errs.map(esc).join('; ')+
+      '.<br>A denied read usually means the published rules don’t list your UID — check <b>Developer → Your UID</b> against <code>bootstrapAdmin()</code>.</div>':'');
+  pane.querySelectorAll('.ast-range button').forEach(b=>b.onclick=()=>{ admStatsRange=b.dataset.r; admRenderStats(pane); });
+  const rf=$('ast-refresh'); if(rf) rf.onclick=()=>admRenderStats(pane);
+  const cv=$('ast-csv'); if(cv) cv.onclick=()=>astExportCSV(feed);
 }
 /* ---- adding more admins ---- */
 async function admRenderAdmins(pane){
