@@ -2296,25 +2296,12 @@
   </div>
   <div class="stg-sec">Passes &amp; alerts</div>
   <div class="stg">
-    <div class="lbl">Overhead cutoff<small>Min. elevation to list a pass</small></div>
-    <div class="seg" id="seg-cutoff">
-      <button data-v="0">0°</button>
-      <button data-v="10">10°</button>
-      <button data-v="25">25°</button>
-    </div>
-  </div>
-  <div class="stg">
-    <div class="lbl">Alerts<small>Visible night passes &amp; rocket launches</small></div>
+    <div class="lbl">In-app alerts<small>Visible night passes &amp; rocket launches</small></div>
     <div class="switch" id="sw-notify" role="switch"></div>
   </div>
-  <div class="stg">
-    <div class="lbl">Only alert me for<small>Minimum peak elevation</small></div>
-    <div class="seg" id="seg-alertel">
-      <button data-v="0">Any</button>
-      <button data-v="30">30°</button>
-      <button data-v="50">50°</button>
-      <button data-v="70">70°</button>
-    </div>
+  <div class="stg" id="stg-push">
+    <div class="lbl">Background alerts<small id="push-sub">Arrive with the app closed &mdash; and on your watch</small></div>
+    <div class="switch" id="sw-push" role="switch"></div>
   </div>
   <div class="stg">
     <div class="lbl">Quiet hours<small>No alerts overnight</small></div>
@@ -2329,9 +2316,22 @@
       <button data-v="1-8">1a&ndash;8a</button>
     </div>
   </div>
-  <div class="stg" id="stg-push">
-    <div class="lbl">Background alerts<small id="push-sub">Arrive with the app closed &mdash; and on your watch</small></div>
-    <div class="switch" id="sw-push" role="switch"></div>
+  <div class="stg">
+    <div class="lbl">Only alert me for<small>How high a pass must climb to alert you</small></div>
+    <div class="seg" id="seg-alertel">
+      <button data-v="0">Any</button>
+      <button data-v="30">30°</button>
+      <button data-v="50">50°</button>
+      <button data-v="70">70°</button>
+    </div>
+  </div>
+  <div class="stg">
+    <div class="lbl">Overhead cutoff<small>Lowest pass shown in the lists</small></div>
+    <div class="seg" id="seg-cutoff">
+      <button data-v="0">0°</button>
+      <button data-v="10">10°</button>
+      <button data-v="25">25°</button>
+    </div>
   </div>
   <div id="notify-groups">
     <div class="ng-h">Alert me for</div>
@@ -2724,7 +2724,7 @@
 </script>
 
 <script>
-const BUILD = 'v186';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v188';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
