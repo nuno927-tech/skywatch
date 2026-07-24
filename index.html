@@ -745,6 +745,12 @@
     0%{box-shadow:0 0 0 2px rgba(255,205,70,.95),0 0 24px rgba(255,205,70,.6)}
     100%{box-shadow:0 0 0 0 rgba(255,205,70,0)} }
   @media (prefers-reduced-motion: reduce){ .nt-trophy{animation:none} }
+  /* Cloud-cover badge on a pass (traffic-light: clear→green, cloudy→red) + hero outlook */
+  .nt-cl{font-weight:700;white-space:nowrap}
+  .nt-cl.clear{color:#57e08a}
+  .nt-cl.part{color:#ffd34d}
+  .nt-cl.cloudy{color:#ff7a6b}
+  .nt-cloudnote{font-size:12.5px;font-weight:600;color:var(--text);margin:2px 2px 8px}
   .nt-filter{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0 4px}
   .nt-filter button{font-size:12.5px}
   /* Where you are in tonight's schedule */
@@ -2303,6 +2309,10 @@
     <div class="lbl">Background alerts<small id="push-sub">Arrive with the app closed &mdash; and on your watch</small></div>
     <div class="switch" id="sw-push" role="switch"></div>
   </div>
+  <div class="stg" id="stg-digest">
+    <div class="lbl">Nightly digest<small>One evening summary of tonight&rsquo;s best passes &middot; needs Background alerts</small></div>
+    <div class="switch" id="sw-digest" role="switch"></div>
+  </div>
   <div class="stg">
     <div class="lbl">Quiet hours<small>No alerts overnight</small></div>
     <div class="switch" id="sw-quiet" role="switch"></div>
@@ -2724,7 +2734,7 @@
 </script>
 
 <script>
-const BUILD = 'v188';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v189';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -2818,7 +2828,7 @@ const prefs = { units:'metric', time:'24', autorotate:true, issPath:true, cutoff
   // Privacy — every one of these defaults to the least surprising option.
   shareFeed:true, shareLoc:true, locPrecise:true, listed:true, ranked:true,
   // Alerts
-  alertMinEl:0, quietFrom:1, quietTo:6, quiet:false,
+  alertMinEl:0, quietFrom:1, quietTo:6, quiet:false, digest:true,
   // Display + data
   nightMode:false, dataSaver:false };
 // Favorites (starred sats) + client-side filters (no network).
@@ -4240,6 +4250,9 @@ function buildAlertSchedule(cb){
   if(!observer || !prefs.notify){ cb(out); return; }
   const objs=alertObjects();
   const now=Date.now(), end=now+PUSH_HORIZON;
+  const win = tonightWindow(now);                          // for the nightly digest (piggybacks this scan)
+  const digestMinEl = Math.max(30, prefs.alertMinEl||0);
+  const digestRows=[];
   let i=0;
   (function chunk(){
     const t0=performance.now();
@@ -4247,6 +4260,9 @@ function buildAlertSchedule(cb){
       const s=objs[i++];
       let n=0;
       for(const p of satVisiblePasses(s.satrec, now, end, 60000)){
+        // Collect tonight's good passes for the digest — no extra propagation needed.
+        if(prefs.digest && win && p.visible && p.start>=win.start && p.start<=win.end && p.peakEl>=digestMinEl)
+          digestRows.push({name:s.name, id:s.id, start:p.start, peakEl:p.peakEl});
         if(!p.visible || p.start<=now+ALERT_LEAD_MS) continue;
         if(!alertWorthy(p) || inQuietHours(p.start-ALERT_LEAD_MS)) continue;
         const mins=Math.max(1,Math.round((p.end-p.start)/60000));
@@ -4263,8 +4279,28 @@ function buildAlertSchedule(cb){
     }
     if(i<objs.length) return setTimeout(chunk,30);
     out.sort((a,b)=>a.t-b.t);
-    cb(out.slice(0,PUSH_MAX));
+    const final = out.slice(0, PUSH_MAX);
+    const dg = buildDigestEntry(now, win, digestRows);     // one evening summary, appended after the cap
+    if(dg){ final.push(dg); final.sort((a,b)=>a.t-b.t); }
+    cb(final);
   })();
+}
+// One "tonight's sky" summary, fired ~45 min before dusk (or shortly if we're already near it).
+function buildDigestEntry(now, win, rows){
+  if(!prefs.digest || !win || !rows.length) return null;
+  const fireT = win.start - 45*60000;                      // ~45 min before dusk
+  // Only schedule if that moment is still ahead — otherwise a rebuild after dusk would
+  // keep re-adding (and re-firing) it. If you first open the app after dusk, no digest today.
+  if(fireT <= now+60000 || fireT >= win.end || inQuietHours(fireT)) return null;
+  const best=new Map();
+  for(const r of rows){ const b=best.get(r.id); if(!b || r.peakEl>b.peakEl) best.set(r.id, r); }
+  const all=[...best.values()];
+  const top=all.slice().sort((a,b)=>b.peakEl-a.peakEl).slice(0,3).sort((a,b)=>a.start-b.start);
+  const clean=nm=>String(nm||'').replace(/\s*\(.*/,'').trim();
+  const parts=top.map(r=>clean(r.name)+' '+fmtPassTime(r.start)+' ('+Math.round(r.peakEl)+'°)');
+  return { t:fireT, title:'🌌 Tonight’s sky',
+    body: all.length+' pass'+(all.length>1?'es':'')+' worth a look — '+parts.join(', '),
+    tag:'digest-'+dayStr(win.start), data:{type:'digest'} };
 }
 let schedTimer=null, schedLast=0;
 function syncAlertSchedule(force){
@@ -5761,9 +5797,11 @@ function applyPrefs(){
   if($('sw-sounds')) $('sw-sounds').classList.toggle('on', prefs.sounds);
   if($('sw-vibrate')) $('sw-vibrate').classList.toggle('on', prefs.vibrate && HAPTIC_OK);
   const SW={ 'sw-sharefeed':'shareFeed', 'sw-shareloc':'shareLoc', 'sw-precise':'locPrecise',
-             'sw-listed':'listed', 'sw-ranked':'ranked', 'sw-quiet':'quiet',
+             'sw-listed':'listed', 'sw-ranked':'ranked', 'sw-quiet':'quiet', 'sw-digest':'digest',
              'sw-night':'nightMode', 'sw-datasaver':'dataSaver' };
   for(const id in SW){ const el=$(id); if(el) el.classList.toggle('on', !!prefs[SW[id]]); }
+  // The nightly digest only reaches you through Background alerts — dim it when push is off.
+  const dg=$('stg-digest'); if(dg) dg.classList.toggle('stg-off', !prefs.push);
   // Precision only means anything while you're sharing at all.
   const pr=$('stg-precise'); if(pr) pr.classList.toggle('stg-off', !prefs.shareLoc);
   // 0.1° of latitude is about 11.1 km — quote it in whichever units are selected.
@@ -5824,6 +5862,7 @@ function initSettingsUI(){
   bind('sw-listed','listed', ()=>{ syncVisibility(); renderDirectory(); });
   bind('sw-ranked','ranked', ()=>{ syncVisibility(); renderLeaderboard(); });
   bind('sw-quiet','quiet');
+  bind('sw-digest','digest', ()=>{ if(prefs.push) syncAlertSchedule(true); });   // re-upload so the digest entry is (un)scheduled
   bind('sw-night','nightMode');
   bind('sw-datasaver','dataSaver');
   document.querySelectorAll('#seg-alertel button').forEach(b=>b.onclick=()=>{
@@ -6992,7 +7031,7 @@ function collectSettings(){
     notify: prefs.notify, notifyGroups: prefs.notifyGroups, favs: prefs.favs, theme: prefs.theme, borders: prefs.borders, sounds: prefs.sounds, vibrate: prefs.vibrate, push: prefs.push,
     shareFeed: prefs.shareFeed, shareLoc: prefs.shareLoc, locPrecise: prefs.locPrecise,
     listed: prefs.listed, ranked: prefs.ranked,
-    alertMinEl: prefs.alertMinEl, quiet: prefs.quiet, quietFrom: prefs.quietFrom, quietTo: prefs.quietTo,
+    alertMinEl: prefs.alertMinEl, quiet: prefs.quiet, quietFrom: prefs.quietFrom, quietTo: prefs.quietTo, digest: prefs.digest,
     nightMode: prefs.nightMode, dataSaver: prefs.dataSaver,
     sightLog: sightLog.slice(-SLOG_MAX),   // private: users/{uid} is owner-only
     updatedAt: Date.now() };
@@ -7025,7 +7064,7 @@ function applySettings(s){
     if(typeof s.sounds==='boolean') prefs.sounds=s.sounds;
     if(typeof s.vibrate==='boolean') prefs.vibrate=s.vibrate;
     if(typeof s.push==='boolean') prefs.push=s.push;
-    ['shareFeed','shareLoc','locPrecise','listed','ranked','quiet','nightMode','dataSaver']
+    ['shareFeed','shareLoc','locPrecise','listed','ranked','quiet','nightMode','dataSaver','digest']
       .forEach(k=>{ if(typeof s[k]==='boolean') prefs[k]=s[k]; });
     ['alertMinEl','quietFrom','quietTo'].forEach(k=>{ if(typeof s[k]==='number') prefs[k]=s[k]; });
     mergeSightLog(s.sightLog);   // union device + account sighting history
@@ -8286,11 +8325,46 @@ function planTonight(){
       return t>=now && t<=win.end;
     }).sort((a,b)=>a.net-b.net).slice(0,3);
     markExplored('tonight');
-    ntData={ win, mo:moonInfo(win.start), all, launches };
+    ntData={ win, mo:moonInfo(win.start), all, launches, cloud:null };
     renderNightList();
     markTonightProgress();
     startTonightTicker();
+    // Cloud forecast is best-effort: fetch in the background, then re-render with the badges.
+    if(observer) getCloudCover(observer.lat, observer.lng).then(cl=>{
+      if(cl && ntData){ ntData.cloud=cl; renderNightList(); markTonightProgress(); }
+    });
   }, 40);
+}
+/* Cloud cover per pass — free, key-less hourly forecast from Open-Meteo (same service the
+   location picker already uses). Cached an hour per location; best-effort, never blocks. */
+let cloudCache=null;
+async function getCloudCover(lat, lng){
+  const key=lat.toFixed(2)+','+lng.toFixed(2);
+  if(cloudCache && cloudCache.key===key && Date.now()-cloudCache.at < 3600000) return cloudCache.data;
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(3)+'&longitude='+lng.toFixed(3)+
+      '&hourly=cloud_cover&forecast_days=2&timeformat=unixtime';
+    const r=await fetch(url); if(!r.ok) return null;
+    const j=await r.json();
+    const t=(j.hourly&&j.hourly.time)||[], c=(j.hourly&&j.hourly.cloud_cover)||[];
+    if(!t.length) return null;
+    const data={ t:t.map(x=>x*1000), c };
+    cloudCache={key, at:Date.now(), data};
+    return data;
+  }catch(e){ return null; }
+}
+function cloudAt(cloud, ts){
+  if(!cloud || !cloud.t.length) return null;
+  let bi=0, bd=Infinity;
+  for(let i=0;i<cloud.t.length;i++){ const d=Math.abs(cloud.t[i]-ts); if(d<bd){ bd=d; bi=i; } }
+  if(bd>90*60000) return null;                              // past the forecast horizon
+  const v=cloud.c[bi]; return (typeof v==='number')?v:null;
+}
+function cloudTag(pct){
+  if(pct==null) return '';
+  const cls = pct<30?'clear' : pct<70?'part' : 'cloudy';
+  const ic  = pct<30?'☀️'   : pct<70?'⛅'   : '☁️';
+  return '<span class="nt-cl '+cls+'" title="'+Math.round(pct)+'% cloud at pass time">'+ic+' '+Math.round(pct)+'%</span>';
 }
 /* Render the schedule from the last sweep. Switching quality just re-renders —
    the expensive propagation already happened. */
@@ -8349,6 +8423,16 @@ function renderNightList(){
     '<div class="nt-sub">About '+dur+' hours of usable darkness. Moon '+Math.round(mo.illum*100)+'% lit'+
     (mo.el!=null && mo.el<0 ? ', below the horizon at dusk' : '')+
     (mo.illum>.6 && mo.el!=null && mo.el>10 ? ' — bright enough to wash out faint passes' : '')+'.</div></div>';
+  // Overall cloud outlook for the passes we're about to list.
+  if(ntData.cloud){
+    const cv=list.map(r=>cloudAt(ntData.cloud, r.p.start)).filter(v=>v!=null);
+    if(cv.length){ const avg=cv.reduce((a,b)=>a+b,0)/cv.length;
+      const note = avg<30 ? '☀️ Skies look clear tonight.'
+                 : avg<70 ? '⛅ Partly cloudy — some passes may be washed out.'
+                 : '☁️ Mostly cloudy tonight — viewing will be tough.';
+      h+='<div class="nt-cloudnote">'+note+'</div>';
+    }
+  }
   const superbCount=ntData.all.filter(r=>r.p.peakEl>=70).length;
   h+='<div class="idf-chips nt-filter" id="night-filter">'+
       '<button data-q="all"'+(superbOnly?'':' class="on"')+'>All passes · '+ntData.all.length+'</button>'+
@@ -8366,11 +8450,13 @@ function renderNightList(){
       const mins=Math.max(1,Math.round((r.p.end-r.p.start)/60000));
       const grade=ntGrade(r.p.peakEl);
       const trophy = earnedSet ? trophyTag(achForSat(r.sat, earnedSet)) : '';
+      const clHtml = ntData.cloud ? cloudTag(cloudAt(ntData.cloud, r.p.start)) : '';
       h+='<button class="nt-rank" data-id="'+esc(r.sat.id)+'" data-start="'+r.p.start+'" data-end="'+r.p.end+'">'+
         '<span class="nt-num"></span><span class="nt-body">'+
         '<span class="nt-nm">'+esc(r.sat.name)+'</span>'+
         '<span class="nt-when">'+fmtPassTime(r.p.start)+' · max '+Math.round(r.p.peakEl)+'° · '+
-        azCompass(r.p.startAz)+'→'+azCompass(r.p.endAz)+' · '+mins+' min</span></span>'+
+        azCompass(r.p.startAz)+'→'+azCompass(r.p.endAz)+' · '+mins+' min'+
+        (clHtml?(' · '+clHtml):'')+'</span></span>'+
         trophy+
         '<span class="nt-grade '+grade[0]+'">'+grade[1]+'</span></button>';
     });
