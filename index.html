@@ -3215,7 +3215,7 @@
 </script>
 
 <script>
-const BUILD = 'v258';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v259';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -12492,7 +12492,7 @@ initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); 
     msg.textContent = 'Loading 3D engine…';
     document.querySelectorAll('#ld-steps i').forEach((d,i)=>d.classList.toggle('on', i<1));
     const satMod = await import('satellite.js');
-    const GlobeMod = await import('https://esm.sh/globe.gl@2.32.0');
+    const GlobeMod = await import('https://esm.sh/globe.gl@2.46.2');   // 2.32.0's transitive three-globe drift broke rendering (M.intersectsFrustum); 2.46.2 resolves a coherent three stack
     window.satellite = satMod.default ?? satMod;
     window.Globe = GlobeMod.default ?? GlobeMod;
     try{ window.THREE = await import('https://esm.sh/three@0.160.0'); }   // for the GPU point cloud
