@@ -3215,7 +3215,7 @@
 </script>
 
 <script>
-const BUILD = 'v259';           // shown in Settings and on the loader so you can confirm what's deployed
+const BUILD = 'v260';           // shown in Settings and on the loader so you can confirm what's deployed
 
 /* ---------- Crash log ----------
    Installed before anything else so it catches boot failures too. A silent
@@ -6941,9 +6941,6 @@ function arComputeSky(){
   arSky=out;
 }
 const AR_FOV=42;                                                    // ~84° across ≈ a phone camera
-function hexA(hex, a){ const h=String(hex||'#8ecbff').replace('#','');
-  const s=h.length===3?h.replace(/(.)/g,'$1$1'):h, n=parseInt(s,16);
-  return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')'; }
 function arLabel(ctx, text, x, y, color, bold){
   ctx.font=(bold?'700 ':'600 ')+'13px system-ui,-apple-system,sans-serif';
   ctx.textAlign='left'; ctx.textBaseline='middle';
@@ -12497,6 +12494,15 @@ initMobileUI(); initInstall(); registerSW(); initAccountUI(); initSettingsUI(); 
     window.Globe = GlobeMod.default ?? GlobeMod;
     try{ window.THREE = await import('https://esm.sh/three@0.160.0'); }   // for the GPU point cloud
     catch(te){ console.warn('three unavailable — falling back to HTML markers', te); }
+    // globe.gl renders with a NEWER three.js whose frustum culling calls boundingSphere.intersectsFrustum(),
+    // which r160's Sphere lacks — one culled r160 object throws on the first frame and kills the whole render
+    // loop (black globe, no satellites). Our r160 objects are few and screen-sized, so never cull them.
+    if (window.THREE && window.THREE.Object3D) {
+      try {
+        Object.defineProperty(window.THREE.Object3D.prototype, 'frustumCulled',
+          { configurable:true, get(){ return false; }, set(_v){} });
+      } catch (pe) { console.warn('frustumCulled patch failed', pe); }
+    }
     if (typeof window.Globe !== 'function') throw new Error('globe.gl did not export a factory');
     await boot();
 
